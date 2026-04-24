@@ -465,11 +465,11 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
                 index_dir=WORKDIR / ".design_index",
             )
             design_query = f"{req_path.stem}\n{req_text[:800]}"
-            # 先取较多候选，再按阈值和预算过滤
+            # 先取较多候选，再按阈值和预算过滤，最终注入的是真正相关的段落
             candidates   = design_retriever.search(design_query, top_k=20)
 
-            SCORE_THRESHOLD = 0.60   # 提高阈值，避免不相关内容注入
-            TOKEN_BUDGET    = 4000   # 最多注入的字符数（约1000 token）
+            SCORE_THRESHOLD = 0.60   # 低于此相关度的段落不采用
+            TOKEN_BUDGET    = 4000   # 最多注入的字符数
 
             selected = []
             total_chars = 0
@@ -477,7 +477,7 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
                 if hit["score"] < SCORE_THRESHOLD:
                     break  # 结果已按相关度降序，后面的更低可以直接停
                 if total_chars + len(hit["content"]) > TOKEN_BUDGET:
-                    break  # 超出预算
+                    break
                 selected.append(hit)
                 total_chars += len(hit["content"])
 
@@ -1320,9 +1320,15 @@ def main():
                     s_path = OUTPUT_DIR / f"_sec_{int(time.time()*1000)%1000000}.md"
                     # 检查章节内容是否有实质内容（至少有10行非空行且含中文）
                     content_lines = [l for l in content.splitlines() if l.strip()]
-                    cn_chars = sum(1 for c in content if '一' <= c <= '鿿')
-                    if len(content_lines) < 5 or cn_chars < 50:
-                        print(f"    [跳过] 章节内容过少（{len(content_lines)}行, {cn_chars}个中文字符）")
+                    cn_chars = sum(1 for c in content if '\u4e00' <= c <= '\u9fff')
+                    print(f"    内容: {len(content_lines)}行, {cn_chars}个中文字符", flush=True)
+                    # 跳过条件：非空行少于8行，或中文字符少于100个，或没有具体数字/字段名
+                    has_specific_content = any(
+                        any(kw in line for kw in ["字段", "表", "取值", "逻辑", "计算", "=", "：", "规则"])
+                        for line in content_lines
+                    )
+                    if len(content_lines) < 8 or cn_chars < 100 or not has_specific_content:
+                        print(f"    [跳过] 章节内容不足（行数{len(content_lines)}, 中文{cn_chars}, 有具体内容:{has_specific_content}）")
                         continue
                     s_path.write_text(f"# {title}\n\n{content}", encoding="utf-8")
                     try:

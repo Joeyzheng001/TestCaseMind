@@ -71,9 +71,7 @@ def review_requirement(requirement_path: str) -> str:
         - completeness_issues: 完整性问题
     """
     ag = get_agent()
-    req_path = _resolve_path(requirement_path)
-
-    print(f"[test-agent] 需求评审: {req_path.name}", file=sys.stderr)
+    req_path = _ensure_md(_resolve_path(requirement_path))
 
     try:
         review = ag.stage1_review(req_path)
@@ -108,12 +106,11 @@ def generate_testpoints(
         - testpoints: 测试点列表
     """
     ag = get_agent()
-    req_path = _resolve_path(requirement_path)
+    req_path = _ensure_md(_resolve_path(requirement_path))
     ts   = int(time.time())
     stem = req_path.stem
 
-    print(f"[test-agent] 测试点生成: {req_path.name} (kb={use_knowledge_base})",
-          file=sys.stderr)
+    print(f"[test-agent] 测试点生成: {req_path.name} (kb={use_knowledge_base})", file=sys.stderr)
 
     try:
         # 初始化任务和记忆
@@ -333,6 +330,35 @@ def _resolve_path(p: str) -> Path:
     if not path.exists():
         raise FileNotFoundError(f"找不到文件: {path}")
     return path.resolve()
+
+
+def _ensure_md(path: Path) -> Path:
+    """
+    如果输入是 .docx，自动用 pandoc 转换成 md 放入 knowledge_base/，
+    返回转换后的 md 路径。如果已经是 md/txt 则直接返回。
+    """
+    if path.suffix.lower() not in (".docx", ".doc"):
+        return path
+
+    kb_dir  = AGENT_DIR / "knowledge_base"
+    kb_dir.mkdir(exist_ok=True)
+    md_path = kb_dir / (path.stem + ".md")
+
+    if md_path.exists():
+        print(f"[test-agent] 已有转换版本: {md_path.name}", file=sys.stderr)
+        return md_path
+
+    print(f"[test-agent] 检测到 docx，自动转换为 md...", file=sys.stderr)
+    import subprocess
+    result = subprocess.run(
+        ["pandoc", str(path), "-t", "markdown", "-o", str(md_path)],
+        capture_output=True, text=True, timeout=60
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"pandoc 转换失败: {result.stderr[:200]}")
+
+    print(f"[test-agent] 转换完成: {md_path.name} ({md_path.stat().st_size // 1024}KB)", file=sys.stderr)
+    return md_path
 
 
 def _flatten_testpoints(testpoints: list) -> list:

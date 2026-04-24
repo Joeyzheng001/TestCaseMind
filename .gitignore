@@ -19,3 +19,6 @@ input_docs/
 review_output/
 testpoints_output.json
 CLAUDE.md
+*.xlsx
+*.docx
+input_docs/

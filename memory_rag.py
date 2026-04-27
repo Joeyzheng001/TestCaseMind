@@ -30,14 +30,13 @@ class MemoryRAG:
         if self._ready:
             return
         import chromadb
-        from chromadb.utils import embedding_functions
 
         INDEX_DIR.mkdir(exist_ok=True)
-        model_path = str(LOCAL_MODEL) if LOCAL_MODEL.exists() else EMBED_MODEL
 
-        ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name=model_path
-        )
+        # 共享嵌入模型（与 kb_rag 共用，避免重复加载）
+        from embedding_model import get_embedding_function
+        ef = get_embedding_function()
+
         client = chromadb.PersistentClient(path=str(INDEX_DIR))
 
         # 检查记忆是否有变化

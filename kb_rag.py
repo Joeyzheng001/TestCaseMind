@@ -24,10 +24,11 @@ from typing import Optional
 KB_DIR = Path(__file__).parent / "knowledge_base"
 INDEX_DIR = Path(__file__).parent / ".kb_index"
 
-# 每个段落的最大字符数（超过则切分）
-CHUNK_SIZE = 800
-# 段落间重叠字符数（保持上下文连贯）
-CHUNK_OVERLAP = 100
+# 每个段落的最大字符数（技术文档公式+参数常超800，加大以保持语义完整）
+# 注意：嵌入模型容量上限 ~128 token，超出部分不影响向量但保留在存储文本中供 LLM 阅读
+CHUNK_SIZE = 1500
+# 段落间重叠字符数（保持上下文连贯，200≈60个中文字）
+CHUNK_OVERLAP = 200
 # 默认嵌入模型（本地，无需联网）
 EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 # 本地模型目录（huggingface-cli download 下载后自动使用，无需联网）
@@ -61,35 +62,15 @@ class KBRetriever:
             return
         try:
             import chromadb
-            from chromadb.utils import embedding_functions
         except ImportError:
             print("错误: 请先安装 pip install chromadb sentence-transformers")
             sys.exit(1)
 
         self.index_dir.mkdir(exist_ok=True)
 
-        # 优先使用本地模型（离线），找不到才用远程名称
-        model_path = (
-            str(LOCAL_MODEL_DIR) if LOCAL_MODEL_DIR.exists() else self.embed_model
-        )
-        if LOCAL_MODEL_DIR.exists():
-            print(f"  [RAG] 使用本地模型: {LOCAL_MODEL_DIR.name}", flush=True)
-        else:
-            print(
-                f"  [RAG] 本地模型不存在，尝试从网络下载: {self.embed_model}",
-                flush=True,
-            )
-            print(
-                f"  [RAG] 建议先运行: HF_ENDPOINT=https://hf-mirror.com huggingface-cli download "
-                f"{self.embed_model} --local-dir ./models/{LOCAL_MODEL_DIR.name} "
-                f"--local-dir-use-symlinks False",
-                flush=True,
-            )
-
-        # 用本地 sentence-transformers 模型做嵌入
-        ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name=model_path
-        )
+        # 共享嵌入模型（与 memory_rag 共用，避免重复加载 199MB）
+        from embedding_model import get_embedding_function
+        ef = get_embedding_function()
 
         self._client = chromadb.PersistentClient(path=str(self.index_dir))
         self._ef = ef
@@ -237,21 +218,29 @@ class KBRetriever:
 
         return [c for c in chunks if c.strip()]
 
+    # 默认相关度阈值：低于此分数的结果视为噪声，不返回
+    DEFAULT_SCORE_THRESHOLD = 0.50
+
     def search(
-        self, query: str, top_k: int = 8, filter_source: Optional[str] = None
+        self, query: str, top_k: int = 8, filter_source: Optional[str] = None,
+        score_threshold: float = None,
     ) -> list:
         """
         语义检索知识库，返回最相关的段落列表。
 
         Args:
-            query:         检索查询（需求文档内容摘要或关键词）
-            top_k:         返回段落数量
-            filter_source: 限制只在某个文件中检索（可选）
+            query:          检索查询（需求文档内容摘要或关键词）
+            top_k:          返回段落数量
+            filter_source:  限制只在某个文件中检索（可选）
+            score_threshold: 相关度阈值（默认 0.50，低于此分数的结果丢弃）
 
         Returns:
             [{"content": str, "source": str, "score": float}, ...]
         """
         self._lazy_init()
+
+        if score_threshold is None:
+            score_threshold = self.DEFAULT_SCORE_THRESHOLD
 
         where = {"source": {"$eq": filter_source}} if filter_source else None
 
@@ -271,8 +260,12 @@ class KBRetriever:
         metas = results["metadatas"][0]
         distances = results["distances"][0]
 
+        filtered = 0
         for doc, meta, dist in zip(docs, metas, distances):
             score = 1 - dist  # cosine distance → similarity
+            if score < score_threshold:
+                filtered += 1
+                continue
             hits.append(
                 {
                     "content": doc,
@@ -281,36 +274,69 @@ class KBRetriever:
                 }
             )
 
+        if filtered:
+            print(
+                f"  [RAG] 过滤低相关度段落: {filtered} 条（阈值≥{score_threshold}）",
+                flush=True,
+            )
+
         return hits
 
-    def search_for_requirement(self, req_content: str, top_k: int = 10) -> str:
+    # 默认字符预算：检索结果总字符数上限（防 prompt 膨胀）
+    DEFAULT_CHAR_BUDGET = 5000
+
+    def search_for_requirement(
+        self, req_content: str, top_k: int = 10,
+        score_threshold: float = None, char_budget: int = None,
+    ) -> str:
         """
         针对需求文档内容做检索，返回格式化后的知识库上下文字符串。
         供直接插入 prompt 使用。
 
         Args:
-            req_content: 需求文档内容（或摘要）
-            top_k:       检索段落数
+            req_content:    需求文档内容（或摘要）
+            top_k:          检索段落数
+            score_threshold: 相关度阈值（默认 0.50）
+            char_budget:    结果总字符数上限（默认 5000，超出截断）
 
         Returns:
             格式化的知识库上下文字符串
         """
+        if score_threshold is None:
+            score_threshold = self.DEFAULT_SCORE_THRESHOLD
+        if char_budget is None:
+            char_budget = self.DEFAULT_CHAR_BUDGET
+
         # 用需求文档前2000字符作为查询
         query = req_content[:2000]
-        results = self.search(query, top_k=top_k)
+        results = self.search(query, top_k=top_k, score_threshold=score_threshold)
 
         if not results:
             return ""
 
         lines = ["【知识库相关内容（语义检索结果）】\n"]
         prev_source = None
+        total_chars = 0
+        included = 0
         for hit in results:
+            # 字符预算控制
+            header = ""
             if hit["source"] != prev_source:
-                lines.append(
-                    f"\n--- 来源: {hit['source']} (相关度: {hit['score']:.2f}) ---"
-                )
+                header = f"\n--- 来源: {hit['source']} (相关度: {hit['score']:.2f}) ---"
                 prev_source = hit["source"]
-            lines.append(hit["content"])
+            chunk = f"{header}\n{hit['content']}" if header else hit["content"]
+
+            if total_chars + len(chunk) > char_budget:
+                break
+            lines.append(chunk)
+            total_chars += len(chunk)
+            included += 1
+
+        if included < len(results):
+            print(
+                f"  [RAG] 字符预算截断: {included}/{len(results)} 段（预算 {char_budget} 字符）",
+                flush=True,
+            )
 
         return "\n".join(lines)
 

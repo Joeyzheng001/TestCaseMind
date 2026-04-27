@@ -161,6 +161,10 @@ def parse_factor_sheet(name: str, content: str) -> dict:
     - parameters: [{name, type, values, logic}]
     - meta_factors: [{name, is_extended, table, field, logic}]
     - raw: 原始文本（备用）
+
+    两阶段策略：
+      阶段1 — 列解析（tab 分隔的表格格式）
+      阶段2 — 文本兜底（从注释和代码中提取）
     """
     result = {
         "name":         name,
@@ -173,28 +177,65 @@ def parse_factor_sheet(name: str, content: str) -> dict:
 
     lines = content.splitlines()
 
-    # 提取计算公式（通常在开头几行，含 = 号且较长）
-    for line in lines[:5]:
-        line = line.strip()
-        if "=" in line and len(line) > 10 and not line.startswith("\t"):
-            result["formula"] = line
+    # ═══════════════════════════════════════════════════════════════════════
+    # 阶段1：列解析（适用于标准 tab 分隔格式）
+    # ═══════════════════════════════════════════════════════════════════════
+
+    # ── 公式提取（放宽条件）────────────────────────────────────────────
+    for line in lines[:30]:
+        line_s = line.strip()
+        if not line_s or len(line_s) < 8:
+            continue
+        # 匹配计算公式特征：含 = 或汇总计算/计算公式关键词 或 DSL 关键字
+        is_formula = (
+            ("=" in line_s and len(line_s) > 10) or
+            "汇总计算公式" in line_s or
+            "计算公式" in line_s or
+            line_s.startswith("SUM(") or
+            line_s.startswith("FOR(") or
+            line_s.startswith("switch(") or
+            "Map<" in line_s
+        )
+        if is_formula:
+            # 收集连续相关行（DSL 可能跨行）
+            idx = lines.index(line) if line in lines else 0
+            formula_lines = [line_s]
+            for next_line in lines[idx + 1:idx + 8]:
+                ns = next_line.strip()
+                if ns and (ns.startswith("//") or "MF#" in ns or
+                           "concat" in ns or "firstNotZero" in ns or
+                           ns.startswith("SUM(") or ns.startswith("FOR(") or
+                           ns.startswith(")") or "switch(" in ns or
+                           ("=" in ns and len(ns) > 10)):
+                    formula_lines.append(ns)
+                elif ns == "" or ns.startswith("}"):
+                    continue
+                else:
+                    break
+            result["formula"] = "\n".join(formula_lines[:8])
             break
 
-    # 提取筛选逻辑（含 "筛选逻辑" 关键词的行）
+    # ── 筛选逻辑提取 ────────────────────────────────────────────────────
+    _FILTER_TEMPLATE_KW = {"要实现的汇总因子", "参数", "类型", "值域", "加工逻辑"}
     for i, line in enumerate(lines):
-        if "筛选逻辑" in line:
-            # 取该行及后续非空行
+        line_s = line.strip()
+        if "筛选逻辑" in line_s:
             filter_parts = []
-            for fl in lines[i:i+5]:
+            for fl in lines[i+1:i+6]:
                 fl = fl.strip()
-                if fl and fl != "筛选逻辑":
+                if not fl:
+                    continue
+                # 跳过模板列头行
+                kw_hits = sum(1 for kw in _FILTER_TEMPLATE_KW if kw in fl)
+                if kw_hits >= 2:
+                    continue
+                if fl != "筛选逻辑":
                     filter_parts.append(fl)
-            result["filter_logic"] = " ".join(filter_parts[:2])
+            if filter_parts:
+                result["filter_logic"] = " ".join(filter_parts[:2])
             break
 
-    # 提取参数行和元因子行
-    params = []
-    meta_factors = []
+    # ── 参数提取（列解析）───────────────────────────────────────────────
     in_param_section = False
     in_meta_section  = False
 
@@ -203,12 +244,12 @@ def parse_factor_sheet(name: str, content: str) -> dict:
         if not any(c for c in cols if c):
             continue
 
-        # 检测进入参数区域：类型列含"参数"关键词
+        # 检测进入参数区域
         if any("条件参数" in c or "计算参数" in c for c in cols):
             in_param_section = True
             in_meta_section  = False
 
-        # 检测进入元因子区域：含"元因子"和"是否为扩展因子"
+        # 检测进入元因子区域
         all_text = "\t".join(cols)
         if "元因子" in all_text and "是否为扩展因子" in all_text:
             in_param_section = False
@@ -217,21 +258,18 @@ def parse_factor_sheet(name: str, content: str) -> dict:
 
         # 解析参数行
         if in_param_section:
-            # 找出非空列
             non_empty = [(i, c) for i, c in enumerate(cols) if c]
             if len(non_empty) >= 2:
-                # 参数名通常在第2列（index 1），类型在第3列（index 2）
-                # 但有些行第1列有值（行首无 tab）
                 param_name = None
                 param_type = None
                 param_vals = ""
                 param_logic = ""
-                for i, (idx, val) in enumerate(non_empty):
-                    if i == 0 and idx > 0:  # 行首有 tab，第一个非空列是参数名
+                for j, (idx, val) in enumerate(non_empty):
+                    if j == 0 and idx > 0:
                         param_name = val
-                    elif i == 0 and idx == 0:  # 行首无 tab，跳过（不是参数行）
+                    elif j == 0 and idx == 0:
                         break
-                    elif param_name and ("参数" in val or i == 1):
+                    elif param_name and ("参数" in val or j == 1):
                         param_type = val
                     elif param_name and param_type and not param_vals:
                         param_vals = val
@@ -239,7 +277,7 @@ def parse_factor_sheet(name: str, content: str) -> dict:
                         param_logic = val
 
                 if param_name and param_type and "参数" in param_type:
-                    params.append({
+                    result["parameters"].append({
                         "name":   param_name,
                         "type":   param_type,
                         "values": param_vals,
@@ -250,14 +288,12 @@ def parse_factor_sheet(name: str, content: str) -> dict:
         if in_meta_section:
             non_empty = [(i, c) for i, c in enumerate(cols) if c]
             if len(non_empty) >= 2:
-                # 元因子名通常在第2列（行首有 tab）
-                if non_empty[0][0] > 0:  # 行首有 tab
+                if non_empty[0][0] > 0:
                     mf_name = non_empty[0][1]
                     if mf_name in ("元因子", "涉及元因子", "类汇总元因子概念"):
                         continue
-                    # 后续列：is_extended, table, field, logic
                     vals = [v for _, v in non_empty[1:]]
-                    meta_factors.append({
+                    result["meta_factors"].append({
                         "name":        mf_name,
                         "is_extended": vals[0] if len(vals) > 0 else "",
                         "table":       vals[1] if len(vals) > 1 else "",
@@ -265,9 +301,158 @@ def parse_factor_sheet(name: str, content: str) -> dict:
                         "logic":       vals[3][:300] if len(vals) > 3 else "",
                     })
 
-    result["parameters"]   = params
-    result["meta_factors"] = meta_factors
+    # ═══════════════════════════════════════════════════════════════════════
+    # 阶段2：文本兜底（列解析无结果时兜底，有结果时补充）
+    # ═══════════════════════════════════════════════════════════════════════
+    if not result["parameters"]:
+        _extract_params_from_text(content, result)
+    if not result["meta_factors"]:
+        _extract_metafactors_from_text(content, result)
+    else:
+        # 列解析已有结果时，文本兜底做补充（合并去重）
+        supplement = {"meta_factors": []}
+        _extract_metafactors_from_text(content, supplement)
+        existing_names = {mf["name"] for mf in result["meta_factors"]}
+        for mf in supplement.get("meta_factors", []):
+            if mf["name"] not in existing_names:
+                result["meta_factors"].append(mf)
+                existing_names.add(mf["name"])
+    if not result["filter_logic"]:
+        _extract_filter_from_text(content, result)
+
     return result
+
+
+def _extract_params_from_text(content: str, result: dict):
+    """从原始文本中提取参数（兜底策略）。
+    支持格式：
+      //参数：参数名 值1->含义1 值2->含义2
+      条件参数  参数名  值1/值2/值3
+    """
+    text = content.replace("\t", " ")
+
+    # 模式1: //参数：xxx 或 参数：xxx
+    param_matches = re.findall(
+        r'(?:参数[：:])\s*(.+?)(?:\n|//|$)',
+        text
+    )
+    for match in param_matches:
+        # 解析 "头寸口径 1->计划日终 2->实时可用（O32）3->实时交易（金服）"
+        # 先分离参数名和值
+        parts = match.strip().split(None, 1)  # 第一个空格分割
+        if len(parts) >= 2:
+            param_name = parts[0]
+            value_str = parts[1]
+            # 提取枚举值: 数字->含义 或 值1/值2
+            values = re.findall(r'(\d+->[^\s]*)|([^/\s]+/[^/\s]+(?:/[^/\s]+)*)', value_str)
+            if values:
+                flat_vals = [v[0] or v[1] for v in values]
+                result["parameters"].append({
+                    "name":   param_name,
+                    "type":   "条件参数",
+                    "values": ", ".join(flat_vals[:15]),
+                    "logic":  value_str[:200],
+                })
+        elif parts:
+            result["parameters"].append({
+                "name":   parts[0],
+                "type":   "条件参数",
+                "values": "",
+                "logic":  match.strip()[:200],
+            })
+
+    # 模式2: 行内条件参数/计算参数
+    if not result["parameters"]:
+        for line in text.splitlines():
+            if "条件参数" in line or "计算参数" in line:
+                # 尝试按空格/tab切分
+                cols = line.strip().split()
+                # 找 "条件参数" 或 "计算参数" 后的第一个词作为参数名
+                for i, c in enumerate(cols):
+                    if c in ("条件参数", "计算参数") and i + 1 < len(cols):
+                        # 跳过值域/加工逻辑等描述列头
+                        name = cols[i + 1]
+                        if name in ("类型", "值域", "加工逻辑", "参数"):
+                            continue
+                        vals = cols[i + 2] if i + 2 < len(cols) and "/" in cols[i + 2] else ""
+                        result["parameters"].append({
+                            "name":   name,
+                            "type":   c,
+                            "values": vals,
+                            "logic":  " ".join(cols[i + 2:i + 4])[:200] if i + 2 < len(cols) else "",
+                        })
+                        break
+            if len(result["parameters"]) >= 20:
+                break
+
+
+def _extract_metafactors_from_text(content: str, result: dict, target_key: str = "meta_factors"):
+    """从原始文本中提取元因子引用（兜底/补充策略）。
+    匹配数据表引用：DWD_*, MG#, MF#, 取xxx表xxx字段 等
+
+    Args:
+        content:    原始文本
+        result:     目标字典（会被修改）
+        target_key: 写入的 key 名（默认 "meta_factors"）
+    """
+    text = content.replace("\t", " ")
+    seen = set()
+
+    # 匹配 "取xxx表xxx字段" 模式（最优先，最有价值）
+    field_refs = re.findall(
+        r'取(\S+?表)\s*(\S*?)字段',
+        text
+    )
+    for table, field in field_refs[:15]:
+        key = f"{table}.{field}"
+        if key not in seen:
+            seen.add(key)
+            result[target_key].append({
+                "name":        f"{table}.{field}" if field else table,
+                "is_extended": "",
+                "table":       table[:60],
+                "field":       field[:40] if field else "",
+                "logic":       f"从{table}取{field}字段" if field else f"从{table}取值",
+            })
+
+    # 匹配 MF#XXX 扩展因子引用
+    mf_refs = re.findall(r'MF#(\w+)', text)
+    for mf in mf_refs[:10]:
+        if mf not in seen:
+            seen.add(mf)
+            result[target_key].append({
+                "name":        f"MF#{mf}",
+                "is_extended": "是",
+                "table":       "",
+                "field":       mf,
+                "logic":       f"扩展因子 MF#{mf}",
+            })
+
+    # 匹配 DWD_* 和 MG#* 引用（去重后加入）
+    table_refs = re.findall(r'(DWD_\w+|MG#\w+)', text)
+    for match in table_refs[:15]:
+        if match not in seen:
+            seen.add(match)
+            result[target_key].append({
+                "name":        match,
+                "is_extended": "",
+                "table":       match if match.startswith("DWD_") else "",
+                "field":       "",
+                "logic":       "",
+            })
+
+
+def _extract_filter_from_text(content: str, result: dict):
+    """从原始文本中提取筛选逻辑（兜底策略）。"""
+    # 查找筛选逻辑后的非空非模板行
+    lines = content.splitlines()
+    for i, line in enumerate(lines):
+        if "筛选逻辑" in line:
+            for fl in lines[i + 1:i + 6]:
+                fl = fl.strip().replace("\t", " ")
+                if fl and "要实现的汇总因子" not in fl and "参数" not in fl:
+                    result["filter_logic"] = fl[:200]
+                    return
 
 
 def factor_to_md(factor: dict) -> str:

@@ -120,10 +120,16 @@ def write_to_kb(rules: list, source_name: str) -> int:
     existing = set()
     if DISTILL_FILE.exists():
         existing_text = DISTILL_FILE.read_text(encoding="utf-8")
-        # 简单去重：检查规则前60字符
+        # 去重：提取纯规则文本（去掉 markdown 前缀），前120字符作 key
         for line in existing_text.splitlines():
-            if line.startswith("- "):
-                existing.add(line[2:60])
+            if line.startswith("- **"):
+                # 格式: "- **[category][confidence]** rule text"
+                # 去掉 markdown 加粗前缀，提取纯规则文本
+                import re as _re_dedup
+                clean = _re_dedup.sub(r'^-\s*\*\*\[.*?\]\[.*?\]\*\*\s*', '', line)
+                if clean:
+                    key = clean[:120] if len(clean) > 120 else clean
+                    existing.add(key)
 
     lines = []
     if not DISTILL_FILE.exists():
@@ -139,7 +145,7 @@ def write_to_kb(rules: list, source_name: str) -> int:
         r = rule.get("rule", "").strip()
         if not r:
             continue
-        key = r[:60]
+        key = r[:120] if len(r) > 120 else r
         if key in existing:
             continue  # 跳过重复
         cat  = rule.get("category", "其他")
@@ -229,8 +235,17 @@ def main():
 
     source_name = tp_path.parent.parent.name  # output/<需求名>/<ts>/testpoints.json → 需求名
     written = write_to_kb(rules, source_name)
-    print(f"\n  ✓ 写入 {written} 条到 knowledge_base/通用规则积累.md")
-    print(f"  建议运行: python kb_rag.py --rebuild 更新向量索引")
+    if written > 0:
+        print(f"\n  ✓ 写入 {written} 条到 knowledge_base/通用规则积累.md")
+        # 自动重建索引，使新规则立即可检索
+        try:
+            from kb_rag import KBRetriever
+            print(f"  自动重建向量索引...")
+            KBRetriever().rebuild()
+            print(f"  ✓ 索引已更新，新规则即刻生效")
+        except Exception as e:
+            print(f"  ⚠ 索引重建失败，请手动运行: python kb_rag.py --rebuild")
+            print(f"    错误: {e}")
 
 
 if __name__ == "__main__":

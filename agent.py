@@ -38,7 +38,7 @@ load_dotenv(override=True)
 
 WORKDIR = Path(__file__).parent
 client = Anthropic()
-MODEL = os.environ.get("ANTHROPIC_MODEL") or os.environ.get("MODEL_ID", "claude-sonnet-4-6")
+MODEL = os.environ.get("ANTHROPIC_MODEL") or os.environ.get("DEFAULT_LLM_MODEL") or os.environ.get("MODEL_ID", "claude-sonnet-4-6")
 
 KB_DIR     = WORKDIR / "knowledge_base"
 SKILLS_DIR = WORKDIR / "skills"
@@ -1285,7 +1285,7 @@ def _split_sections(req_path: Path, min_lines: int = 5,
             import os as _os
             _client = _ant.Anthropic()
             resp = _client.messages.create(
-                model=_os.environ.get("ANTHROPIC_MODEL") or _os.environ.get("MODEL_ID", "claude-sonnet-4-6"),
+                model=_os.environ.get("ANTHROPIC_MODEL") or _os.environ.get("DEFAULT_LLM_MODEL") or _os.environ.get("MODEL_ID", "claude-sonnet-4-6"),
                 system="你是一名测试架构师，判断需求文档的章节是否属于核心需求内容。只输出 JSON，不要其他文字。",
                 messages=[{"role": "user", "content": (
                     f"以下是需求文档的章节列表，请判断每个章节是否属于「核心需求内容」"
@@ -1556,8 +1556,12 @@ def main():
     kb_count   = sum(1 for t in flat_tps if get_source(t) == "KB")
     risk_count = sum(1 for t in flat_tps if get_source(t) == "RISK")
 
+    # 用模型名+时间戳生成文件后缀，确保同模型多次运行也不重名
+    _model_tag = re.sub(r"[^a-zA-Z0-9._-]", "-", MODEL.split("/")[-1])[:16].strip("-")
+    _sfx = f"_{_model_tag}_{RUN_DIR.name}"
+
     # 保存测试点 JSON
-    tp_out = RUN_DIR / "testpoints.json"
+    tp_out = RUN_DIR / f"testpoints{_sfx}.json"
     tp_out.write_text(json.dumps({
         "meta": {
             "requirement": str(req_path),
@@ -1570,7 +1574,7 @@ def main():
     }, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # 生成 Markdown（供导入 XMind）
-    md_out   = RUN_DIR / "testpoints_xmind.md"
+    md_out   = RUN_DIR / f"testpoints_xmind{_sfx}.md"
     xmind_ok = export_markdown_xmind(flat_tps, review, req_name, md_out)
 
     print(f"\n{'='*52}")
@@ -1603,8 +1607,8 @@ def main():
             testcases = []
             print(f"  [s11] 用例生成异常: {e}")
 
-    tc_out   = RUN_DIR / "testcases.json"
-    xlsx_out = RUN_DIR / "testcases.xlsx"
+    tc_out   = RUN_DIR / f"testcases{_sfx}.json"
+    xlsx_out = RUN_DIR / f"testcases{_sfx}.xlsx"
 
     tc_out.write_text(json.dumps(testcases, ensure_ascii=False, indent=2), encoding="utf-8")
     try:
@@ -1616,7 +1620,7 @@ def main():
 
     # ④ 测分文档生成（本地，零 token）
     from gen_report import generate_report
-    report_out = RUN_DIR / "report.md"
+    report_out = RUN_DIR / f"report{_sfx}.md"
     try:
         report_md = generate_report(
             {"meta": {"requirement": str(req_path), "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),

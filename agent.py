@@ -38,7 +38,7 @@ load_dotenv(override=True)
 
 WORKDIR = Path(__file__).parent
 client = Anthropic()
-MODEL = os.environ.get("MODEL_ID", "claude-sonnet-4-6")
+MODEL = os.environ.get("ANTHROPIC_MODEL") or os.environ.get("MODEL_ID", "claude-sonnet-4-6")
 
 KB_DIR     = WORKDIR / "knowledge_base"
 SKILLS_DIR = WORKDIR / "skills"
@@ -1285,7 +1285,7 @@ def _split_sections(req_path: Path, min_lines: int = 5,
             import os as _os
             _client = _ant.Anthropic()
             resp = _client.messages.create(
-                model=_os.environ.get("MODEL_ID", "claude-sonnet-4-6"),
+                model=_os.environ.get("ANTHROPIC_MODEL") or _os.environ.get("MODEL_ID", "claude-sonnet-4-6"),
                 system="你是一名测试架构师，判断需求文档的章节是否属于核心需求内容。只输出 JSON，不要其他文字。",
                 messages=[{"role": "user", "content": (
                     f"以下是需求文档的章节列表，请判断每个章节是否属于「核心需求内容」"

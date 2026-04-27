@@ -111,11 +111,29 @@ class KBRetriever:
         self._ready = True
 
     def _kb_hash(self) -> str:
-        """计算知识库所有 md 文件的哈希，用于判断是否需要重建索引。"""
+        """计算知识库所有 md 文件的哈希，用于判断是否需要重建索引。
+
+        同时比对文件名、修改时间、文件大小和首尾部内容抽样，
+        防止编辑器不更新 mtime 或 git checkout 还原旧时间戳
+        导致索引未重新构建。
+        """
         h = hashlib.md5()
         for f in sorted(self.kb_dir.rglob("*.md")):
             h.update(f.name.encode())
-            h.update(str(f.stat().st_mtime).encode())
+            stat = f.stat()
+            h.update(str(stat.st_mtime).encode())
+            h.update(str(stat.st_size).encode())
+            # 内容抽样：首 4096 字节 + 末 4096 字节
+            try:
+                with open(f, "rb") as fh:
+                    head = fh.read(4096)
+                    h.update(head)
+                    if stat.st_size > 8192:
+                        fh.seek(-4096, 2)
+                        tail = fh.read(4096)
+                        h.update(tail)
+            except Exception:
+                pass
         return h.hexdigest()
 
     def _build_index(self, ef, current_hash: str, hash_file: Path):

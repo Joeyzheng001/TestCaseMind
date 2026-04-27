@@ -328,18 +328,8 @@ def main():
         if row[1]:
             meda_map2[row[1]] = (row[2] or '', row[6] or '', row[7] or '')
 
-    _SHEET_FILES = {
-        '风控': '01_风控表', '盘中巡检表': '02_盘中巡检表',
-        '消息扩展元因子表结构': '03_消息扩展元因子表',
-        'jobdb表结构': '04_jobdb', 'userdb表结构': '05_userdb',
-        'domainconfigdb表结构': '06_domainconfigdb', 'commondb表结构': '07_commondb',
-        'basedb表结构': '08_basedb', 'bosdb表结构': '09_bosdb',
-        'operationdb表结构': '10_operationdb', 'ruledb表结构': '11_ruledb',
-        'tradingdb表结构': '12_tradingdb',
-    }
-
     index_rows = []
-    for sname, fname in _SHEET_FILES.items():
+    for sname, fname in SHEET_FILENAMES.items():
         if sname not in wb2.sheetnames:
             continue
         ws2 = wb2[sname]

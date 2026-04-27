@@ -27,7 +27,7 @@ AGENT_DIR = Path(__file__).parent
 sys.path.insert(0, str(AGENT_DIR))
 
 from dotenv import load_dotenv
-load_dotenv(AGENT_DIR / ".env", override=True)
+load_dotenv(AGENT_DIR / ".env", override=False)
 
 from mcp.server.fastmcp import FastMCP
 

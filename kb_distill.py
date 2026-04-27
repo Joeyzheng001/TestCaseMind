@@ -23,7 +23,7 @@ DISTILL_FILE = KB_DIR / "通用规则积累.md"
 
 sys.path.insert(0, str(WORKDIR))
 from dotenv import load_dotenv
-load_dotenv(WORKDIR / ".env", override=True)
+load_dotenv(WORKDIR / ".env", override=False)
 
 try:
     import anthropic

@@ -18,6 +18,7 @@ Harness: s05 Skills + s04 Subagent + s06 Context Compact
 """
 
 import argparse
+import threading as _threading
 import json
 import os
 import re
@@ -34,7 +35,7 @@ from memory_store import MemoryStore
 from kb_rag import KBRetriever
 from memory_rag import MemoryRAG
 
-load_dotenv(override=True)
+load_dotenv(override=False)
 
 WORKDIR = Path(__file__).parent
 client = Anthropic()
@@ -55,6 +56,21 @@ def get_run_dir(stem: str, ts: int) -> Path:
 COMPACT_THRESHOLD = 30000
 KEEP_RECENT = 3
 PRESERVE_TOOLS = {"read_file"}
+
+# ── Rate limiter: 防止并行批次同时打 API 导致 529 ─────────────────────────
+_RATE_LOCK = _threading.Lock()
+_LAST_API_CALL = 0.0
+_MIN_API_INTERVAL = 0.8   # 同一时刻只允许一个 API 调用
+
+
+def _wait_rate_limit():
+    global _LAST_API_CALL
+    with _RATE_LOCK:
+        now = time.time()
+        gap = now - _LAST_API_CALL
+        if gap < _MIN_API_INTERVAL:
+            time.sleep(_MIN_API_INTERVAL - gap)
+        _LAST_API_CALL = time.time()
 
 
 def estimate_tokens(messages: list) -> int:
@@ -257,6 +273,38 @@ def extract_json(text: str, fallback, expect_list: bool = False):
     return fallback
 
 
+def _retry_json_fix(raw_text: str, system: str = "", max_tokens: int = 4000,
+                    expect_list: bool = False, label: str = "",
+                    char_limit: int = 4000) -> list | dict:
+    """调 API 把非标准 JSON 输出修复为合法 JSON，返回解析后的对象。
+
+    用于在模型输出无法直接解析时做一次格式修复重试。
+    返回 list（expect_list=True）或 dict，失败返回空 list/dict。
+    """
+    if not raw_text or len(raw_text) < 50:
+        return [] if expect_list else {}
+    print(f"  [重试] 非 JSON 输出，尝试格式修复{label}...")
+    try:
+        resp = client.messages.create(
+            model=MODEL,
+            system=system or (
+                "你是 JSON 格式化工具。只输出合法 JSON 数组，不输出任何其他内容。"
+            ),
+            messages=[{"role": "user", "content": raw_text[:char_limit]}],
+            max_tokens=max_tokens,
+        )
+        fix_text = "".join(b.text for b in resp.content if hasattr(b, "text"))
+        fallback = [] if expect_list else {}
+        data = extract_json(fix_text, fallback=fallback, expect_list=expect_list)
+        if data:
+            count = len(data) if isinstance(data, list) else ""
+            print(f"  [重试] 格式修复成功{label} {count}")
+        return data
+    except Exception as e:
+        print(f"  [重试] 格式修复失败: {e}")
+        return [] if expect_list else {}
+
+
 # ── s04: Subagent ──────────────────────────────────────────────────────────
 def run_subagent(system: str, prompt: str, label: str = "") -> str:
     messages = [{"role": "user", "content": prompt}]
@@ -268,6 +316,7 @@ def run_subagent(system: str, prompt: str, label: str = "") -> str:
         # 遇到 529/429 过载自动重试（最多4次，间隔递增）
         for _retry in range(4):
             try:
+                _wait_rate_limit()   # 并行批次间错开，避免同时打 API
                 response = client.messages.create(
                     model=MODEL, system=system, messages=messages,
                     tools=CHILD_TOOLS, max_tokens=8000,
@@ -363,20 +412,10 @@ def stage1_review(req_path: Path, memory=None) -> dict:
 
     # 如果解析失败，尝试格式修复
     if not data or not isinstance(data, dict):
-        print("  [重试] 评审 JSON 解析失败，尝试格式修复...")
-        try:
-            fix_resp = client.messages.create(
-                model=MODEL,
-                system="把以下内容转换为合法 JSON 对象，只输出 JSON，不要其他文字：",
-                messages=[{"role": "user", "content": result[:3000]}],
-                max_tokens=2000,
-            )
-            fix_text = "".join(b.text for b in fix_resp.content if hasattr(b, "text"))
-            data = extract_json(fix_text, fallback={"testable_features": [], "risk_flags": []})
-            if data:
-                print("  [重试] 格式修复成功")
-        except Exception as e:
-            print(f"  [重试] 格式修复失败: {e}")
+        data = _retry_json_fix(
+            result, system="把以下内容转换为合法 JSON 对象，只输出 JSON，不要其他文字：",
+            max_tokens=2000, expect_list=False, char_limit=3000,
+        )
 
     return data if isinstance(data, dict) else {"testable_features": [], "risk_flags": []}
 
@@ -443,51 +482,29 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
 
     # 阶段A失败时自动重试：让模型把已有内容重新格式化为 JSON
     if not req_tps and not result_a.startswith("__ERROR__") and len(result_a) > 100:
-        print(f"  [重试] 阶段A输出非 JSON，尝试格式修复...")
-        fix_prompt = (
+        data = _retry_json_fix(
             "以下是测试点内容，请将其转换为合法 JSON 数组格式输出，"
-            "不要有任何其他文字，直接以 [ 开头，以 ] 结尾：\n\n"
-            + result_a[:3000]
+            "不要有任何其他文字，直接以 [ 开头，以 ] 结尾：\n\n" + result_a[:3000],
+            expect_list=True, char_limit=99999, label="，恢复测试点",
         )
-        try:
-            fix_response = client.messages.create(
-                model=MODEL,
-                system="你是 JSON 格式化工具。只输出合法 JSON 数组，不输出任何其他内容。",
-                messages=[{"role": "user", "content": fix_prompt}],
-                max_tokens=4000,
-            )
-            fix_text = "".join(b.text for b in fix_response.content if hasattr(b, "text"))
-            data = extract_json(fix_text, fallback=[], expect_list=True)
-            if isinstance(data, list) and data:
-                req_tps = [normalize_testpoint(tp, i) for i, tp in enumerate(data)]
-                print(f"  [重试] 格式修复成功，恢复 {len(req_tps)} 条测试点")
-        except Exception as e:
-            print(f"  [重试] 格式修复失败: {e}")
+        if isinstance(data, list) and data:
+            req_tps = [normalize_testpoint(tp, i) for i, tp in enumerate(data)]
 
     print(f"  阶段A完成: {len(req_tps)} 条 REQ 测试点")
 
-    # REQ=0 时先尝试格式修复重试，修复失败才停止
-    if not req_tps:
-        if not result_a.startswith("__ERROR__") and len(result_a) > 50:
-            print(f"  [重试] 阶段A输出非 JSON，尝试格式修复...")
-            try:
-                fix_resp = client.messages.create(
-                    model=MODEL,
-                    system="你是 JSON 格式化工具。把以下内容转换为合法 JSON 数组，只输出数组本身，以 [ 开头以 ] 结尾，不要其他文字。",
-                    messages=[{"role": "user", "content": result_a[:4000]}],
-                    max_tokens=4000,
-                )
-                fix_text = "".join(b.text for b in fix_resp.content if hasattr(b, "text"))
-                data = extract_json(fix_text, fallback=[], expect_list=True)
-                if isinstance(data, list) and data:
-                    req_tps = [normalize_testpoint(tp, i) for i, tp in enumerate(data)]
-                    print(f"  [重试] 格式修复成功，恢复 {len(req_tps)} 条测试点")
-            except Exception as e:
-                print(f"  [重试] 格式修复失败: {e}")
+    # REQ=0 时也尝试格式修复，修复失败才停止
+    if not req_tps and not result_a.startswith("__ERROR__") and len(result_a) > 50:
+        data = _retry_json_fix(
+            result_a[:4000],
+            system="你是 JSON 格式化工具。把以下内容转换为合法 JSON 数组，只输出数组本身，以 [ 开头以 ] 结尾，不要其他文字。",
+            expect_list=True, label="，恢复测试点",
+        )
+        if isinstance(data, list) and data:
+            req_tps = [normalize_testpoint(tp, i) for i, tp in enumerate(data)]
 
-        if not req_tps:
-            print(f"  [阶段A] 未生成 REQ 测试点，跳过此章节继续")
-            return []
+    if not req_tps:
+        print(f"  [阶段A] 未生成 REQ 测试点，跳过此章节继续")
+        return []
 
     if not use_kb or not KB_DIR.exists():
         return req_tps
@@ -660,8 +677,8 @@ def stage3_testcases(testpoints: list, req_path: Path) -> list:
     total   = len(batches)
     print(f"  共 {len(testpoints)} 条测试点，分 {total} 批并行处理（每批 {BATCH_SIZE} 条）")
 
-    # 并行数不超过批次数，也不超过4（避免 API 限速）
-    max_workers = min(total, 4)
+    # 并行数不超过批次数，也不超过3（限速锁 + 降低并发避免 API 过载）
+    max_workers = min(total, 3)
     results     = {}   # batch_no -> cases
 
     def run_batch(args):
@@ -756,104 +773,77 @@ def normalize_testcase(case: dict, idx: int) -> dict:
     return normalized
 
 
-# ── 输出：Excel ────────────────────────────────────────────────────────────
-def export_excel(testcases: list, out_path: Path) -> bool:
-    try:
-        from openpyxl import Workbook
-        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-    except ImportError:
-        print("  [skip] Excel 输出需要 openpyxl: pip install openpyxl")
-        return False
+# ── 字段标准化：测试点 ──────────────────────────────────────────────────────
+def normalize_testpoint(tp: dict, idx: int = 0) -> dict:
+    """
+    统一测试点字段名，兼容模型各种输出格式。
+    支持字段名：id/title/level/desc/expected 等非标准字段。
+    """
+    n = dict(tp)
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "测试用例"
+    # ── testpoint_id ──────────────────────────────────────────────────────
+    if not n.get("testpoint_id"):
+        n["testpoint_id"] = (n.get("id") or n.get("tp_id") or
+                             n.get("case_id") or f"TP-{idx+1:03d}")
 
-    # 列定义：(列名, 字段key, 宽度)
-    columns = [
-        ("用例ID",      "case_id",          12),
-        ("测试点ID",    "testpoint_id",      12),
-        ("功能模块",    "functional_module", 18),
-        ("用例标题",    "case_title",        35),
-        ("来源",        "source",             8),
-        ("优先级",      "priority",           8),
-        ("前置条件",    "preconditions",     25),
-        ("测试数据",    "test_data",         20),
-        ("操作步骤",    "steps",             40),
-        ("预期结果",    "expected_result",   35),
-        ("实际结果",    "actual_result",     25),
-        ("执行状态",    "status",            10),
-        ("备注",        "remarks",           20),
-    ]
+    # ── test_scenario（标题）─────────────────────────────────────────────
+    if not n.get("test_scenario"):
+        n["test_scenario"] = (n.get("title") or n.get("name") or
+                              n.get("case_title") or n.get("scenario") or "")
 
-    # 样式
-    header_font  = Font(bold=True, color="FFFFFF", size=11)
-    header_fill  = PatternFill("solid", fgColor="2B5FA8")
-    center       = Alignment(horizontal="center", vertical="center", wrap_text=True)
-    left_wrap    = Alignment(horizontal="left",   vertical="top",    wrap_text=True)
-    thin         = Side(style="thin", color="CCCCCC")
-    border       = Border(left=thin, right=thin, top=thin, bottom=thin)
+    # ── priority（优先级）注意：必须先检查 level，再用默认值 ─────────────
+    # 字段可能叫 level / test_priority / 优先级，值可能是 P0/P1/P2
+    raw_priority = (n.get("priority") or n.get("level") or
+                    n.get("test_priority") or n.get("优先级") or "P1")
+    # 标准化：只接受 P0/P1/P2
+    if raw_priority not in ("P0", "P1", "P2"):
+        raw_priority = "P1"
+    n["priority"] = raw_priority
 
-    # 来源颜色
-    source_colors = {"REQ": "DDEEFF", "KB": "FFF9DD", "RISK": "FFE8E8"}
-
-    # 表头
-    for col_idx, (col_name, _, col_width) in enumerate(columns, 1):
-        cell = ws.cell(row=1, column=col_idx, value=col_name)
-        cell.font      = header_font
-        cell.fill      = header_fill
-        cell.alignment = center
-        cell.border    = border
-        ws.column_dimensions[cell.column_letter].width = col_width
-    ws.row_dimensions[1].height = 22
-
-    # 数据行
-    priority_colors = {"P0": "FF4444", "P1": "FF8800", "P2": "888888"}
-
-    for row_idx, case in enumerate(testcases, 2):
-        case   = normalize_testcase(case, row_idx - 1)   # 标准化字段
-        source = case.get("source", "REQ")
-        row_fill = PatternFill("solid", fgColor=source_colors.get(source, "FFFFFF"))
-
-        for col_idx, (_, field_key, _) in enumerate(columns, 1):
-            value = case.get(field_key, "")
-            cell  = ws.cell(row=row_idx, column=col_idx, value=value)
-            cell.border = border
-            cell.fill   = row_fill
-
-            if field_key in ("case_id", "testpoint_id", "source", "priority", "status"):
-                cell.alignment = center
-                if field_key == "priority":
-                    cell.font = Font(color=priority_colors.get(value, "000000"), bold=True)
+    # ── functional_module（功能模块）─────────────────────────────────────
+    # 优先从显式字段取，没有则从 title 推断关键词分组
+    if not n.get("functional_module"):
+        mod = (n.get("module") or n.get("feature") or
+               n.get("category") or n.get("functional_area") or "")
+        if not mod:
+            # 从 title 提取：取"-"前的部分作为分组名
+            title = n.get("test_scenario", "")
+            if "-" in title:
+                mod = title.split("-")[0].strip()
+            elif "验证" in title or "计算" in title:
+                mod = title[:8].strip()
             else:
-                cell.alignment = left_wrap
+                mod = "功能验证"
+        n["functional_module"] = mod
 
-        ws.row_dimensions[row_idx].height = 45
+    # ── source ────────────────────────────────────────────────────────────
+    src = n.get("source") or n.get("test_source") or n.get("来源") or "REQ"
+    if src not in ("REQ", "KB", "RISK"):
+        src = "REQ"
+    n["source"] = src
 
-    # 冻结首行
-    ws.freeze_panes = "A2"
+    # ── expected_result ───────────────────────────────────────────────────
+    if not n.get("expected_result"):
+        n["expected_result"] = (n.get("expected") or n.get("expect") or
+                                n.get("expected_output") or "")
 
-    # 图例 sheet
-    legend_ws = wb.create_sheet("图例说明")
-    legend_data = [
-        ("颜色", "含义"),
-        ("蓝色底", "REQ — 来自需求文档"),
-        ("黄色底", "KB  — 来自知识库补充"),
-        ("红色底", "RISK — 风险推断"),
-        ("",       ""),
-        ("优先级", "说明"),
-        ("P0",     "核心必测"),
-        ("P1",     "重要应测"),
-        ("P2",     "边缘可测"),
-    ]
-    for r, (a, b) in enumerate(legend_data, 1):
-        legend_ws.cell(row=r, column=1, value=a)
-        legend_ws.cell(row=r, column=2, value=b)
+    # ── preconditions ─────────────────────────────────────────────────────
+    if not n.get("preconditions"):
+        n["preconditions"] = (n.get("precondition") or n.get("pre_condition") or
+                              n.get("desc") or n.get("description") or "")
 
-    wb.save(out_path)
-    return True
+    # ── source_ref ────────────────────────────────────────────────────────
+    if not n.get("source_ref"):
+        n["source_ref"] = n.get("source_reference") or n.get("ref") or ""
+
+    # ── remarks ───────────────────────────────────────────────────────────
+    if not n.get("remarks"):
+        n["remarks"] = n.get("remark") or n.get("note") or n.get("comment") or ""
+
+    return n
 
 
+# ── 输出：Excel ────────────────────────────────────────────────────────────
 def export_excel(testcases: list, out_path: Path) -> bool:
     try:
         from openpyxl import Workbook
@@ -933,73 +923,6 @@ def export_excel(testcases: list, out_path: Path) -> bool:
 
     wb.save(out_path)
     return True
-def normalize_testpoint(tp: dict, idx: int = 0) -> dict:
-    """
-    统一测试点字段名，兼容模型各种输出格式。
-    支持字段名：id/title/level/desc/expected 等非标准字段。
-    """
-    n = dict(tp)
-
-    # ── testpoint_id ──────────────────────────────────────────────────────
-    if not n.get("testpoint_id"):
-        n["testpoint_id"] = (n.get("id") or n.get("tp_id") or
-                             n.get("case_id") or f"TP-{idx+1:03d}")
-
-    # ── test_scenario（标题）─────────────────────────────────────────────
-    if not n.get("test_scenario"):
-        n["test_scenario"] = (n.get("title") or n.get("name") or
-                              n.get("case_title") or n.get("scenario") or "")
-
-    # ── priority（优先级）注意：必须先检查 level，再用默认值 ─────────────
-    # 字段可能叫 level / test_priority / 优先级，值可能是 P0/P1/P2
-    raw_priority = (n.get("priority") or n.get("level") or
-                    n.get("test_priority") or n.get("优先级") or "P1")
-    # 标准化：只接受 P0/P1/P2
-    if raw_priority not in ("P0", "P1", "P2"):
-        raw_priority = "P1"
-    n["priority"] = raw_priority
-
-    # ── functional_module（功能模块）─────────────────────────────────────
-    # 优先从显式字段取，没有则从 title 推断关键词分组
-    if not n.get("functional_module"):
-        mod = (n.get("module") or n.get("feature") or
-               n.get("category") or n.get("functional_area") or "")
-        if not mod:
-            # 从 title 提取：取"-"前的部分作为分组名
-            title = n.get("test_scenario", "")
-            if "-" in title:
-                mod = title.split("-")[0].strip()
-            elif "验证" in title or "计算" in title:
-                mod = title[:8].strip()
-            else:
-                mod = "功能验证"
-        n["functional_module"] = mod
-
-    # ── source ────────────────────────────────────────────────────────────
-    src = n.get("source") or n.get("test_source") or n.get("来源") or "REQ"
-    if src not in ("REQ", "KB", "RISK"):
-        src = "REQ"
-    n["source"] = src
-
-    # ── expected_result ───────────────────────────────────────────────────
-    if not n.get("expected_result"):
-        n["expected_result"] = (n.get("expected") or n.get("expect") or
-                                n.get("expected_output") or "")
-
-    # ── preconditions ─────────────────────────────────────────────────────
-    if not n.get("preconditions"):
-        n["preconditions"] = (n.get("precondition") or n.get("pre_condition") or
-                              n.get("desc") or n.get("description") or "")
-
-    # ── source_ref ────────────────────────────────────────────────────────
-    if not n.get("source_ref"):
-        n["source_ref"] = n.get("source_reference") or n.get("ref") or ""
-
-    # ── remarks ───────────────────────────────────────────────────────────
-    if not n.get("remarks"):
-        n["remarks"] = n.get("remark") or n.get("note") or n.get("comment") or ""
-
-    return n
 
 
 def export_markdown_xmind(testpoints: list, review: dict, req_name: str, out_path: Path) -> bool:
@@ -1168,6 +1091,32 @@ def _extract_section(req_path: Path, keyword: str) -> str:
     return "\n".join(result).strip()
 
 
+def _load_section_filter_keywords() -> list:
+    """
+    从 config/section_filter.json 加载章节过滤黑名单关键词。
+    文件不存在或读取失败时返回内置默认列表。
+    """
+    import json as _json
+    config_path = Path(__file__).parent / "config" / "section_filter.json"
+    try:
+        if config_path.exists():
+            data = _json.loads(config_path.read_text(encoding="utf-8"))
+            keywords = data.get("non_core_keywords", [])
+            if keywords:
+                return keywords
+    except Exception:
+        pass
+    # 内置默认（保持向后兼容）
+    return [
+        "文档范围", "适用范围", "参考文档", "参考资料", "相关文档",
+        "修订记录", "版本历史", "变更历史", "文档说明", "目录",
+        "监管条文", "监管解读", "法规", "条文解读",
+        "客户规则", "规则示例", "示例", "案例",
+        "背景", "概述", "简介", "介绍", "说明",
+        "术语", "词汇", "缩略语", "定义",
+    ]
+
+
 def _split_sections(req_path: Path, min_lines: int = 5,
                     memory=None) -> list:
     """
@@ -1178,15 +1127,8 @@ def _split_sections(req_path: Path, min_lines: int = 5,
       第三层：模型判断兜底（结果自动写回记忆）
     返回 [(章节标题, 章节内容)] 列表。
     """
-    # ── 第一层：黑名单 ────────────────────────────────────────────────────────
-    NON_CORE_KW = [
-        "文档范围", "适用范围", "参考文档", "参考资料", "相关文档",
-        "修订记录", "版本历史", "变更历史", "文档说明", "目录",
-        "监管条文", "监管解读", "法规", "条文解读",
-        "客户规则", "规则示例", "示例", "案例",
-        "背景", "概述", "简介", "介绍", "说明",
-        "术语", "词汇", "缩略语", "定义",
-    ]
+    # ── 第一层：黑名单（从配置文件加载，文件不存在则用内置默认）──────────────
+    NON_CORE_KW = _load_section_filter_keywords()
 
     def blacklist_hit(title: str) -> bool:
         clean = title.strip("*~_ ")
@@ -1281,11 +1223,8 @@ def _split_sections(req_path: Path, min_lines: int = 5,
         )
         print(f"  [模型判断] 对 {len(unknown)} 个未知章节进行判断...")
         try:
-            import anthropic as _ant
-            import os as _os
-            _client = _ant.Anthropic()
-            resp = _client.messages.create(
-                model=_os.environ.get("ANTHROPIC_MODEL") or _os.environ.get("DEFAULT_LLM_MODEL") or _os.environ.get("MODEL_ID", "claude-sonnet-4-6"),
+            resp = client.messages.create(
+                model=MODEL,
                 system="你是一名测试架构师，判断需求文档的章节是否属于核心需求内容。只输出 JSON，不要其他文字。",
                 messages=[{"role": "user", "content": (
                     f"以下是需求文档的章节列表，请判断每个章节是否属于「核心需求内容」"

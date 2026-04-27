@@ -1,0 +1,22 @@
+# TestCaseMind 依赖
+# 一键安装: pip install -r requirements.txt
+
+# ── 核心 ──────────────────────────────────────────────────────────────────────
+anthropic>=0.40.0          # Claude API 调用
+python-dotenv>=1.0.0       # 读取 .env 配置文件
+pyyaml>=6.0                # YAML 配置文件（memory_review 导出用）
+
+# ── 文档处理 ──────────────────────────────────────────────────────────────────
+python-docx>=1.1.0         # Word 文档读取（docx2md.py）
+openpyxl>=3.1.0            # Excel 读写（测试用例导出 + kb_from_excel）
+pandas>=2.0.0              # Excel 数据处理（kb_from_design）
+
+# ── 知识库 RAG ────────────────────────────────────────────────────────────────
+chromadb>=0.5.0            # 向量数据库（知识库索引）
+sentence-transformers>=3.0.0  # 文本嵌入模型
+
+# ── MCP Server ────────────────────────────────────────────────────────────────
+mcp>=1.0.0                 # Claude Code MCP 集成
+
+# ── 可选（有更好体验，但不装也能跑）─────────────────────────────────────────
+# huggingface-hub>=0.20.0  # 下载嵌入模型（已包含在 sentence-transformers 里）

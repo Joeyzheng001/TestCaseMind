@@ -315,12 +315,15 @@ def run_subagent(system: str, prompt: str, label: str = "") -> str:
 # ── 阶段一：需求评审 ───────────────────────────────────────────────────────
 def stage1_review(req_path: Path, memory=None) -> dict:
     system = (
-        "你是一名资深测试工程师。"
-        "开始工作前必须先用 todo_write 列出执行步骤。"
-        "然后按步骤执行：用 load_skill 加载 requirement-review 技能，"
-        "用 read_file 读取需求文档，按技能要求输出评审 JSON。"
-        "【严格要求】最终输出必须是合法 JSON 对象，以 { 开头，以 } 结尾。"
-        "禁止在 JSON 前后添加任何文字说明、markdown 标记或代码块。"
+        "你是一名资深测试工程师，负责需求文档评审。"
+        "执行步骤（严格按顺序，不得跳过）：\n"
+        "1. 用 todo_write 列出执行计划\n"
+        "2. 用 load_skill 加载 requirement-review 技能\n"
+        "3. 用 read_file 读取需求文档\n"
+        "4. 用 write_file 把评审结果 JSON 写入 output/_review_tmp.json\n"
+        "【绝对禁止】：不得使用 bash 工具执行任何命令。\n"
+        "【写入格式】：write_file 的 content 必须是合法 JSON 对象，"
+        "以 { 开头以 } 结尾，不含任何其他文字、代码块或 markdown 标记。"
     )
     # 用向量检索找相关历史经验（比全量注入更精准）
     req_preview = req_path.read_text(encoding="utf-8")[:500] if req_path.exists() else ""
@@ -341,8 +344,41 @@ def stage1_review(req_path: Path, memory=None) -> dict:
     result = run_subagent(system, prompt, label="需求评审")
     if result.startswith("__ERROR__"):
         print(f"  [s11] 需求评审失败: {result}，使用空评审结果继续")
-        return {"testable_features": [], "risk_flags": [], "score": 0, "error": result}
-    return extract_json(result, fallback={"testable_features": [], "risk_flags": []})
+        return {"testable_features": [], "risk_flags": [], "score": 0}
+
+    # 优先从临时文件读取（子代理用 write_file 写入）
+    review_tmp = OUTPUT_DIR / "_review_tmp.json"
+    if review_tmp.exists():
+        try:
+            raw = review_tmp.read_text(encoding="utf-8")
+            review_tmp.unlink(missing_ok=True)
+            data = extract_json(raw, fallback={})
+            if data and isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+
+    # 降级：从返回文本解析
+    data = extract_json(result, fallback={"testable_features": [], "risk_flags": []})
+
+    # 如果解析失败，尝试格式修复
+    if not data or not isinstance(data, dict):
+        print("  [重试] 评审 JSON 解析失败，尝试格式修复...")
+        try:
+            fix_resp = client.messages.create(
+                model=MODEL,
+                system="把以下内容转换为合法 JSON 对象，只输出 JSON，不要其他文字：",
+                messages=[{"role": "user", "content": result[:3000]}],
+                max_tokens=2000,
+            )
+            fix_text = "".join(b.text for b in fix_resp.content if hasattr(b, "text"))
+            data = extract_json(fix_text, fallback={"testable_features": [], "risk_flags": []})
+            if data:
+                print("  [重试] 格式修复成功")
+        except Exception as e:
+            print(f"  [重试] 格式修复失败: {e}")
+
+    return data if isinstance(data, dict) else {"testable_features": [], "risk_flags": []}
 
 
 # ── 阶段二：测试点生成 ─────────────────────────────────────────────────────
@@ -430,12 +466,28 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
 
     print(f"  阶段A完成: {len(req_tps)} 条 REQ 测试点")
 
-    # REQ=0 说明子代理没有正常输出，停止任务避免浪费 token
+    # REQ=0 时先尝试格式修复重试，修复失败才停止
     if not req_tps:
-        print(f"  [停止] 阶段A未生成任何 REQ 测试点，任务终止。")
-        print(f"  可能原因：需求文档内容无法解析，或模型输出格式不符。")
-        print(f"  建议：检查需求文档是否正常，或加 --skip-review 重试。")
-        return []
+        if not result_a.startswith("__ERROR__") and len(result_a) > 50:
+            print(f"  [重试] 阶段A输出非 JSON，尝试格式修复...")
+            try:
+                fix_resp = client.messages.create(
+                    model=MODEL,
+                    system="你是 JSON 格式化工具。把以下内容转换为合法 JSON 数组，只输出数组本身，以 [ 开头以 ] 结尾，不要其他文字。",
+                    messages=[{"role": "user", "content": result_a[:4000]}],
+                    max_tokens=4000,
+                )
+                fix_text = "".join(b.text for b in fix_resp.content if hasattr(b, "text"))
+                data = extract_json(fix_text, fallback=[], expect_list=True)
+                if isinstance(data, list) and data:
+                    req_tps = [normalize_testpoint(tp, i) for i, tp in enumerate(data)]
+                    print(f"  [重试] 格式修复成功，恢复 {len(req_tps)} 条测试点")
+            except Exception as e:
+                print(f"  [重试] 格式修复失败: {e}")
+
+        if not req_tps:
+            print(f"  [阶段A] 未生成 REQ 测试点，跳过此章节继续")
+            return []
 
     if not use_kb or not KB_DIR.exists():
         return req_tps
@@ -562,17 +614,22 @@ def stage3_testcases_batch(batch: list, batch_no: int, case_id_start: int) -> li
     tp_file.write_text(json.dumps(batch, ensure_ascii=False, indent=2), encoding="utf-8")
 
     system = (
-        "你是一名资深测试工程师。"
-        "开始工作前必须先用 todo_write 列出执行步骤（包括：加载技能、读测试点文件、逐条展开用例、写入结果文件）。"
-        "然后按步骤执行：用 load_skill 加载 testcase-gen 技能，"
-        "用 read_file 读取测试点文件，为每个测试点展开生成完整测试用例，"
-        f"最后用 write_file 把结果 JSON 数组写入 {out_file.relative_to(WORKDIR)}。"
-        "write_file 的 content 必须是合法 JSON 数组字符串，每条用例必须包含全部13个字段。"
+        "你是一名资深测试工程师，负责把测试点展开为完整测试用例。\n"
+        "严格按以下步骤执行，每个步骤只执行一次，不得重复：\n"
+        "1. todo_write：列出执行计划（只调一次）\n"
+        "2. load_skill：加载 testcase-gen 技能（只调一次）\n"
+        "3. read_file：读取测试点文件（只调一次）\n"
+        "4. write_file：写入用例 JSON 数组（只调一次）\n"
+        "【绝对禁止】：\n"
+        "- 不得重复调用任何工具\n"
+        "- 不得使用 bash 工具\n"
+        "- write_file 的 content 必须是合法 JSON 数组，以 [ 开头以 ] 结尾\n"
+        "- 不得在 JSON 前后添加任何文字说明"
     )
     prompt = (
         f"测试点文件: {tp_file.relative_to(WORKDIR)}（共 {len(batch)} 条测试点）\n"
         f"用例ID 从 TC-{case_id_start:03d} 开始递增。\n\n"
-        "按 testcase-gen 技能格式展开：P0 生成2条（正常流+异常流），P1/P2 各1条。\n"
+        "展开规则：每个独立路径/分支对应一条用例，覆盖完整为止。\n"
         f"生成完毕后用 write_file 写入 {out_file.relative_to(WORKDIR)}。"
     )
     result = run_subagent(system, prompt, label=f"用例生成 batch{batch_no}")
@@ -797,7 +854,85 @@ def export_excel(testcases: list, out_path: Path) -> bool:
     return True
 
 
-# ── 输出：Markdown（导入 XMind）─────────────────────────────────────────────
+def export_excel(testcases: list, out_path: Path) -> bool:
+    try:
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    except ImportError:
+        print("  [skip] Excel 输出需要 openpyxl: pip install openpyxl")
+        return False
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "测试用例"
+
+    columns = [
+        ("用例ID",      "case_id",          12),
+        ("测试点ID",    "testpoint_id",      12),
+        ("功能模块",    "functional_module", 18),
+        ("用例标题",    "case_title",        35),
+        ("来源",        "source",             8),
+        ("优先级",      "priority",           8),
+        ("前置条件",    "preconditions",     25),
+        ("测试数据",    "test_data",         20),
+        ("操作步骤",    "steps",             40),
+        ("预期结果",    "expected_result",   35),
+        ("实际结果",    "actual_result",     25),
+        ("执行状态",    "status",            10),
+        ("备注",        "remarks",           20),
+    ]
+
+    header_font  = Font(bold=True, color="FFFFFF", size=11)
+    header_fill  = PatternFill("solid", fgColor="2B5FA8")
+    center       = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    left_wrap    = Alignment(horizontal="left",   vertical="top",    wrap_text=True)
+    thin         = Side(style="thin", color="CCCCCC")
+    border       = Border(left=thin, right=thin, top=thin, bottom=thin)
+    source_colors = {"REQ": "DDEEFF", "KB": "FFF9DD", "RISK": "FFE8E8"}
+
+    for col_idx, (col_name, _, col_width) in enumerate(columns, 1):
+        cell = ws.cell(row=1, column=col_idx, value=col_name)
+        cell.font      = header_font
+        cell.fill      = header_fill
+        cell.alignment = center
+        cell.border    = border
+        ws.column_dimensions[cell.column_letter].width = col_width
+    ws.row_dimensions[1].height = 22
+
+    priority_colors = {"P0": "FF4444", "P1": "FF8800", "P2": "888888"}
+
+    for row_idx, case in enumerate(testcases, 2):
+        case     = normalize_testcase(case, row_idx - 1)
+        source   = case.get("source", "REQ")
+        row_fill = PatternFill("solid", fgColor=source_colors.get(source, "FFFFFF"))
+
+        for col_idx, (_, field_key, _) in enumerate(columns, 1):
+            value = case.get(field_key, "")
+            cell  = ws.cell(row=row_idx, column=col_idx, value=value)
+            cell.border = border
+            cell.fill   = row_fill
+            if field_key in ("case_id", "testpoint_id", "source", "priority", "status"):
+                cell.alignment = center
+                if field_key == "priority":
+                    cell.font = Font(color=priority_colors.get(value, "000000"), bold=True)
+            else:
+                cell.alignment = left_wrap
+        ws.row_dimensions[row_idx].height = 45
+
+    ws.freeze_panes = "A2"
+
+    legend_ws = wb.create_sheet("图例说明")
+    for r, (a, b) in enumerate([
+        ("颜色", "含义"), ("蓝色底", "REQ — 来自需求文档"),
+        ("黄色底", "KB  — 来自知识库补充"), ("红色底", "RISK — 风险推断"),
+        ("", ""), ("优先级", "说明"), ("P0", "核心必测"),
+        ("P1", "重要应测"), ("P2", "边缘可测"),
+    ], 1):
+        legend_ws.cell(row=r, column=1, value=a)
+        legend_ws.cell(row=r, column=2, value=b)
+
+    wb.save(out_path)
+    return True
 def normalize_testpoint(tp: dict, idx: int = 0) -> dict:
     """
     统一测试点字段名，兼容模型各种输出格式。
@@ -899,22 +1034,52 @@ def export_markdown_xmind(testpoints: list, review: dict, req_name: str, out_pat
         for r in risks:
             lines.append(f"### [{r.get('type','?')}] {r.get('desc','')}")
 
-    # 按功能模块分组
-    modules: dict = {}
+    # 按功能模块分组（归一化模块名，避免同一模块因名称细微差异被分开）
+    def normalize_module(name: str) -> str:
+        """模块名归一化：去掉括号内容、版本号、多余空格"""
+        import re as _re
+        name = name.strip()
+        name = _re.sub(r'[（(][^）)]*[）)]', '', name)  # 去掉括号
+        name = _re.sub(r'V[\d.]+', '', name)             # 去掉版本号
+        name = _re.sub(r'[\s_-]+', '', name)             # 去掉空格/下划线
+        return name.strip() or "未分类"
+
+    # 先按归一化名分组，保留原始名（取第一个出现的）
+    modules: dict = {}          # 归一化名 → [tp, ...]
+    mod_display: dict = {}      # 归一化名 → 显示名
     for tp in testpoints:
-        mod = tp.get("functional_module") or tp.get("feature", "未分类")
-        modules.setdefault(mod, []).append(tp)
+        raw_mod  = tp.get("functional_module") or tp.get("feature") or "未分类"
+        norm_mod = normalize_module(raw_mod)
+        if norm_mod not in mod_display:
+            mod_display[norm_mod] = raw_mod
+        modules.setdefault(norm_mod, []).append(tp)
+
+    # 按 P0 数量降序排列模块（重要模块在前）
+    modules = dict(sorted(
+        modules.items(),
+        key=lambda x: (
+            -sum(1 for t in x[1] if t.get("priority") == "P0"),
+            -len(x[1])
+        )
+    ))
 
     source_icon = {"REQ": "🔵", "KB": "🟡", "RISK": "🔴"}
 
-    for mod_name, tps in modules.items():
+    for norm_mod, tps in modules.items():
+        mod_name = mod_display.get(norm_mod, norm_mod)
         mc = sum(1 for t in tps if t.get("source")=="REQ")
         kc = sum(1 for t in tps if t.get("source")=="KB")
         rc = sum(1 for t in tps if t.get("source")=="RISK")
+        p0 = sum(1 for t in tps if t.get("priority")=="P0")
         lines.append(f"## {mod_name} ({len(tps)}条)")
-        lines.append(f"### 统计: REQ={mc} KB={kc} RISK={rc}")
+        lines.append(f"### 统计: REQ={mc} KB={kc} RISK={rc} | P0={p0}")
 
-        for tp in tps:
+        # 同模块内按来源排序：REQ → KB → RISK，相同来源内 P0 优先
+        tps_sorted = sorted(tps, key=lambda t: (
+            {"REQ": 0, "KB": 1, "RISK": 2}.get(t.get("source", "REQ"), 3),
+            {"P0": 0, "P1": 1, "P2": 2}.get(t.get("priority", "P1"), 3)
+        ))
+        for tp in tps_sorted:
             src   = tp.get("source", "REQ")
             pri   = tp.get("priority", "P1")
             icon  = source_icon.get(src, "⚪")
@@ -1201,13 +1366,26 @@ def main():
         if not md_path.exists():
             print(f"  检测到 .docx，自动转换为 Markdown...")
             import subprocess as _sp
-            r = _sp.run(
-                ["pandoc", str(req_path), "-t", "markdown", "-o", str(md_path)],
-                capture_output=True, text=True
-            )
-            if r.returncode != 0:
-                print(f"  [错误] pandoc 转换失败: {r.stderr[:200]}")
-                print("  请先安装 pandoc: brew install pandoc")
+            # 优先用 docx2md.py（表格格式更干净）
+            docx2md_script = WORKDIR / "docx2md.py"
+            if docx2md_script.exists():
+                r = _sp.run(
+                    [sys.executable, str(docx2md_script), str(req_path), "-o", str(md_path)],
+                    capture_output=True, text=True, timeout=120
+                )
+                if r.returncode != 0 or not md_path.exists():
+                    # 降级 pandoc
+                    r = _sp.run(
+                        ["pandoc", str(req_path), "-t", "markdown", "-o", str(md_path)],
+                        capture_output=True, text=True
+                    )
+            else:
+                r = _sp.run(
+                    ["pandoc", str(req_path), "-t", "markdown", "-o", str(md_path)],
+                    capture_output=True, text=True
+                )
+            if r.returncode != 0 or not md_path.exists():
+                print(f"  [错误] 转换失败: {r.stderr[:200]}")
                 sys.exit(1)
             print(f"  转换完成: {md_path.name}")
         else:
@@ -1225,6 +1403,17 @@ def main():
     ts       = int(time.time())
     stem     = req_path.stem
     req_name = req_path.name
+
+    # 自动清理旧任务文件（只保留最近 30 个）
+    tasks_dir = WORKDIR / ".tasks"
+    if tasks_dir.exists():
+        task_files = sorted(tasks_dir.glob("*.json"), key=lambda f: f.stat().st_mtime)
+        to_delete  = task_files[:-30] if len(task_files) > 30 else []
+        for f in to_delete:
+            try: f.unlink()
+            except Exception: pass
+        if to_delete:
+            print(f"  [清理] 删除 {len(to_delete)} 个旧任务文件")
 
     # 章节过滤：如果指定了 --section，提取对应章节内容写入临时文件
     section_keyword = args.section.strip()
@@ -1418,7 +1607,12 @@ def main():
     xlsx_out = RUN_DIR / "testcases.xlsx"
 
     tc_out.write_text(json.dumps(testcases, ensure_ascii=False, indent=2), encoding="utf-8")
-    xlsx_ok = export_excel(testcases, xlsx_out)
+    try:
+        xlsx_ok = export_excel(testcases, xlsx_out)
+    except Exception as e:
+        print(f"  [warn] Excel 生成失败: {e}")
+        import traceback; traceback.print_exc()
+        xlsx_ok = False
 
     # ④ 测分文档生成（本地，零 token）
     from gen_report import generate_report

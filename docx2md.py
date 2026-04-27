@@ -31,6 +31,12 @@ def cell_text(cell) -> str:
     return " ".join(parts).replace("\n", " ")
 
 
+def _all_same(items: list) -> bool:
+    """判断列表中所有非空值是否相同（用于检测合并单元格展开）。"""
+    vals = [i.strip() for i in items if i and i.strip()]
+    return len(vals) > 1 and len(set(vals)) == 1
+
+
 def table_to_md(table) -> str:
     """
     把 Word 表格转为 Markdown pipe table。
@@ -90,11 +96,18 @@ def table_to_md(table) -> str:
     # 标准表格
     lines = []
     header = rows_data[0]
+    # 合并单元格去重：如果一行所有列值相同，压缩为单列
+    if _all_same(header):
+        header = [header[0]]
+        rows_data = [[r[0]] for r in rows_data]
     lines.append("| " + " | ".join(h or " " for h in header) + " |")
     lines.append("| " + " | ".join("---" for _ in header) + " |")
     for row in rows_data[1:]:
         # 跳过全空行
         if not any(c.strip() for c in row):
+            continue
+        # 跳过内容与表头全相同的行（合并单元格残留）
+        if _all_same(row) and row[0].strip() == header[0].strip():
             continue
         lines.append("| " + " | ".join(c.replace("|", "\\|") or " " for c in row) + " |")
 
@@ -113,6 +126,10 @@ def para_to_md(para) -> str:
             style_name = para.style.name
     except Exception:
         pass
+
+    # 跳过目录标题行
+    if text.strip() in ("目 录", "目录", "目  录", "目 次"):
+        return ""
 
     # 标题
     heading_map = {
@@ -161,14 +178,25 @@ SKIP_SECTION_KW = [
 ]
 
 
+# 判断为元信息表格的内容关键词
+_META_TABLE_KW = [
+    "文档名称", "文档编号", "修订历史", "版本号", "撰写人", "负责人",
+    "文档目的", "内容描述", "修订者", "评审人员",
+]
+
+
 def should_skip_table(table, prev_heading: str = "") -> bool:
     """判断表格是否是非核心内容（文档信息/修订记录等）。"""
     if any(kw in prev_heading for kw in SKIP_SECTION_KW):
         return True
-    # 检查表格第一行是否含有非需求关键词
+    # 检查表格内容：如果多行含元信息关键词，跳过
     if table.rows:
-        first_row_text = " ".join(cell_text(c) for c in table.rows[0].cells)
-        if any(kw in first_row_text for kw in ["版本号", "日期", "撰写人", "负责人"]):
+        meta_hits = 0
+        for row in table.rows[:5]:
+            row_text = " ".join(cell_text(c) for c in row.cells)
+            if any(kw in row_text for kw in _META_TABLE_KW):
+                meta_hits += 1
+        if meta_hits >= 2:  # 至少2行命中，确认为元信息表
             return True
     return False
 
@@ -200,7 +228,6 @@ def docx_to_md(docx_path: Path, skip_meta: bool = True) -> str:
             para = Paragraph(child, doc)
             md_line = para_to_md(para)
             if not md_line:
-                # 保留一个空行，不要多个连续空行
                 if lines and lines[-1] != "":
                     lines.append("")
                 continue
@@ -231,6 +258,65 @@ def docx_to_md(docx_path: Path, skip_meta: bool = True) -> str:
                 lines.append(table_md)
                 lines.append("")
 
+    # ── 后处理：目录块过滤 ──────────────────────────────────────────────────
+    # 在文档头部（第一个 # 标题之前），检测并移除连续短编号目录行块
+    def _is_toc_like(line: str) -> bool:
+        if not line or len(line) > 50:
+            return False
+        if re.search(r'\.{3,}\s*\d+$', line):  # 点划线尾
+            return True
+        if re.match(r'^[\d\.]+\s+\S', line) and len(line) < 25:  # 短编号行
+            return True
+        if re.match(r'^[一二三四五六七八九十]、\s\S', line) and len(line) < 20:
+            return True
+        if line.startswith("*") and len(line) < 30 and line.count("*") >= 2:
+            return True
+        return False
+
+    cleaned = []
+    first_heading_idx = None
+    for i, line in enumerate(lines):
+        if line.startswith("#"):
+            first_heading_idx = i
+            break
+
+    if first_heading_idx is not None and first_heading_idx > 0:
+        # 在第一个标题之前的区域内查找连续目录行聚集块
+        toc_candidates = []
+        for i in range(first_heading_idx):
+            if _is_toc_like(lines[i]):
+                toc_candidates.append(i)
+        # 找连续块（>=5行）
+        if toc_candidates:
+            blocks = []
+            block_start = toc_candidates[0]
+            prev = toc_candidates[0]
+            for idx in toc_candidates[1:]:
+                if idx == prev + 1:
+                    prev = idx
+                else:
+                    if prev - block_start + 1 >= 5:
+                        blocks.append((block_start, prev))
+                    block_start = idx
+                    prev = idx
+            if prev - block_start + 1 >= 5:
+                blocks.append((block_start, prev))
+            # 合并相邻块
+            skip_idxs = set()
+            if blocks:
+                for s, e in blocks:
+                    for x in range(s, e + 1):
+                        skip_idxs.add(x)
+                # 扩展跳过后面的空行
+                for i in range(e + 1, min(e + 5, len(lines))):
+                    if lines[i] == "":
+                        skip_idxs.add(i)
+                    else:
+                        break
+            # 重建lines（跳过目录块索引）
+            if skip_idxs:
+                lines = [l for i, l in enumerate(lines) if i not in skip_idxs]
+
     # 清理多余空行
     result = []
     prev_blank = False
@@ -243,7 +329,18 @@ def docx_to_md(docx_path: Path, skip_meta: bool = True) -> str:
             result.append(line)
             prev_blank = False
 
-    return "\n".join(result).strip()
+    # 清理模板占位符：{填写...}、{xxx应当/按照/具体/详见...}
+    # 注意：保留短的变量引用如 {持仓数量类因子}
+    result_text = "\n".join(result).strip()
+    _PLACEHOLDER_KW = ["填写", "解读", "具体", "详见", "描述", "举例", "说明", "参见"]
+    _placeholder_re = re.compile(
+        r'\{[^}]*?(?:' + '|'.join(_PLACEHOLDER_KW) + r')[^}]*\}'
+    )
+    result_text = _placeholder_re.sub('', result_text)
+    # 清理由此产生的空行
+    result_text = re.sub(r'\n{3,}', '\n\n', result_text)
+
+    return result_text
 
 
 def main():

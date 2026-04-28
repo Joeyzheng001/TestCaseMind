@@ -22,3 +22,7 @@ CLAUDE.md
 *.xlsx
 *.docx
 input_docs/
+
+input/
+.design_index/
+.mcp_jobs/

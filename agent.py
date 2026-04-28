@@ -421,86 +421,128 @@ def stage1_review(req_path: Path, memory=None) -> dict:
 
 
 # ── 阶段二：测试点生成 ─────────────────────────────────────────────────────
+def _batch_gen_tp_section(title: str, content: str, review: dict,
+                           start_id: int, skill_text: str = "") -> list:
+    """单次 API 直调：输入一个小章节，输出该章节的测试点 JSON 数组。无工具调用。"""
+    review_summary = review.get("summary", "")
+    testable = review.get("testable_features", [])
+    testable_str = "\n".join(f"- {f}" for f in testable[:20]) if testable else ""
+
+    prompt = (
+        f"{skill_text}\n\n"
+        f"## 需求评审摘要\n{review_summary}\n\n"
+        f"## 可测功能点（来自评审）\n{testable_str}\n\n"
+        f"## 当前章节: {title}\n\n"
+        f"{content}\n\n"
+        f"---\n"
+        f"请为以上「{title}」章节生成测试点。\n"
+        f"- testpoint_id 从 TP-{start_id+1:03d} 开始递增\n"
+        f"- source 固定填 REQ\n"
+        f"- functional_module 必须具体到业务场景，如「流通类型-流通股-期初计算」而非笼统的「因子参数」\n"
+        f"- test_scenario 必须含具体测试数据，如「期初持仓1000股，买入500股，卖出200股，验证计算公式」\n"
+        f"- preconditions 写明具体数据：产品代码、证券代码、持仓数量、表字段值等\n"
+        f"- test_steps 是字符串数组，每步可执行：[\"步骤1: 在DWD_AST_PD_HLDP_INFO插入产品P001持仓1000股\", \"步骤2: ...\"]\n"
+        f"- expected_result 是字符串数组，必须含：①具体计算过程和数值 ②断言条件，如 [\"期初1000+买入500-卖出200=1300\", \"因子值=1300\", \"单位=股\"]\n"
+        f"- priority: P0=核心公式/主流程, P1=参数组合/边界, P2=异常/特殊场景\n\n"
+        f"只输出 JSON 数组，以 [ 开头以 ] 结尾，不要任何其他文字、markdown 代码块或说明。"
+    )
+
+    for attempt in range(3):
+        try:
+            _wait_rate_limit()
+            response = client.messages.create(
+                model=MODEL, messages=[{"role": "user", "content": prompt}],
+                max_tokens=8000,
+            )
+            text = "".join(b.text for b in response.content if hasattr(b, "text")).strip()
+            if not text:
+                if attempt < 2:
+                    import time as _t; _t.sleep(2)
+                    continue
+                print(f"    [{title}] 模型返回空响应（已重试{attempt+1}次）")
+                return []
+            data = extract_json(text, fallback=[], expect_list=True)
+            if isinstance(data, list) and data:
+                result = []
+                for i, tp in enumerate(data):
+                    result.append(normalize_testpoint(tp, start_id + i))
+                return result
+            elif attempt < 2:
+                import time as _t; _t.sleep(1)
+                continue
+            else:
+                preview = text[:200].replace("\n", "\\n")
+                print(f"    [{title}] JSON 解析失败: {preview}")
+                return []
+        except Exception as e:
+            if attempt < 2:
+                import time as _t; _t.sleep(2)
+                continue
+            print(f"    [{title}] API 异常: {e}")
+            return []
+    return []
+
+
+def _split_doc_by_sections(doc_text: str) -> list:
+    """按 ### / #### 标题拆分文档为多个章节，返回 [(标题, 内容), ...]"""
+    import re as _re_sec
+    lines = doc_text.splitlines()
+    sections = []
+    cur_title = ""
+    cur_lines = []
+
+    for line in lines:
+        m = _re_sec.match(r'^(#{1,4})\s+(.+)$', line)
+        if m:
+            level = len(m.group(1))
+            title = m.group(2).strip()
+            if level <= 4 and not title.startswith("目录"):
+                # 遇到新章节头，保存上一个
+                if cur_lines and cur_title:
+                    sections.append((cur_title, "\n".join(cur_lines)))
+                cur_title = title
+                cur_lines = [line]
+                continue
+        cur_lines.append(line)
+
+    if cur_lines and cur_title:
+        sections.append((cur_title, "\n".join(cur_lines)))
+    return sections
+
+
 def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -> list:
     """
     两阶段测试点生成：
-    阶段A：只读需求文档，生成 REQ 来源测试点（轻量）
+    阶段A：分批直调 API，每章节一次请求（无工具调用，避免多轮上下文膨胀）
     阶段B：读知识库 + 因子设计，补充 KB/RISK 测试点（按需）
     """
-    # ── 阶段 A：需求文档 → REQ 测试点 ──────────────────────────────────────
-    system_a = (
-        "你是一名资深测试工程师，专门生成测试点 JSON。"
-        "执行步骤（严格按顺序）：\n"
-        "1. 用 todo_write 列出步骤\n"
-        "2. 用 load_skill 加载 testpoint-gen 技能\n"
-        "3. 用 read_file 读取需求文档\n"
-        "4. 用 write_file 把 JSON 数组写入指定文件\n"
-        "【绝对禁止】：不得使用 bash 工具，不得在终端运行命令。\n"
-        "【写入格式】：write_file 的 content 参数必须是合法 JSON 数组，"
-        "以 [ 开头以 ] 结尾，不含任何其他文字、代码块标记或说明。"
-    )
-    tp_tmp_a = OUTPUT_DIR / "_testpoints_stage2_a.json"
-    tp_tmp_a.unlink(missing_ok=True)
-
-    # 向量检索历史测试点经验
-    if memory:
+    # ── 加载 testpoint-gen 技能文本 ──────────────────────────────────────
+    skill_text = ""
+    skill_path = WORKDIR / "skills" / "testpoint-gen" / "SKILL.md"
+    if skill_path.exists():
         try:
-            from memory_rag import MemoryRAG as _MR
-            _mr = _MR()
-            req_preview = req_path.read_text(encoding="utf-8")[:500] if req_path.exists() else ""
-            mem_tp_ctx = _mr.search(f"{req_path.stem} {req_preview}", top_k=6)
+            skill_text = skill_path.read_text(encoding="utf-8")
         except Exception:
-            mem_tp_ctx = memory.get_context_for_testpoints()
-    else:
-        mem_tp_ctx = ""
-    prompt_a = (
-        f"需求文档路径: {req_path.relative_to(WORKDIR)}\n\n"
-        f"需求评审结果:\n{json.dumps(review, ensure_ascii=False, indent=2)}\n\n"
-        + (f"【历史经验参考】\n{mem_tp_ctx}\n\n" if mem_tp_ctx else "")
-        + "请仅基于需求文档生成 REQ 来源测试点。\n"
-        "输出格式：纯 JSON 数组，每个元素包含 testpoint_id/functional_module/test_scenario/"
-        "source/preconditions/test_steps/expected_result/priority/remarks 字段。\n"
-        "source 字段固定填 REQ。\n"
-        f"完成后必须用 write_file 把 JSON 数组（只有数组，不含其他文字）写入 {tp_tmp_a.relative_to(WORKDIR)}。"
-    )
-    result_a = run_subagent(system_a, prompt_a, label="测试点-需求文档")
+            pass
 
-    # 读回阶段 A 的结果
+    # ── 阶段 A：拆分文档，分批生成 REQ 测试点 ─────────────────────────────
+    print(f"\n  [测试点-需求文档] 分批模式启动...")
+    doc_text = req_path.read_text(encoding="utf-8")
+    sections = _split_doc_by_sections(doc_text)
+    print(f"  文档拆分为 {len(sections)} 个章节: {[t for t, _ in sections]}")
+
     req_tps = []
-    if tp_tmp_a.exists():
-        raw = tp_tmp_a.read_text(encoding="utf-8")
-        tp_tmp_a.unlink(missing_ok=True)
-        data = extract_json(raw, fallback=[], expect_list=True)
-        if isinstance(data, list):
-            req_tps = [normalize_testpoint(tp, i) for i, tp in enumerate(data)]
-
-    # 从返回文本降级解析
-    if not req_tps and not result_a.startswith("__ERROR__"):
-        data = extract_json(result_a, fallback=[], expect_list=True)
-        if isinstance(data, list):
-            req_tps = [normalize_testpoint(tp, i) for i, tp in enumerate(data)]
-
-    # 阶段A失败时自动重试：让模型把已有内容重新格式化为 JSON
-    if not req_tps and not result_a.startswith("__ERROR__") and len(result_a) > 100:
-        data = _retry_json_fix(
-            "以下是测试点内容，请将其转换为合法 JSON 数组格式输出，"
-            "不要有任何其他文字，直接以 [ 开头，以 ] 结尾：\n\n" + result_a[:3000],
-            expect_list=True, char_limit=99999, label="，恢复测试点",
-        )
-        if isinstance(data, list) and data:
-            req_tps = [normalize_testpoint(tp, i) for i, tp in enumerate(data)]
+    for title, content in sections:
+        if len(content.strip()) < 80:
+            print(f"    [{title}] 跳过（内容过短）")
+            continue
+        print(f"    [{title}] 生成中（{len(content)} 字）...", end=" ", flush=True)
+        batch = _batch_gen_tp_section(title, content, review,
+                                       len(req_tps), skill_text)
+        print(f"{len(batch)} 条")
+        req_tps.extend(batch)
 
     print(f"  阶段A完成: {len(req_tps)} 条 REQ 测试点")
-
-    # REQ=0 时也尝试格式修复，修复失败才停止
-    if not req_tps and not result_a.startswith("__ERROR__") and len(result_a) > 50:
-        data = _retry_json_fix(
-            result_a[:4000],
-            system="你是 JSON 格式化工具。把以下内容转换为合法 JSON 数组，只输出数组本身，以 [ 开头以 ] 结尾，不要其他文字。",
-            expect_list=True, label="，恢复测试点",
-        )
-        if isinstance(data, list) and data:
-            req_tps = [normalize_testpoint(tp, i) for i, tp in enumerate(data)]
 
     if not req_tps:
         print(f"  [阶段A] 未生成 REQ 测试点，跳过此章节继续")
@@ -623,51 +665,67 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
 BATCH_SIZE = 10
 
 def stage3_testcases_batch(batch: list, batch_no: int, case_id_start: int) -> list:
-    """处理单批测试点，返回用例列表。"""
-    tp_file  = OUTPUT_DIR / f"_tp_batch_{batch_no}.json"
-    out_file = OUTPUT_DIR / f"_tc_batch_{batch_no}.json"
-    out_file.unlink(missing_ok=True)
+    """分批直调 API：传入测试点，直接返回用例 JSON，无工具调用。"""
+    # 加载 testcase-gen 技能文本
+    skill_text = ""
+    skill_path = WORKDIR / "skills" / "testcase-gen" / "SKILL.md"
+    if skill_path.exists():
+        try:
+            skill_text = skill_path.read_text(encoding="utf-8")
+        except Exception:
+            pass
 
-    tp_file.write_text(json.dumps(batch, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    system = (
-        "你是一名资深测试工程师，负责把测试点展开为完整测试用例。\n"
-        "严格按以下步骤执行，每个步骤只执行一次，不得重复：\n"
-        "1. todo_write：列出执行计划（只调一次）\n"
-        "2. load_skill：加载 testcase-gen 技能（只调一次）\n"
-        "3. read_file：读取测试点文件（只调一次）\n"
-        "4. write_file：写入用例 JSON 数组（只调一次）\n"
-        "【绝对禁止】：\n"
-        "- 不得重复调用任何工具\n"
-        "- 不得使用 bash 工具\n"
-        "- write_file 的 content 必须是合法 JSON 数组，以 [ 开头以 ] 结尾\n"
-        "- 不得在 JSON 前后添加任何文字说明"
-    )
+    batch_json = json.dumps(batch, ensure_ascii=False, indent=2)
     prompt = (
-        f"测试点文件: {tp_file.relative_to(WORKDIR)}（共 {len(batch)} 条测试点）\n"
-        f"用例ID 从 TC-{case_id_start:03d} 开始递增。\n\n"
-        "展开规则：每个独立路径/分支对应一条用例，覆盖完整为止。\n"
-        f"生成完毕后用 write_file 写入 {out_file.relative_to(WORKDIR)}。"
+        f"{skill_text}\n\n"
+        f"## 测试点列表（共 {len(batch)} 条）\n\n"
+        f"```json\n{batch_json}\n```\n\n"
+        f"---\n"
+        f"将以上测试点展开为完整测试用例，严格遵循以下规则：\n"
+        f"- case_id 从 TC-{case_id_start:03d} 开始递增\n"
+        f"- 每个独立路径/分支对应一条用例，覆盖完整为止\n"
+        f"- 每条用例包含: case_id, testpoint_id, functional_module, case_title, "
+        f"source, priority, preconditions, test_data, steps, expected_result, remarks\n"
+        f"- test_data: 给出具体的测试输入值（如 期初持仓=10000股, 买入成交=5000股, 卖出=2000股）\n"
+        f"- steps: 字符串数组，每步包含具体操作和数据，如 [\"在DWD_AST_PD_HLDP_INFO插入产品P001, 证券600001, 持仓10000股\", ...]\n"
+        f"- expected_result: 字符串数组，必须包含：①具体计算数值和公式 ②可验证的断言，如 [\"计算: 期初10000 + 买入5000 - 卖出2000 = 13000\", \"因子值=13000\", \"单位=股\"]\n"
+        f"- preconditions: 写明产品/证券/表名/字段等具体信息\n"
+        f"- case_title 必须区分等价类/边界值的不同取值（如「流通股类型=流通股」vs「流通股类型=非流通股」）\n\n"
+        f"只输出 JSON 数组，以 [ 开头以 ] 结尾，不要任何其他文字、markdown 代码块或说明。"
     )
-    result = run_subagent(system, prompt, label=f"用例生成 batch{batch_no}")
-    tp_file.unlink(missing_ok=True)
 
-    # s11: 失败跳过本批，不影响其他批次
-    if result.startswith("__ERROR__"):
-        print(f"  [s11] batch{batch_no} 失败，跳过: {result[:80]}")
-        return []
-
-    if out_file.exists():
-        raw  = out_file.read_text(encoding="utf-8")
-        out_file.unlink(missing_ok=True)
-        data = extract_json(raw, fallback=[], expect_list=True)
-        if not isinstance(data, list):
+    for attempt in range(3):
+        try:
+            _wait_rate_limit()
+            response = client.messages.create(
+                model=MODEL, messages=[{"role": "user", "content": prompt}],
+                max_tokens=16000,
+            )
+            text = "".join(b.text for b in response.content if hasattr(b, "text")).strip()
+            if not text:
+                if attempt < 2:
+                    import time as _t; _t.sleep(2)
+                    continue
+                print(f"  [batch{batch_no}] 模型返回空响应")
+                return []
+            data = extract_json(text, fallback=[], expect_list=True)
+            if isinstance(data, list) and data:
+                offset = (batch_no - 1) * BATCH_SIZE
+                result = [normalize_testcase(c, offset + i + 1) for i, c in enumerate(data)]
+                return result
+            elif attempt < 2:
+                import time as _t; _t.sleep(1)
+                continue
+            else:
+                preview = text[:200].replace("\n", "\\n")
+                print(f"  [batch{batch_no}] JSON 解析失败: {preview}")
+                return []
+        except Exception as e:
+            if attempt < 2:
+                import time as _t; _t.sleep(2)
+                continue
+            print(f"  [batch{batch_no}] API 异常: {e}")
             return []
-        # 标准化测试用例字段，case_id 从本批起始序号递增
-        offset = (batch_no - 1) * BATCH_SIZE
-        data = [normalize_testcase(c, offset + i + 1) for i, c in enumerate(data)]
-        return data
-    print(f"  [warn] batch{batch_no} 未写入文件，跳过")
     return []
 
 
@@ -898,6 +956,8 @@ def export_excel(testcases: list, out_path: Path) -> bool:
 
         for col_idx, (_, field_key, _) in enumerate(columns, 1):
             value = case.get(field_key, "")
+            if isinstance(value, list):
+                value = "\n".join(str(v) for v in value)
             cell  = ws.cell(row=row_idx, column=col_idx, value=value)
             cell.border = border
             cell.fill   = row_fill
@@ -1081,12 +1141,37 @@ def _extract_section(req_path: Path, keyword: str) -> str:
         elif in_section:
             result.append(line)
 
-    # 如果没匹配到标题，尝试全文关键词段落匹配
+    # 如果没匹配到标题，尝试去掉编号前缀后重试
+    # 例如: "5.1现货持仓数量" → "现货持仓数量" 匹配 "## 现货持仓数量"
     if not result:
-        paras = text.split("\n\n")
-        for para in paras:
-            if keyword in para:
-                result.append(para)
+        import re as _re_num
+        stripped = _re_num.sub(r'^[\d\.\s]+', '', keyword)
+        if stripped and stripped != keyword:
+            for line in lines:
+                if line.startswith("#"):
+                    level = len(line) - len(line.lstrip("#"))
+                    title = line.lstrip("#").strip()
+                    if stripped in title:
+                        in_section    = True
+                        section_level = level
+                        result.append(line)
+                    elif in_section:
+                        if level <= section_level:
+                            in_section = False
+                        else:
+                            result.append(line)
+                elif in_section:
+                    result.append(line)
+
+    # 如果还没匹配到，尝试全文关键词段落匹配（分别用原关键词和去编号关键词）
+    if not result:
+        for kw in (keyword, stripped if stripped != keyword else keyword):
+            paras = text.split("\n\n")
+            for para in paras:
+                if kw in para:
+                    result.append(para)
+            if result:
+                break
 
     return "\n".join(result).strip()
 

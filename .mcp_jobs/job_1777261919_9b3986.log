@@ -1,0 +1,206 @@
+/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/transformers/tokenization_utils_base.py:1601: FutureWarning: `clean_up_tokenization_spaces` was not set. It will be set to `True` by default. This behavior will be depracted in transformers v4.45, and will be then set to `False` by default. For more details check this issue: https://github.com/huggingface/transformers/issues/31884
+  warnings.warn(
+  [章节过滤] 只处理包含「5.9」的章节
+  [章节过滤] 未找到包含「5.9」的章节，使用完整文档
+
+====================================================
+  测试 Agent v2 启动
+  需求文档: ARM-RULE-UC00004_产品基础信息类因子规格文档__2.6.2_.md
+  知识库:   启用
+  生成用例: 是
+====================================================
+
+  [s07] 任务文件: ARM-RULE-UC00004_产品基础信息类因子规格文档__2.6.2__1777261920.json
+  [s09] 长期记忆: {'domain_patterns': 0, 'quality_signals': 0, 'testpoint_hints': 0, 'risk_patterns': 0}（向量检索已就绪）
+
+
+  [需求评审] 子代理启动...
+
+📋 执行计划:
+  1. 列出执行计划
+  2. 加载 requirement-review 技能
+  3. 读取需求文档
+  4. 将评审结果写入 output/_review_tmp.json
+
+    → todo_write(todos)
+    → load_skill(name)
+    → read_file(path)
+    → read_file(path)
+    → bash(command)
+    → read_file(path)
+    → write_file(path)
+
+  评审完成 → 质量分: N/A, 功能点: 0, 风险项: 0
+
+  [测试点-需求文档] 子代理启动...
+
+📋 执行计划:
+  1. 用 load_skill 加载 testpoint-gen 技能
+  2. 用 read_file 读取需求文档
+  3. 分析需求文档和评审结果，提取可测试需求点
+  4. 生成测试点 JSON 数组
+  5. 用 write_file 写入 output/_testpoints_stage2_a.json
+
+    → todo_write(todos)
+    → load_skill(name)
+    → read_file(path)
+    → read_file(path)
+    → bash(command)
+    → read_file(path)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+    → bash(command)
+  [warn] JSON 被截断，成功恢复 48 条记录
+  阶段A完成: 48 条 REQ 测试点
+
+  [测试点-知识库补充] RAG 语义检索...
+  [RAG] 使用本地模型: paraphrase-multilingual-MiniLM-L12-v2
+  [RAG] 知识库有变化，重建索引...
+  [RAG] 处理 1 个知识库文件...
+  [RAG] 共 136 个段落，开始向量化...
+  [RAG] 已处理 100/136
+  [RAG] 已处理 136/136
+  [RAG] 索引建立完成
+  [warn] JSON 解析失败，原始输出前300字符:
+[
+  {
+    "testpoint_id": "TP-049",
+    "functional_module": "产品基础信息类因子-事前明细展示",
+    "test_scenario": "验证证券一级分类为BOND时的枚举值取值",
+    "source": "KB",
+    "source_ref": "ARM-RULE-UC00004_产品基础信息类因子规格文档__2.6.2_.md",
+    "preconditions": "系统中存在证券基础数据",
+    "test_steps": "查询证券一级分类（SCR_PRI_CLAS），检查当分类为BOND时的数
+  阶段B完成: 0 条 KB/RISK 测试点
+
+====================================================
+  ② 测试点生成完成
+     总数: 48  🔵REQ=48  🟡KB=0  🔴RISK=0
+  输出目录: output/ARM-RULE-UC00004_产品基础信息类因子规格文档__2.6.2_/1777261920
+     JSON:  testpoints.json
+     Markdown(→XMind): testpoints_xmind.md
+====================================================
+  共 48 条测试点，分 5 批并行处理（每批 10 条）
+
+  [用例生成 batch2] 子代理启动...
+
+  [用例生成 batch4] 子代理启动...
+
+  [用例生成 batch3] 子代理启动...
+
+  [用例生成 batch1] 子代理启动...
+
+📋 执行计划:
+  1. 列出执行计划
+  2. 加载 testcase-gen 技能
+  3. 读取测试点文件 output/_tp_batch_4.json
+  4. 生成测试用例并写入 output/_tc_batch_4.json
+
+    → todo_write(todos)
+
+📋 执行计划:
+  1. 1. 加载 testcase-gen 技能
+  2. 2. 读取测试点文件 output/_tp_batch_2.json
+  3. 3. 根据展开规则生成完整测试用例，写入 output/_tc_batch_2.json
+
+    → todo_write(todos)
+
+📋 执行计划:
+  1. 1. 加载 testcase-gen 技能
+  2. 2. 读取测试点文件 output/_tp_batch_3.json
+  3. 3. 根据展开规则生成完整测试用例，写入 output/_tc_batch_3.json
+
+    → todo_write(todos)
+    → load_skill(name)
+
+📋 执行计划:
+  1. 列出执行计划
+  2. 加载 testcase-gen 技能
+  3. 读取测试点文件 output/_tp_batch_1.json
+  4. 展开测试点为完整测试用例并写入 output/_tc_batch_1.json
+
+    → todo_write(todos)
+    → load_skill(name)
+    → read_file(path)
+    → load_skill(name)
+    → load_skill(name)
+    → read_file(path)
+    → read_file(path)
+    → read_file(path)
+    → write_file(path)
+    → write_file(path)
+  batch1/5 完成，本批生成 16 条用例
+
+  [用例生成 batch5] 子代理启动...
+
+📋 执行计划:
+  1. 1. load_skill: 加载 testcase-gen 技能
+  2. 2. read_file: 读取测试点文件 output/_tp_batch_5.json
+  3. 3. 根据展开规则生成完整测试用例，从 TC-041 开始递增
+  4. 4. write_file: 写入 output/_tc_batch_5.json
+
+    → todo_write(todos)
+    → load_skill(name)
+    → read_file(path)
+  [warn] JSON 解析失败，原始输出前300字符:
+[
+  {
+    "case_id": "TC-011",
+    "testpoint_id": "TP-REQ-011",
+    "functional_module": "上一日净资产因子",
+    "case_title": "正常取值-DWD_AST_PD_VALU_INDX表存在NET_AST数据时因子取值成功",
+    "source": "REQ",
+    "priority": "P1",
+    "preconditions": "产品P001在DWD_AST_PD_VALU_INDX表中存在上一交易日记录，NET_AST字段值为5000000",
+    "te
+  batch2/5 完成，本批生成 0 条用例
+    → write_file(path)
+    → write_file(path)
+  [warn] JSON 解析失败，原始输出前300字符:
+[
+  {
+    "case_id": "TC-021",
+    "testpoint_id": "TP-REQ-021",
+    "functional_module": "上一日总资产因子",
+    "case_title": "正常取值-从日终估值指标表取上一日TOT_AST成功",
+    "source": "REQ",
+    "priority": "P1",
+    "preconditions": "产品P001在DWD_AST_PD_VALU_INDX表中存在上一交易日(2025-06-18)的TOT_AST字段数据，值为5000000",
+    "test_da
+  batch3/5 完成，本批生成 0 条用例
+  batch4/5 完成，本批生成 15 条用例
+    → write_file(path)
+  [warn] JSON 解析失败，原始输出前300字符:
+[
+  {
+    "case_id": "TC-041",
+    "testpoint_id": "TP-REQ-041",
+    "functional_module": "日平均净值因子",
+    "case_title": "截止日期=最近卖出日上一交易日-前端不展示或灰显该选项",
+    "source": "REQ",
+    "priority": "P1",
+    "preconditions": "用户已登录系统，进入日平均净值因子配置页面，截止日期参数值域配置中包含"最近卖出日上一交易日"选项",
+    "test_data": "截止日期参数=最近卖出日上一交
+  batch5/5 完成，本批生成 0 条用例
+
+====================================================
+  ③ 测试用例生成完成
+     总数: 31 条
+     JSON:  testcases.json
+     Excel: testcases.xlsx
+     测分:  report.md
+
+  [s07] 最终任务状态: ✓ review(done)  ✓ testpoints(done)  ✓ testcases(done)  ✓ export(done)
+====================================================
+

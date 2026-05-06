@@ -1,0 +1,22 @@
+{
+  "job_id": "job_1777269840_85638c",
+  "status": "done",
+  "requirement": "/Users/zhengzhong/TestCaseMind/knowledge_base/ARM-RULE-UC00004_产品基础信息类因子规格文档__2.6.2_.md",
+  "use_kb": true,
+  "skip_review": false,
+  "no_cases": false,
+  "section": "组合固收资产ESG得分",
+  "created_at": "2026-04-27 14:04:00",
+  "started_at": "2026-04-27 14:04:00",
+  "pid": 45110,
+  "output": {
+    "testpoints_json": "testpoints.json",
+    "testpoints_md": "testpoints_xmind.md",
+    "testcases_json": "testcases.json",
+    "testcases_xlsx": "testcases.xlsx",
+    "report_md": "report.md",
+    "output_dir": "/Users/zhengzhong/TestCaseMind/output/ARM-RULE-UC00004_产品基础信息类因子规格文档__2.6.2_/1777261920"
+  },
+  "finished_at": "2026-04-27 14:49:12",
+  "log_tail": "    → load_skill(name)\n    → read_file(path)\n    → write_file(path)\n  batch1/6 完成，本批生成 15 条用例\n    → write_file(path)\n  batch6/6 完成，本批生成 4 条用例\n    → write_file(path)\n  batch5/6 完成，本批生成 16 条用例\n    → write_file(path)\n  batch2/6 完成，本批生成 24 条用例\n\n====================================================\n  ③ 测试用例生成完成\n     总数: 59 条\n     JSON:  testcases.json\n     Excel: testcases.xlsx\n     测分:  report.md\n\n  [s07] 最终任务状态: ✓ review(done)  ✓ testpoints(done)  ✓ testcases(done)  ✓ export(done)\n===================================================="
+}

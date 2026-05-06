@@ -1,0 +1,47 @@
+[transformers] Disabling PyTorch because PyTorch >= 2.4 is required but found 2.2.2
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.4.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "/Users/zhengzhong/TestCaseMind/agent.py", line 1651, in <module>
+    main()
+  File "/Users/zhengzhong/TestCaseMind/agent.py", line 1472, in main
+    review = stage1_review(req_path, memory=memory)
+  File "/Users/zhengzhong/TestCaseMind/agent.py", line 334, in stage1_review
+    mem_ctx = _mr.search(f"{req_path.stem} {req_preview}", top_k=5)
+  File "/Users/zhengzhong/TestCaseMind/memory_rag.py", line 110, in search
+    self._lazy_init()
+  File "/Users/zhengzhong/TestCaseMind/memory_rag.py", line 38, in _lazy_init
+    ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/chromadb/utils/embedding_functions/sentence_transformer_embedding_function.py", line 29, in __init__
+    from sentence_transformers import SentenceTransformer
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/sentence_transformers/__init__.py", line 10, in <module>
+    from sentence_transformers.backend import (
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/sentence_transformers/backend/__init__.py", line 5, in <module>
+    from .quantize import export_dynamic_quantized_onnx_model, export_static_quantized_openvino_model
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/sentence_transformers/backend/quantize.py", line 7, in <module>
+    from sentence_transformers.util import disable_datasets_caching, is_datasets_available
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/sentence_transformers/util/__init__.py", line 4, in <module>
+    from .distributed import all_gather, all_gather_with_grad
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/sentence_transformers/util/distributed.py", line 3, in <module>
+    import torch
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/torch/__init__.py", line 1477, in <module>
+    from .functional import *  # noqa: F403
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/torch/functional.py", line 9, in <module>
+    import torch.nn.functional as F
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/torch/nn/__init__.py", line 1, in <module>
+    from .modules import *  # noqa: F403
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/torch/nn/modules/__init__.py", line 35, in <module>
+    from .transformer import TransformerEncoder, TransformerDecoder, \
+  File "/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/torch/nn/modules/transformer.py", line 20, in <module>
+    device: torch.device = torch.device(torch._C._get_default_device()),  # torch.device('cpu'),
+/Users/zhengzhong/TestCaseMind/.venv/lib/python3.12/site-packages/torch/nn/modules/transformer.py:20: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:84.)
+  device: torch.device = torch.device(torch._C._get_default_device()),  # torch.device('cpu'),
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.

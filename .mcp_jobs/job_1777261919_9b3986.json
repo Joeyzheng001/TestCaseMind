@@ -1,0 +1,22 @@
+{
+  "job_id": "job_1777261919_9b3986",
+  "status": "done",
+  "requirement": "/Users/zhengzhong/TestCaseMind/knowledge_base/ARM-RULE-UC00004_产品基础信息类因子规格文档__2.6.2_.md",
+  "use_kb": true,
+  "skip_review": false,
+  "no_cases": false,
+  "section": "5.9",
+  "created_at": "2026-04-27 11:51:59",
+  "started_at": "2026-04-27 11:51:59",
+  "pid": 43551,
+  "output": {
+    "testpoints_json": "testpoints.json",
+    "testpoints_md": "testpoints_xmind.md",
+    "testcases_json": "testcases.json",
+    "testcases_xlsx": "testcases.xlsx",
+    "report_md": "report.md",
+    "output_dir": "/Users/zhengzhong/TestCaseMind/output/ARM-RULE-UC00004_产品基础信息类因子规格文档__2.6.2_/1777261920"
+  },
+  "finished_at": "2026-04-27 12:02:18",
+  "log_tail": "  {\n    \"case_id\": \"TC-041\",\n    \"testpoint_id\": \"TP-REQ-041\",\n    \"functional_module\": \"日平均净值因子\",\n    \"case_title\": \"截止日期=最近卖出日上一交易日-前端不展示或灰显该选项\",\n    \"source\": \"REQ\",\n    \"priority\": \"P1\",\n    \"preconditions\": \"用户已登录系统，进入日平均净值因子配置页面，截止日期参数值域配置中包含\"最近卖出日上一交易日\"选项\",\n    \"test_data\": \"截止日期参数=最近卖出日上一交\n  batch5/5 完成，本批生成 0 条用例\n\n====================================================\n  ③ 测试用例生成完成\n     总数: 31 条\n     JSON:  testcases.json\n     Excel: testcases.xlsx\n     测分:  report.md\n\n  [s07] 最终任务状态: ✓ review(done)  ✓ testpoints(done)  ✓ testcases(done)  ✓ export(done)\n===================================================="
+}

@@ -3,10 +3,10 @@
 agent.py - 测试用例生成 Agent (v2)
 
 用法:
-    python agent.py requirements.md
-    python agent.py requirements.md --kb        # 启用知识库
-    python agent.py requirements.md --skip-review
-    python agent.py requirements.md --no-cases  # 只生成测试点，不展开用例
+    python scripts/agent.py requirements.md
+    python scripts/agent.py requirements.md --kb        # 启用知识库
+    python scripts/agent.py requirements.md --skip-review
+    python scripts/agent.py requirements.md --no-cases  # 只生成测试点，不展开用例
 
 输出:
     output/testpoints_<name>_<ts>.json    测试点
@@ -25,6 +25,7 @@ import re
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 from anthropic import Anthropic
@@ -35,9 +36,10 @@ from memory_store import MemoryStore
 from kb_rag import KBRetriever
 from memory_rag import MemoryRAG
 
-load_dotenv(override=False)
-
-WORKDIR = Path(__file__).parent
+WORKDIR = Path(__file__).resolve().parent.parent
+SCRIPT_DIR = Path(__file__).resolve().parent
+# 项目运行以当前仓库 .env 为准，避免 shell 中残留的旧 API token 覆盖新配置。
+load_dotenv(WORKDIR / ".env", override=True)
 client = Anthropic()
 MODEL = os.environ.get("ANTHROPIC_MODEL") or os.environ.get("DEFAULT_LLM_MODEL") or os.environ.get("MODEL_ID", "claude-sonnet-4-6")
 
@@ -45,12 +47,156 @@ KB_DIR     = WORKDIR / "knowledge_base"
 SKILLS_DIR = WORKDIR / "skills"
 OUTPUT_DIR = WORKDIR / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
+SECTIONS_DIR = WORKDIR / ".sections"
+SECTIONS_DIR.mkdir(exist_ok=True)
+LOG_DIR = WORKDIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+RUN_LOG_PATH: Path | None = None
+TIMINGS: dict[str, float] = {}
+_RAG_FAILURES: set[str] = set()
+_RAG_RETRIEVERS: dict[tuple[str, str], object] = {}
+
+
+class TeeStream:
+    """把 stdout/stderr 同时写到控制台和本地日志文件。"""
+
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, data):
+        for stream in self.streams:
+            stream.write(data)
+            stream.flush()
+
+    def flush(self):
+        for stream in self.streams:
+            stream.flush()
+
+    def isatty(self):
+        return any(getattr(stream, "isatty", lambda: False)() for stream in self.streams)
+
+
+def setup_run_logging(stem: str, ts: int) -> Path:
+    """初始化本次运行日志，完整保留控制台输出，便于排查。"""
+    global RUN_LOG_PATH
+    safe_stem = re.sub(r"[^a-zA-Z0-9._\-\u4e00-\u9fff]+", "_", stem).strip("_") or "run"
+    RUN_LOG_PATH = LOG_DIR / f"{safe_stem}_{ts}.log"
+    log_fp = open(RUN_LOG_PATH, "a", encoding="utf-8", buffering=1)
+    sys.stdout = TeeStream(sys.stdout, log_fp)
+    sys.stderr = TeeStream(sys.stderr, log_fp)
+    return RUN_LOG_PATH
+
+
+@contextmanager
+def timed_stage(name: str, label: str | None = None):
+    """记录阶段耗时并打印，便于定位性能瓶颈。"""
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        elapsed = time.perf_counter() - start
+        TIMINGS[name] = TIMINGS.get(name, 0.0) + elapsed
+        shown = label or name
+        print(f"  [耗时] {shown}: {elapsed:.1f}s")
+
+
+def get_cached_retriever(kb_dir: Path, index_dir: Path | None = None):
+    """同一次运行复用 RAG retriever；失败后不反复初始化。"""
+    idx = index_dir or (WORKDIR / ".kb_index")
+    key = (str(kb_dir.resolve()), str(idx.resolve()))
+    failure_key = "|".join(key)
+    if failure_key in _RAG_FAILURES:
+        raise RuntimeError("本次运行中该 RAG 索引已初始化失败，跳过重复尝试")
+    if key not in _RAG_RETRIEVERS:
+        _RAG_RETRIEVERS[key] = KBRetriever(kb_dir=kb_dir, index_dir=idx)
+    return _RAG_RETRIEVERS[key]
 
 def get_run_dir(stem: str, ts: int) -> Path:
     """每次运行单独一个目录：output/<需求文件名>/<时间戳>/"""
     run_dir = OUTPUT_DIR / stem / str(ts)
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir
+
+
+def write_manifest(
+    run_dir: Path,
+    *,
+    status: str,
+    req_path: Path,
+    model: str,
+    use_kb: bool,
+    no_cases: bool,
+    section: str,
+    review: dict,
+    testpoints: list,
+    testcases: list | None = None,
+    files: dict | None = None,
+    task_summary: str = "",
+    warnings: list | None = None,
+    timings: dict | None = None,
+) -> Path:
+    """写入标准运行清单，供 MCP/外部工具稳定读取产物与统计信息。"""
+    files = files or {}
+    warnings = warnings or []
+    testcases = testcases or []
+
+    by_source = {
+        "REQ": sum(1 for t in testpoints if get_source(t) == "REQ"),
+        "KB": sum(1 for t in testpoints if get_source(t) == "KB"),
+        "RISK": sum(1 for t in testpoints if get_source(t) == "RISK"),
+    }
+
+    def _rel(p):
+        if not p:
+            return ""
+        path = Path(p)
+        try:
+            return str(path.relative_to(WORKDIR))
+        except Exception:
+            return str(path)
+
+    manifest = {
+        "schema_version": "1.0",
+        "status": status,
+        "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "model": model,
+        "requirement": {
+            "path": _rel(req_path),
+            "name": req_path.name,
+            "section": section or "",
+        },
+        "options": {
+            "knowledge_base": use_kb,
+            "no_cases": no_cases,
+        },
+        "review": {
+            "score": review.get("score", "N/A") if isinstance(review, dict) else "N/A",
+            "summary": review.get("summary", "") if isinstance(review, dict) else "",
+            "risk_count": len(review.get("risk_flags", [])) if isinstance(review, dict) else 0,
+            "testable_feature_count": len(review.get("testable_features", [])) if isinstance(review, dict) else 0,
+        },
+        "testpoints": {
+            "total": len(testpoints),
+            "by_source": by_source,
+        },
+        "testcases": {
+            "total": len(testcases),
+        },
+        "files": {k: _rel(v) for k, v in files.items() if v},
+        "timings": {
+            k: round(v, 2)
+            for k, v in (timings or TIMINGS).items()
+        },
+        "task_summary": task_summary,
+        "warnings": warnings,
+    }
+
+    manifest_path = run_dir / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    return manifest_path
 
 # ── s06: Context Compact ───────────────────────────────────────────────────
 COMPACT_THRESHOLD = 30000
@@ -119,13 +265,22 @@ def auto_compact(messages: list, label: str = "") -> list:
 
 # ── s05: Skill Loader ──────────────────────────────────────────────────────
 def load_skill(name: str) -> str:
-    skill_file = SKILLS_DIR / name / "SKILL.md"
+    skill_file = find_skill_file(name)
     if not skill_file.exists():
         return f"[Skill '{name}' 不存在]"
     text = skill_file.read_text(encoding="utf-8")
     match = re.match(r"^---\n(.*?)\n---\n(.*)", text, re.DOTALL)
     body = match.group(2).strip() if match else text
     return f'<skill name="{name}">\n{body}\n</skill>'
+
+
+def find_skill_file(name: str) -> Path:
+    """优先读取命名后的技能文件，兼容旧版 SKILL.md。"""
+    skill_dir = SKILLS_DIR / name
+    named_file = skill_dir / f"{name}.md"
+    if named_file.exists():
+        return named_file
+    return skill_dir / "SKILL.md"
 
 
 # ── 工具实现 ───────────────────────────────────────────────────────────────
@@ -204,12 +359,36 @@ CHILD_TOOLS = [
 
 def run_todo_write(todos: list) -> str:
     """s03: 打印执行计划，给用户可见的进度反馈。"""
+    import re as _re
     lines = ["📋 执行计划:"]
     for i, todo in enumerate(todos, 1):
-        lines.append(f"  {i}. {todo}")
+        clean_todo = _re.sub(r"^\s*\d+[.、)]\s*", "", str(todo)).strip()
+        lines.append(f"  {i}. {clean_todo}")
     plan = "\n".join(lines)
     print(f"\n{plan}\n")
     return plan
+
+
+def describe_tool_call(name: str, args: dict) -> str:
+    """把子代理工具调用转换成人能读懂的日志。"""
+    args = args or {}
+    if name == "todo_write":
+        return "制定执行计划"
+    if name == "load_skill":
+        return f"加载技能: {args.get('name', '')}"
+    if name == "read_file":
+        path = args.get("path", "")
+        limit = args.get("limit")
+        suffix = f"，最多读取 {limit} 字符" if limit else ""
+        return f"读取需求文档/上下文文件: {path}{suffix}"
+    if name == "write_file":
+        path = args.get("path", "")
+        content_len = len(str(args.get("content", "")))
+        return f"写入阶段结果: {path}（{content_len} 字符）"
+    if name == "bash":
+        cmd = args.get("command", "")
+        return f"执行辅助命令: {cmd}"
+    return f"调用工具: {name}"
 
 
 CHILD_HANDLERS = {
@@ -351,7 +530,7 @@ def run_subagent(system: str, prompt: str, label: str = "") -> str:
                     output = handler(**block.input) if handler else f"未知工具: {block.name}"
                 except Exception as e:
                     output = f"Error: {e}"
-                print(f"    → {block.name}({list(block.input.keys())[0] if block.input else ''})")
+                print(f"    → {describe_tool_call(block.name, block.input)}")
                 results.append({
                     "type": "tool_result",
                     "tool_use_id": block.id,
@@ -438,11 +617,18 @@ def _batch_gen_tp_section(title: str, content: str, review: dict,
         f"请为以上「{title}」章节生成测试点。\n"
         f"- testpoint_id 从 TP-{start_id+1:03d} 开始递增\n"
         f"- source 固定填 REQ\n"
+        f"- 每条测试点只表达一个清晰、单一、可验证的目标，不要合并多个独立路径\n"
+        f"- 测试点不是测试用例；同一验证目标下的枚举值、边界值、正反路径、异常路径不要拆成重复测试点，应写入 case_split_hints\n"
         f"- functional_module 必须具体到业务场景，如「流通类型-流通股-期初计算」而非笼统的「因子参数」\n"
         f"- test_scenario 必须含具体测试数据，如「期初持仓1000股，买入500股，卖出200股，验证计算公式」\n"
+        f"- source_ref 必须指出需求章节或原文依据\n"
         f"- preconditions 写明具体数据：产品代码、证券代码、持仓数量、表字段值等\n"
         f"- test_steps 是字符串数组，每步可执行：[\"步骤1: 在DWD_AST_PD_HLDP_INFO插入产品P001持仓1000股\", \"步骤2: ...\"]\n"
         f"- expected_result 是字符串数组，必须含：①具体计算过程和数值 ②断言条件，如 [\"期初1000+买入500-卖出200=1300\", \"因子值=1300\", \"单位=股\"]\n"
+        f"- case_split_hints 是字符串数组，必须列出后续应展开的用例维度，如正常值、等于边界、触发边界、空值、重复数据、页面/导出一致性\n"
+        f"- 金额/现金/数量/比例类因子必须先覆盖正常计算主路径；涉及来源表时，在 case_split_hints 中列出单笔取值、多笔同类型汇总、无数据、不同产品/日期隔离\n"
+        f"- 若文档语句无法判断是唯一记录直接取值还是多笔汇总，必须同时保留两种用例拆分提示，并在 remarks 标记待澄清\n"
+        f"- 公式类必须覆盖正常值、等于边界、触发边界、超出边界；业务边界不要误写成参数错误\n"
         f"- priority: P0=核心公式/主流程, P1=参数组合/边界, P2=异常/特殊场景\n\n"
         f"只输出 JSON 数组，以 [ 开头以 ] 结尾，不要任何其他文字、markdown 代码块或说明。"
     )
@@ -518,7 +704,7 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
     """
     # ── 加载 testpoint-gen 技能文本 ──────────────────────────────────────
     skill_text = ""
-    skill_path = WORKDIR / "skills" / "testpoint-gen" / "SKILL.md"
+    skill_path = find_skill_file("testpoint-gen")
     if skill_path.exists():
         try:
             skill_text = skill_path.read_text(encoding="utf-8")
@@ -531,16 +717,47 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
     sections = _split_doc_by_sections(doc_text)
     print(f"  文档拆分为 {len(sections)} 个章节: {[t for t, _ in sections]}")
 
-    req_tps = []
+    eligible = []
     for title, content in sections:
         if len(content.strip()) < 80:
             print(f"    [{title}] 跳过（内容过短）")
             continue
-        print(f"    [{title}] 生成中（{len(content)} 字）...", end=" ", flush=True)
-        batch = _batch_gen_tp_section(title, content, review,
-                                       len(req_tps), skill_text)
-        print(f"{len(batch)} 条")
-        req_tps.extend(batch)
+        eligible.append((title, content))
+
+    req_tps = []
+    if eligible:
+        max_workers = min(3, len(eligible))
+        print(f"  阶段A并行生成: {len(eligible)} 个章节，并发 {max_workers}，完成后按原章节顺序合并")
+
+        def run_one(item):
+            idx, (title, content) = item
+            print(f"    [{title}] 生成中（{len(content)} 字）...", flush=True)
+            started = time.perf_counter()
+            batch = _batch_gen_tp_section(title, content, review, 0, skill_text)
+            elapsed = time.perf_counter() - started
+            return idx, title, batch, elapsed
+
+        results = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(run_one, item): item[0]
+                for item in enumerate(eligible)
+            }
+            for future in as_completed(futures):
+                try:
+                    idx, title, batch, elapsed = future.result()
+                    results[idx] = batch
+                    print(f"    [{title}] 完成 {len(batch)} 条，用时 {elapsed:.1f}s")
+                except Exception as e:
+                    idx = futures[future]
+                    title = eligible[idx][0]
+                    results[idx] = []
+                    print(f"    [{title}] 异常，跳过: {e}")
+
+        for idx in range(len(eligible)):
+            for tp in results.get(idx, []):
+                tp["testpoint_id"] = f"TP-{len(req_tps) + 1:03d}"
+                req_tps.append(tp)
 
     print(f"  阶段A完成: {len(req_tps)} 条 REQ 测试点")
 
@@ -555,13 +772,15 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
     print(f"\n  [测试点-知识库补充] RAG 语义检索...", flush=True)
 
     try:
-        retriever  = KBRetriever(kb_dir=KB_DIR)
+        retriever  = get_cached_retriever(KB_DIR)
         # 用需求文档内容 + 评审结果做检索查询
         req_text   = req_path.read_text(encoding="utf-8")
         review_str = json.dumps(review, ensure_ascii=False)
         query      = f"{req_path.stem}\n{req_text[:1000]}\n{review_str[:500]}"
-        kb_context = retriever.search_for_requirement(query, top_k=12)
+        with timed_stage("rag.kb_search", "知识库 RAG 检索"):
+            kb_context = retriever.search_for_requirement(query, top_k=12)
     except Exception as e:
+        _RAG_FAILURES.add("|".join((str(KB_DIR.resolve()), str((WORKDIR / ".kb_index").resolve()))))
         print(f"  [RAG] 检索失败: {e}，跳过知识库补充")
         return req_tps
 
@@ -571,13 +790,11 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
     design_dir = KB_DIR / "design"
     if design_dir.exists() and list(design_dir.glob("*.md")):
         try:
-            design_retriever = KBRetriever(
-                kb_dir=design_dir,
-                index_dir=WORKDIR / ".design_index",
-            )
+            design_retriever = get_cached_retriever(design_dir, WORKDIR / ".design_index")
             design_query = f"{req_path.stem}\n{req_text[:800]}"
             # 先取较多候选，再按阈值和预算过滤，最终注入的是真正相关的段落
-            candidates   = design_retriever.search(design_query, top_k=20)
+            with timed_stage("rag.design_search", "设计文档 RAG 检索"):
+                candidates = design_retriever.search(design_query, top_k=20)
 
             SCORE_THRESHOLD = 0.60   # 低于此相关度的段落不采用
             TOKEN_BUDGET    = 4000   # 最多注入的字符数
@@ -611,6 +828,7 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
                       f"{candidates[0]['score']:.2f} < {SCORE_THRESHOLD}）" if candidates else
                       f"  [设计文档] 无候选内容", flush=True)
         except Exception as e:
+            _RAG_FAILURES.add("|".join((str(design_dir.resolve()), str((WORKDIR / ".design_index").resolve()))))
             print(f"  [warn] 设计文档RAG检索失败: {e}", flush=True)
 
     if not kb_context and not design_context:
@@ -630,15 +848,19 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
         f"需求文档: {req_path.name}\n\n"
         f"{full_context}\n\n"
         f"基于以上知识库内容，为需求文档生成 KB 和 RISK 来源的测试点：\n"
-        f"- KB 测试点：针对知识库中的枚举值、字段约束、数据表取值逻辑，每个枚举值一条，"
-        f"source_ref 填写知识库来源文件名\n"
-        f"- RISK 测试点：并发竞争、数据精度丢失、外部依赖失败、数据同步延迟等，至少3条\n"
+        f"- KB 测试点：针对知识库中的枚举值、字段约束、数据表取值逻辑、开发设计实现逻辑生成，"
+        f"source_ref 填写知识库来源文件名或段落\n"
+        f"- RISK 测试点：并发竞争、数据精度丢失、外部依赖失败、数据同步延迟、主备数据源切换等，至少3条\n"
+        f"- 每条测试点只表达一个清晰验证目标，不要合并多个独立路径\n"
+        f"- 同一验证目标下的枚举值、边界值、正反路径、异常路径写入 case_split_hints，供用例阶段展开\n"
+        f"- test_steps 和 expected_result 必须是字符串数组，且包含可执行数据和可验证断言\n"
         f"- testpoint_id 从 TP-{offset+1:03d} 开始递增\n"
         f"- source 字段只能填 KB 或 RISK\n\n"
         "输出纯 JSON 数组，格式：\n"
         '[{"testpoint_id":"TP-xxx","functional_module":"xxx","test_scenario":"xxx",'
-        '"source":"KB","source_ref":"来源文件名","preconditions":"xxx","test_steps":"xxx",'
-        '"expected_result":"xxx","priority":"P1","remarks":""}]'
+        '"source":"KB","source_ref":"来源文件名","preconditions":"xxx","test_steps":["步骤1"],'
+        '"expected_result":["预期1"],"case_split_hints":["正常路径","边界路径","异常路径"],'
+        '"priority":"P1","remarks":""}]'
     )
 
     try:
@@ -664,11 +886,12 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
 # ── 阶段三：测试用例生成（分批处理，每批10条）──────────────────────────────
 BATCH_SIZE = 10
 
-def stage3_testcases_batch(batch: list, batch_no: int, case_id_start: int) -> list:
+def stage3_testcases_batch(batch: list, batch_no: int, case_id_start: int,
+                           memory_context: str = "") -> list:
     """分批直调 API：传入测试点，直接返回用例 JSON，无工具调用。"""
     # 加载 testcase-gen 技能文本
     skill_text = ""
-    skill_path = WORKDIR / "skills" / "testcase-gen" / "SKILL.md"
+    skill_path = find_skill_file("testcase-gen")
     if skill_path.exists():
         try:
             skill_text = skill_path.read_text(encoding="utf-8")
@@ -680,12 +903,23 @@ def stage3_testcases_batch(batch: list, batch_no: int, case_id_start: int) -> li
         f"{skill_text}\n\n"
         f"## 测试点列表（共 {len(batch)} 条）\n\n"
         f"```json\n{batch_json}\n```\n\n"
+        + (f"## 历史人工评审经验\n{memory_context}\n\n" if memory_context else "")
+        +
         f"---\n"
         f"将以上测试点展开为完整测试用例，严格遵循以下规则：\n"
         f"- case_id 从 TC-{case_id_start:03d} 开始递增\n"
-        f"- 每个独立路径/分支对应一条用例，覆盖完整为止\n"
+        f"- 测试点和测试用例不是一对一关系：一个测试点可生成 1 条或多条用例\n"
+        f"- 如果测试点包含 case_split_hints，必须优先逐项展开；每个有效拆分项至少形成 1 条用例\n"
+        f"- 每个独立路径、条件分支、枚举值、边界值、异常路径都应单独形成用例，覆盖完整为止\n"
+        f"- 金额/现金/数量/比例类测试点必须至少生成正常计算主路径用例；涉及来源表时优先覆盖单笔取值、多笔同类型汇总、无数据、不同产品/日期隔离\n"
+        f"- 不要把多个有意义的路径合并进一条用例，也不要为了凑数生成重复用例\n"
+        f"- 只有单一路径、无枚举、无边界、无依赖状态、无输出渠道差异的原子测试点，才允许只生成 1 条用例\n"
+        f"- 若本批输出用例数等于测试点数，必须重新检查并补拆枚举、边界、空值、重复数据、主备数据源、展示/导出/接口一致性\n"
         f"- 每条用例包含: case_id, testpoint_id, functional_module, case_title, "
-        f"source, priority, preconditions, test_data, steps, expected_result, remarks\n"
+        f"source, priority, preconditions, test_data, steps, expected_result, "
+        f"include_in_case_library, exclusion_reason, remarks\n"
+        f"- include_in_case_library 固定输出空字符串，留给人工评审填写“是/否”\n"
+        f"- exclusion_reason 固定输出空字符串，人工标记“否”时填写未纳入原因\n"
         f"- test_data: 给出具体的测试输入值（如 期初持仓=10000股, 买入成交=5000股, 卖出=2000股）\n"
         f"- steps: 字符串数组，每步包含具体操作和数据，如 [\"在DWD_AST_PD_HLDP_INFO插入产品P001, 证券600001, 持仓10000股\", ...]\n"
         f"- expected_result: 字符串数组，必须包含：①具体计算数值和公式 ②可验证的断言，如 [\"计算: 期初10000 + 买入5000 - 卖出2000 = 13000\", \"因子值=13000\", \"单位=股\"]\n"
@@ -729,7 +963,7 @@ def stage3_testcases_batch(batch: list, batch_no: int, case_id_start: int) -> li
     return []
 
 
-def stage3_testcases(testpoints: list, req_path: Path) -> list:
+def stage3_testcases(testpoints: list, req_path: Path, memory=None) -> list:
     """分批调子代理，并行处理所有批次。"""
     batches = [testpoints[i:i+BATCH_SIZE] for i in range(0, len(testpoints), BATCH_SIZE)]
     total   = len(batches)
@@ -738,12 +972,13 @@ def stage3_testcases(testpoints: list, req_path: Path) -> list:
     # 并行数不超过批次数，也不超过3（限速锁 + 降低并发避免 API 过载）
     max_workers = min(total, 3)
     results     = {}   # batch_no -> cases
+    memory_context = memory.get_context_for_testpoints() if memory else ""
 
     def run_batch(args):
         batch_no, batch = args
         # case_id 按批次固定偏移，不依赖其他批次完成顺序
         case_id_start = (batch_no - 1) * BATCH_SIZE + 1
-        cases = stage3_testcases_batch(batch, batch_no, case_id_start)
+        cases = stage3_testcases_batch(batch, batch_no, case_id_start, memory_context)
         return batch_no, cases
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -765,6 +1000,11 @@ def stage3_testcases(testpoints: list, req_path: Path) -> list:
     all_cases = []
     for i in range(1, total + 1):
         all_cases.extend(results.get(i, []))
+
+    # 分批并行时，每批只能预估起始编号；如果前序批次展开了更多用例，
+    # 后续批次的 case_id 可能撞号。合并后统一重排，保证交付物编号稳定唯一。
+    for idx, case in enumerate(all_cases, 1):
+        case["case_id"] = f"TC-{idx:03d}"
 
     return all_cases
 
@@ -789,6 +1029,8 @@ def normalize_testcase(case: dict, idx: int) -> dict:
         "expected_result":   ["expected", "result", "expect", "预期结果", "expected_output"],
         "source":            ["test_source", "来源"],
         "priority":          ["level", "test_priority", "优先级"],
+        "include_in_case_library": ["是否纳入用例库", "include", "included", "case_library"],
+        "exclusion_reason":  ["未纳入原因", "exclude_reason", "not_include_reason", "reason"],
         "remarks":           ["remark", "note", "comment", "备注"],
     }
 
@@ -814,6 +1056,8 @@ def normalize_testcase(case: dict, idx: int) -> dict:
         "test_data":         "",
         "steps":             "",
         "expected_result":   "",
+        "include_in_case_library": "",
+        "exclusion_reason":  "",
         "actual_result":     "",
         "status":            "",
         "remarks":           "",
@@ -898,6 +1142,14 @@ def normalize_testpoint(tp: dict, idx: int = 0) -> dict:
     if not n.get("remarks"):
         n["remarks"] = n.get("remark") or n.get("note") or n.get("comment") or ""
 
+    # ── case_split_hints ──────────────────────────────────────────────────
+    if not n.get("case_split_hints"):
+        hints = n.get("split_hints") or n.get("case_dimensions") or n.get("用例拆分提示")
+        if hints:
+            n["case_split_hints"] = hints if isinstance(hints, list) else [str(hints)]
+        else:
+            n["case_split_hints"] = ["原子验证点: 单一路径，无额外等价类或边界"]
+
     return n
 
 
@@ -925,6 +1177,8 @@ def export_excel(testcases: list, out_path: Path) -> bool:
         ("测试数据",    "test_data",         20),
         ("操作步骤",    "steps",             40),
         ("预期结果",    "expected_result",   35),
+        ("是否纳入用例库", "include_in_case_library", 16),
+        ("未纳入原因",  "exclusion_reason",  28),
         ("实际结果",    "actual_result",     25),
         ("执行状态",    "status",            10),
         ("备注",        "remarks",           20),
@@ -961,7 +1215,8 @@ def export_excel(testcases: list, out_path: Path) -> bool:
             cell  = ws.cell(row=row_idx, column=col_idx, value=value)
             cell.border = border
             cell.fill   = row_fill
-            if field_key in ("case_id", "testpoint_id", "source", "priority", "status"):
+            if field_key in ("case_id", "testpoint_id", "source", "priority",
+                             "include_in_case_library", "status"):
                 cell.alignment = center
                 if field_key == "priority":
                     cell.font = Font(color=priority_colors.get(value, "000000"), bold=True)
@@ -970,6 +1225,16 @@ def export_excel(testcases: list, out_path: Path) -> bool:
         ws.row_dimensions[row_idx].height = 45
 
     ws.freeze_panes = "A2"
+    try:
+        from openpyxl.worksheet.datavalidation import DataValidation
+        include_col = next(i for i, (_, key, _) in enumerate(columns, 1)
+                           if key == "include_in_case_library")
+        col_letter = ws.cell(row=1, column=include_col).column_letter
+        dv = DataValidation(type="list", formula1='"是,否"', allow_blank=True)
+        ws.add_data_validation(dv)
+        dv.add(f"{col_letter}2:{col_letter}1048576")
+    except Exception:
+        pass
 
     legend_ws = wb.create_sheet("图例说明")
     for r, (a, b) in enumerate([
@@ -977,11 +1242,179 @@ def export_excel(testcases: list, out_path: Path) -> bool:
         ("黄色底", "KB  — 来自知识库补充"), ("红色底", "RISK — 风险推断"),
         ("", ""), ("优先级", "说明"), ("P0", "核心必测"),
         ("P1", "重要应测"), ("P2", "边缘可测"),
+        ("", ""), ("是否纳入用例库", "人工评审填写：是/否"),
+        ("未纳入原因", "当是否纳入用例库=否时填写，用于后续学习"),
     ], 1):
         legend_ws.cell(row=r, column=1, value=a)
         legend_ws.cell(row=r, column=2, value=b)
 
     wb.save(out_path)
+    return True
+
+
+def _review_issues(review: dict) -> list:
+    """兼容不同评审 schema，提取 issues 列表。"""
+    if not isinstance(review, dict):
+        return []
+    issues = review.get("issues")
+    if isinstance(issues, list):
+        return issues
+
+    collected = []
+    for key in ("completeness_issues", "clarity_issues", "consistency_issues",
+                "performance_issues", "integration_issues", "risk_flags"):
+        values = review.get(key, [])
+        if isinstance(values, list):
+            for item in values:
+                if isinstance(item, dict):
+                    collected.append(item)
+                else:
+                    collected.append({"type": key, "question": str(item)})
+    return collected
+
+
+def _mindmap_to_markdown(node: dict, level: int = 1) -> list:
+    """把 requirement-review 输出的树状 mindmap 转成 XMind 可导入 Markdown。"""
+    if not isinstance(node, dict):
+        return []
+    title = node.get("主题") or node.get("title") or node.get("name") or "未命名节点"
+    lines = [f"{'#' * max(1, min(level, 6))} {title}"]
+    children = node.get("子主题") or node.get("children") or []
+    if isinstance(children, list):
+        for child in children:
+            lines.extend(_mindmap_to_markdown(child, level + 1))
+    return lines
+
+
+def export_review_markdown(review: dict, req_name: str, out_path: Path) -> bool:
+    """导出可读需求评审报告。"""
+    if not isinstance(review, dict):
+        review = {}
+
+    lines = [
+        f"# 需求评审报告 - {req_name}",
+        "",
+        "## 质量结论",
+        f"- 质量等级: {review.get('quality_grade') or review.get('grade') or review.get('quality_assessment', {}).get('grade') or 'N/A'}",
+        f"- 质量分: {review.get('score', 'N/A')}",
+        f"- 概要理由: {review.get('summary') or review.get('quality_assessment', {}).get('summary_reason') or ''}",
+        "",
+    ]
+
+    dimension_scores = review.get("dimension_scores") or {}
+    if isinstance(dimension_scores, dict) and dimension_scores:
+        lines.extend(["## 维度评分", "", "| 维度 | 权重 | 得分 | 理由 |", "| --- | ---: | ---: | --- |"])
+        for name, info in dimension_scores.items():
+            if isinstance(info, dict):
+                lines.append(
+                    f"| {name} | {info.get('weight', '')} | {info.get('score', '')} | "
+                    f"{str(info.get('reason', '')).replace('|', '/')} |"
+                )
+        lines.append("")
+
+    issues = _review_issues(review)
+    lines.extend(["## 问题清单", ""])
+    if issues:
+        for i, item in enumerate(issues, 1):
+            if not isinstance(item, dict):
+                item = {"question": str(item)}
+            title = item.get("question") or item.get("desc") or item.get("description") or item.get("title") or ""
+            lines.append(f"### ISSUE-{i:03d} {title}")
+            for label, key in (
+                ("类型", "type"), ("优先级", "priority"), ("位置", "location"),
+                ("原因", "reason"), ("影响", "impact"), ("建议", "suggestion"),
+            ):
+                value = item.get(key)
+                if value:
+                    lines.append(f"- {label}: {value}")
+            lines.append("")
+    else:
+        lines.append("暂无问题。")
+        lines.append("")
+
+    mindmap = review.get("mindmap")
+    if isinstance(mindmap, dict):
+        lines.append("## 测试思维导图")
+        lines.append("")
+        lines.extend(_mindmap_to_markdown(mindmap, 3))
+        lines.append("")
+
+    out_path.write_text("\n".join(lines), encoding="utf-8")
+    return True
+
+
+def export_review_issues_excel(review: dict, out_path: Path) -> bool:
+    """导出需求评审问题清单 Excel。"""
+    try:
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    except ImportError:
+        print("  [skip] 评审问题 Excel 输出需要 openpyxl: pip install openpyxl")
+        return False
+
+    issues = _review_issues(review)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "评审问题"
+
+    columns = [
+        ("问题ID", "issue_id", 12),
+        ("问题类型", "type", 14),
+        ("优先级", "priority", 10),
+        ("位置", "location", 24),
+        ("问题", "question", 42),
+        ("原因", "reason", 42),
+        ("影响", "impact", 42),
+        ("建议", "suggestion", 36),
+    ]
+
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill("solid", fgColor="7A4E00")
+    center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    left = Alignment(horizontal="left", vertical="top", wrap_text=True)
+    thin = Side(style="thin", color="CCCCCC")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    for col_idx, (name, _, width) in enumerate(columns, 1):
+        cell = ws.cell(row=1, column=col_idx, value=name)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center
+        cell.border = border
+        ws.column_dimensions[cell.column_letter].width = width
+
+    for row_idx, item in enumerate(issues, 2):
+        if not isinstance(item, dict):
+            item = {"question": str(item)}
+        row = {
+            "issue_id": f"ISSUE-{row_idx - 1:03d}",
+            "type": item.get("type", ""),
+            "priority": item.get("priority", ""),
+            "location": item.get("location", ""),
+            "question": item.get("question") or item.get("desc") or item.get("description") or item.get("title", ""),
+            "reason": item.get("reason", ""),
+            "impact": item.get("impact", ""),
+            "suggestion": item.get("suggestion", ""),
+        }
+        for col_idx, (_, key, _) in enumerate(columns, 1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=row.get(key, ""))
+            cell.border = border
+            cell.alignment = center if key in ("issue_id", "type", "priority") else left
+        ws.row_dimensions[row_idx].height = 54
+
+    ws.freeze_panes = "A2"
+    wb.save(out_path)
+    return True
+
+
+def export_review_mindmap(review: dict, req_name: str, out_path: Path) -> bool:
+    """导出评审 mindmap Markdown，可导入 XMind。"""
+    mindmap = review.get("mindmap") if isinstance(review, dict) else None
+    if isinstance(mindmap, dict):
+        lines = _mindmap_to_markdown(mindmap, 1)
+    else:
+        lines = [f"# {req_name}", "## 需求评审", "### 未生成 mindmap"]
+    out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return True
 
 
@@ -1176,13 +1609,61 @@ def _extract_section(req_path: Path, keyword: str) -> str:
     return "\n".join(result).strip()
 
 
+def _normalize_section_text(text: str) -> str:
+    """章节匹配归一化：去编号、空白和常见近义差异。"""
+    import re as _re
+    value = _re.sub(r'^[\d.\s、_-]+', '', text or "")
+    value = _re.sub(r'\s+', '', value)
+    replacements = {
+        "退补款": "退款",
+        "退补金": "退款",
+        "退补": "退款",
+    }
+    for old, new in replacements.items():
+        value = value.replace(old, new)
+    return value.lower()
+
+
+def _list_section_titles(req_path: Path) -> list[str]:
+    """列出 Markdown 标题，供章节找不到时提示候选。"""
+    try:
+        text = req_path.read_text(encoding="utf-8")
+    except Exception:
+        return []
+    titles = []
+    for line in text.splitlines():
+        if line.startswith("#"):
+            title = line.lstrip("#").strip()
+            if title and not title.startswith("目录"):
+                titles.append(title)
+    return titles
+
+
+def _suggest_sections(req_path: Path, keyword: str, limit: int = 5) -> list[str]:
+    """返回相似章节候选，仅用于提示用户人工确认，不自动选择。"""
+    from difflib import SequenceMatcher
+    titles = _list_section_titles(req_path)
+    norm_kw = _normalize_section_text(keyword)
+    scored = []
+    for title in titles:
+        norm_title = _normalize_section_text(title)
+        if not norm_title:
+            continue
+        score = SequenceMatcher(None, norm_kw, norm_title).ratio()
+        if norm_kw and (norm_kw in norm_title or norm_title in norm_kw):
+            score = max(score, 0.92)
+        scored.append((score, title))
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [title for score, title in scored[:limit] if score >= 0.35]
+
+
 def _load_section_filter_keywords() -> list:
     """
     从 config/section_filter.json 加载章节过滤黑名单关键词。
     文件不存在或读取失败时返回内置默认列表。
     """
     import json as _json
-    config_path = Path(__file__).parent / "config" / "section_filter.json"
+    config_path = WORKDIR / "config" / "section_filter.json"
     try:
         if config_path.exists():
             data = _json.loads(config_path.read_text(encoding="utf-8"))
@@ -1384,36 +1865,41 @@ def main():
         print(f"错误: 找不到需求文档 {req_path}")
         sys.exit(1)
 
+    ts = int(time.time())
+    log_path = setup_run_logging(req_path.stem, ts)
+    print(f"  [日志] 本次执行日志: {log_path.relative_to(WORKDIR)}")
+
     # 自动处理 docx：转换为 md 并放入 knowledge_base/
     if req_path.suffix.lower() in (".docx", ".doc"):
-        md_path = KB_DIR / (req_path.stem + ".md")
-        if not md_path.exists():
-            print(f"  检测到 .docx，自动转换为 Markdown...")
-            import subprocess as _sp
-            # 优先用 docx2md.py（表格格式更干净）
-            docx2md_script = WORKDIR / "docx2md.py"
-            if docx2md_script.exists():
-                r = _sp.run(
-                    [sys.executable, str(docx2md_script), str(req_path), "-o", str(md_path)],
-                    capture_output=True, text=True, timeout=120
-                )
-                if r.returncode != 0 or not md_path.exists():
-                    # 降级 pandoc
+        with timed_stage("input.docx_convert", "Word 转 Markdown"):
+            md_path = KB_DIR / (req_path.stem + ".md")
+            if not md_path.exists():
+                print(f"  检测到 .docx，自动转换为 Markdown...")
+                import subprocess as _sp
+                # 优先用 docx2md.py（表格格式更干净）
+                docx2md_script = SCRIPT_DIR / "docx2md.py"
+                if docx2md_script.exists():
+                    r = _sp.run(
+                        [sys.executable, str(docx2md_script), str(req_path), "-o", str(md_path)],
+                        capture_output=True, text=True, timeout=120
+                    )
+                    if r.returncode != 0 or not md_path.exists():
+                        # 降级 pandoc
+                        r = _sp.run(
+                            ["pandoc", str(req_path), "-t", "markdown", "-o", str(md_path)],
+                            capture_output=True, text=True
+                        )
+                else:
                     r = _sp.run(
                         ["pandoc", str(req_path), "-t", "markdown", "-o", str(md_path)],
                         capture_output=True, text=True
                     )
+                if r.returncode != 0 or not md_path.exists():
+                    print(f"  [错误] 转换失败: {r.stderr[:200]}")
+                    sys.exit(1)
+                print(f"  转换完成: {md_path.name}")
             else:
-                r = _sp.run(
-                    ["pandoc", str(req_path), "-t", "markdown", "-o", str(md_path)],
-                    capture_output=True, text=True
-                )
-            if r.returncode != 0 or not md_path.exists():
-                print(f"  [错误] 转换失败: {r.stderr[:200]}")
-                sys.exit(1)
-            print(f"  转换完成: {md_path.name}")
-        else:
-            print(f"  使用已有转换版本: {md_path.name}")
+                print(f"  使用已有转换版本: {md_path.name}")
         req_path = md_path
     elif not req_path.is_relative_to(WORKDIR):
         # 不在 WORKDIR 内的文件复制到 knowledge_base/
@@ -1424,7 +1910,6 @@ def main():
             print(f"  文件已复制到 knowledge_base/{req_path.name}")
         req_path = dst
 
-    ts       = int(time.time())
     stem     = req_path.stem
     req_name = req_path.name
 
@@ -1446,14 +1931,23 @@ def main():
         section_text = _extract_section(req_path, section_keyword)
         if section_text:
             # 写入临时文件，后续所有阶段读这个文件
-            section_path = WORKDIR / f"_section_{stem}_{ts}.md"
+            section_path = SECTIONS_DIR / f"_section_{stem}_{ts}.md"
             section_path.write_text(section_text, encoding="utf-8")
             print(f"  [章节过滤] 提取到 {len(section_text.splitlines())} 行内容，继续生成")
             req_path = section_path
             stem     = f"{stem}_{section_keyword}"
             req_name = section_path.name
         else:
-            print(f"  [章节过滤] 未找到包含「{section_keyword}」的章节，使用完整文档")
+            print(f"  [章节过滤] 未找到包含「{section_keyword}」的章节，已停止。")
+            suggestions = _suggest_sections(req_path, section_keyword)
+            if suggestions:
+                print("  [章节过滤] 可能相关的章节如下，请人工确认后用准确章节名重新运行：")
+                for i, title in enumerate(suggestions, 1):
+                    print(f"    {i}. {title}")
+                print("  示例：python scripts/agent.py \"需求文档.docx\" --kb --section \"ETF退款金\"")
+            else:
+                print("  [章节过滤] 未找到相似章节。请检查章节名称、空格、编号或转换后的 Markdown 标题。")
+            return
 
     RUN_DIR  = get_run_dir(stem, ts)   # 本次运行的输出目录
 
@@ -1493,7 +1987,8 @@ def main():
     else:
         task.start("review")
         try:
-            review = stage1_review(req_path, memory=memory)
+            with timed_stage("stage.review", "阶段一 需求评审"):
+                review = stage1_review(req_path, memory=memory)
             task.done("review", review)
             memory.save_after_review(review)   # s09: 保存评审经验
             memory_rag.invalidate()               # 触发记忆索引重建
@@ -1515,49 +2010,50 @@ def main():
     else:
         task.start("testpoints")
         try:
-            # 无 --section 时，自动识别章节逐章处理后合并
-            if not section_keyword:
-                sections = _split_sections(req_path, memory=memory)
-            else:
-                sections = []
+            with timed_stage("stage.testpoints", "阶段二 测试点生成"):
+                # 无 --section 时，自动识别章节逐章处理后合并
+                if not section_keyword:
+                    sections = _split_sections(req_path, memory=memory)
+                else:
+                    sections = []
 
-            if len(sections) >= 2:
-                print(f"  [自动章节] 识别到 {len(sections)} 个章节，逐章处理后合并")
-                for i, (title, _) in enumerate(sections):
-                    print(f"    {i+1}. {title}")
+                if len(sections) >= 2:
+                    print(f"  [自动章节] 识别到 {len(sections)} 个章节，逐章处理后合并")
+                    for i, (title, _) in enumerate(sections):
+                        print(f"    {i+1}. {title}")
 
-                all_tps = []
-                for i, (title, content) in enumerate(sections):
-                    s_offset = len(all_tps)
-                    print(f"\n  [章节 {i+1}/{len(sections)}] {title}")
-                    s_path = OUTPUT_DIR / f"_sec_{int(time.time()*1000)%1000000}.md"
-                    # 检查章节内容是否有实质内容（至少有10行非空行且含中文）
-                    content_lines = [l for l in content.splitlines() if l.strip()]
-                    cn_chars = sum(1 for c in content if '\u4e00' <= c <= '\u9fff')
-                    print(f"    内容: {len(content_lines)}行, {cn_chars}个中文字符", flush=True)
-                    # 跳过条件：非空行少于8行，或中文字符少于100个，或没有具体数字/字段名
-                    has_specific_content = any(
-                        any(kw in line for kw in ["字段", "表", "取值", "逻辑", "计算", "=", "：", "规则"])
-                        for line in content_lines
-                    )
-                    if len(content_lines) < 8 or cn_chars < 100 or not has_specific_content:
-                        print(f"    [跳过] 章节内容不足（行数{len(content_lines)}, 中文{cn_chars}, 有具体内容:{has_specific_content}）")
-                        continue
-                    s_path.write_text(f"# {title}\n\n{content}", encoding="utf-8")
-                    try:
-                        tps = stage2_testpoints(s_path, review, args.kb, memory=memory)
-                        for j, tp in enumerate(tps):
-                            tp["testpoint_id"] = f"TP-{s_offset + j + 1:03d}"
-                            tp.setdefault("section", title)
-                        all_tps.extend(tps)
-                        print(f"    → {len(tps)} 条测试点")
-                    finally:
-                        s_path.unlink(missing_ok=True)
+                    all_tps = []
+                    for i, (title, content) in enumerate(sections):
+                        s_offset = len(all_tps)
+                        print(f"\n  [章节 {i+1}/{len(sections)}] {title}")
+                        s_path = OUTPUT_DIR / f"_sec_{int(time.time()*1000)%1000000}.md"
+                        # 检查章节内容是否有实质内容（至少有10行非空行且含中文）
+                        content_lines = [l for l in content.splitlines() if l.strip()]
+                        cn_chars = sum(1 for c in content if '\u4e00' <= c <= '\u9fff')
+                        print(f"    内容: {len(content_lines)}行, {cn_chars}个中文字符", flush=True)
+                        # 跳过条件：非空行少于8行，或中文字符少于100个，或没有具体数字/字段名
+                        has_specific_content = any(
+                            any(kw in line for kw in ["字段", "表", "取值", "逻辑", "计算", "=", "：", "规则"])
+                            for line in content_lines
+                        )
+                        if len(content_lines) < 8 or cn_chars < 100 or not has_specific_content:
+                            print(f"    [跳过] 章节内容不足（行数{len(content_lines)}, 中文{cn_chars}, 有具体内容:{has_specific_content}）")
+                            continue
+                        s_path.write_text(f"# {title}\n\n{content}", encoding="utf-8")
+                        try:
+                            tps = stage2_testpoints(s_path, review, args.kb, memory=memory)
+                            for j, tp in enumerate(tps):
+                                tp["testpoint_id"] = f"TP-{s_offset + j + 1:03d}"
+                                tp.setdefault("section", title)
+                            all_tps.extend(tps)
+                            print(f"    → {len(tps)} 条测试点")
+                        finally:
+                            s_path.unlink(missing_ok=True)
 
-                testpoints = all_tps
-                print(f"\n  [合并] 共 {len(testpoints)} 条测试点，来自 {len(sections)} 个章节")
-            else:
-                testpoints = stage2_testpoints(req_path, review, args.kb, memory=memory)
+                    testpoints = all_tps
+                    print(f"\n  [合并] 共 {len(testpoints)} 条测试点，来自 {len(sections)} 个章节")
+                else:
+                    testpoints = stage2_testpoints(req_path, review, args.kb, memory=memory)
 
             task.done("testpoints", testpoints)
             memory.save_after_testpoints(testpoints, review)  # s09: 保存测试点经验
@@ -1584,6 +2080,29 @@ def main():
     _model_tag = re.sub(r"[^a-zA-Z0-9._-]", "-", MODEL.split("/")[-1])[:16].strip("-")
     _sfx = f"_{_model_tag}_{RUN_DIR.name}"
 
+    # 保存需求评审 JSON，作为机器可读底层产物；同时导出可读文档。
+    review_out = RUN_DIR / f"review{_sfx}.json"
+    review_out.write_text(json.dumps({
+        "meta": {
+            "requirement": str(req_path),
+            "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "model": MODEL,
+            "section": section_keyword,
+        },
+        "review": review,
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
+    review_md_out = RUN_DIR / f"review_report{_sfx}.md"
+    review_mindmap_out = RUN_DIR / f"review_mindmap{_sfx}.md"
+    review_issues_out = RUN_DIR / f"review_issues{_sfx}.xlsx"
+
+    review_md_ok = export_review_markdown(review, req_name, review_md_out)
+    review_mindmap_ok = export_review_mindmap(review, req_name, review_mindmap_out)
+    try:
+        review_issues_ok = export_review_issues_excel(review, review_issues_out)
+    except Exception as e:
+        print(f"  [warn] 评审问题 Excel 生成失败: {e}")
+        review_issues_ok = False
+
     # 保存测试点 JSON
     tp_out = RUN_DIR / f"testpoints{_sfx}.json"
     tp_out.write_text(json.dumps({
@@ -1605,17 +2124,73 @@ def main():
     print(f"  ② 测试点生成完成")
     print(f"     总数: {len(flat_tps)}  🔵REQ={req_count}  🟡KB={kb_count}  🔴RISK={risk_count}")
     print(f"  输出目录: {RUN_DIR.relative_to(WORKDIR)}")
-    print(f"     JSON:  {tp_out.name}")
+    if review_md_ok:
+        print(f"     评审报告: {review_md_out.name}")
+    if review_issues_ok:
+        print(f"     问题清单: {review_issues_out.name}")
+    if review_mindmap_ok:
+        print(f"     评审思维导图: {review_mindmap_out.name}")
+    print(f"     测试点JSON: {tp_out.name}")
     if xmind_ok:
-        print(f"     Markdown(→XMind): {md_out.name}")
+        print(f"     测试点思维导图: {md_out.name}")
     print(f"{'='*52}")
 
+    manifest_files = {
+        "run_log": RUN_LOG_PATH,
+        "review_json": review_out,
+        "review_report_md": review_md_out if review_md_ok else "",
+        "review_issues_xlsx": review_issues_out if review_issues_ok else "",
+        "review_mindmap_md": review_mindmap_out if review_mindmap_ok else "",
+        "testpoints_json": tp_out,
+        "testpoints_xmind_md": md_out if xmind_ok else "",
+    }
+    write_manifest(
+        RUN_DIR,
+        status="testpoints_done",
+        req_path=req_path,
+        model=MODEL,
+        use_kb=args.kb,
+        no_cases=args.no_cases,
+        section=section_keyword,
+        review=review,
+        testpoints=flat_tps,
+        files=manifest_files,
+        task_summary=task.summary(),
+    )
+
     if args.no_cases:
+        write_manifest(
+            RUN_DIR,
+            status="done",
+            req_path=req_path,
+            model=MODEL,
+            use_kb=args.kb,
+            no_cases=args.no_cases,
+            section=section_keyword,
+            review=review,
+            testpoints=flat_tps,
+            files=manifest_files,
+            task_summary=task.summary(),
+        )
         return
 
     # ③ 测试用例生成（测试点为空则跳过）
     if not flat_tps:
         print("\n  [跳过] 测试点为空，跳过用例生成")
+        write_manifest(
+            RUN_DIR,
+            status="no_testpoints",
+            req_path=req_path,
+            model=MODEL,
+            use_kb=args.kb,
+            no_cases=args.no_cases,
+            section=section_keyword,
+            review=review,
+            testpoints=flat_tps,
+            files=manifest_files,
+            task_summary=task.summary(),
+            warnings=["测试点为空，跳过用例生成"],
+        )
         return
 
     if task.is_done("testcases"):
@@ -1624,44 +2199,73 @@ def main():
     else:
         task.start("testcases")
         try:
-            testcases = stage3_testcases(flat_tps, req_path)
+            with timed_stage("stage.testcases", "阶段三 测试用例生成"):
+                testcases = stage3_testcases(flat_tps, req_path, memory=memory)
             task.done("testcases", testcases)
         except Exception as e:
             task.fail("testcases", str(e))
             testcases = []
             print(f"  [s11] 用例生成异常: {e}")
 
-    tc_out   = RUN_DIR / f"testcases{_sfx}.json"
-    xlsx_out = RUN_DIR / f"testcases{_sfx}.xlsx"
+    with timed_stage("stage.export", "阶段四 本地导出"):
+        tc_out   = RUN_DIR / f"testcases{_sfx}.json"
+        xlsx_out = RUN_DIR / f"testcases{_sfx}.xlsx"
 
-    tc_out.write_text(json.dumps(testcases, ensure_ascii=False, indent=2), encoding="utf-8")
-    try:
-        xlsx_ok = export_excel(testcases, xlsx_out)
-    except Exception as e:
-        print(f"  [warn] Excel 生成失败: {e}")
-        import traceback; traceback.print_exc()
-        xlsx_ok = False
+        tc_out.write_text(json.dumps(testcases, ensure_ascii=False, indent=2), encoding="utf-8")
+        try:
+            xlsx_ok = export_excel(testcases, xlsx_out)
+        except Exception as e:
+            print(f"  [warn] Excel 生成失败: {e}")
+            import traceback; traceback.print_exc()
+            xlsx_ok = False
 
-    # ④ 测分文档生成（本地，零 token）
-    from gen_report import generate_report
-    report_out = RUN_DIR / f"report{_sfx}.md"
-    try:
-        report_md = generate_report(
-            {"meta": {"requirement": str(req_path), "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                      "total": len(flat_tps),
-                      "by_source": {"REQ": req_count, "KB": kb_count, "RISK": risk_count}},
-             "review": review, "testpoints": flat_tps},
-            testcases,
-            report_out
-        )
-        report_out.write_text(report_md, encoding="utf-8")
-        report_ok = True
-    except Exception as e:
-        print(f"  [warn] 测分文档生成失败: {e}")
-        report_ok = False
+        # ④ 测分文档生成（本地，零 token）
+        from gen_report import generate_report
+        report_out = RUN_DIR / f"report{_sfx}.md"
+        try:
+            report_md = generate_report(
+                {"meta": {"requirement": str(req_path), "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                          "total": len(flat_tps),
+                          "by_source": {"REQ": req_count, "KB": kb_count, "RISK": risk_count}},
+                 "review": review, "testpoints": flat_tps},
+                testcases,
+                report_out
+            )
+            report_out.write_text(report_md, encoding="utf-8")
+            report_ok = True
+        except Exception as e:
+            print(f"  [warn] 测分文档生成失败: {e}")
+            report_ok = False
 
     task.done("export", {"testcases": str(tc_out.name), "excel": str(xlsx_out.name),
                          "report": str(report_out.name) if report_ok else ""})
+
+    manifest_files.update({
+        "testcases_json": tc_out,
+        "testcases_xlsx": xlsx_out if xlsx_ok else "",
+        "report_md": report_out if report_ok else "",
+    })
+    manifest_path = write_manifest(
+        RUN_DIR,
+        status="done",
+        req_path=req_path,
+        model=MODEL,
+        use_kb=args.kb,
+        no_cases=args.no_cases,
+        section=section_keyword,
+        review=review,
+        testpoints=flat_tps,
+        testcases=testcases,
+        files=manifest_files,
+        task_summary=task.summary(),
+        warnings=[
+            msg for msg, ok in (
+                ("Excel 生成失败", xlsx_ok),
+                ("测分文档生成失败", report_ok),
+            )
+            if not ok
+        ],
+    )
 
     print(f"\n{'='*52}")
     print(f"  ③ 测试用例生成完成")
@@ -1671,6 +2275,7 @@ def main():
         print(f"     Excel: {xlsx_out.name}")
     if report_ok:
         print(f"     测分:  {report_out.name}")
+    print(f"     Manifest: {manifest_path.name}")
     print(f"\n  [s07] 最终任务状态: {task.summary()}")
     print(f"{'='*52}\n")
 

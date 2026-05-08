@@ -6,9 +6,9 @@ gen_report.py - 测分文档生成
 完全本地生成，不调用任何 API，零 token 消耗。
 
 用法:
-    python gen_report.py output/testpoints_xxx.json
-    python gen_report.py output/testpoints_xxx.json --cases output/testcases_xxx.json
-    python gen_report.py output/testpoints_xxx.json --cases output/testcases_xxx.json --out output/report.md
+    python scripts/gen_report.py output/testpoints_xxx.json
+    python scripts/gen_report.py output/testpoints_xxx.json --cases output/testcases_xxx.json
+    python scripts/gen_report.py output/testpoints_xxx.json --cases output/testcases_xxx.json --out output/report.md
 """
 
 import argparse

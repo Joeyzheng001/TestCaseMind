@@ -23,8 +23,9 @@ import threading
 import uuid
 from pathlib import Path
 
-AGENT_DIR = Path(__file__).parent
-sys.path.insert(0, str(AGENT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+AGENT_DIR = SCRIPT_DIR.parent
+sys.path.insert(0, str(SCRIPT_DIR))
 
 from dotenv import load_dotenv
 load_dotenv(AGENT_DIR / ".env", override=False)
@@ -89,7 +90,7 @@ def _run_agent_background(job_id: str, req_path_str: str,
 
     try:
         # 构建命令行参数
-        cmd = [sys.executable, str(AGENT_DIR / "agent.py"), req_path_str]
+        cmd = [sys.executable, str(SCRIPT_DIR / "agent.py"), req_path_str]
         if use_kb:
             cmd.append("--kb")
         if skip_review:
@@ -175,6 +176,21 @@ def _parse_output_from_log(log: str, req_path_str: str) -> dict:
         if runs:
             run_dir = runs[0]
             output["output_dir"] = str(run_dir)
+            manifest_path = run_dir / "manifest.json"
+            if manifest_path.exists():
+                try:
+                    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                    output["manifest_json"] = str(manifest_path)
+                    output["manifest"] = manifest
+                    for key, rel_path in manifest.get("files", {}).items():
+                        if not rel_path:
+                            continue
+                        path = Path(rel_path)
+                        if not path.is_absolute():
+                            path = AGENT_DIR / path
+                        output.setdefault(key, str(path))
+                except Exception:
+                    pass
             for f in run_dir.iterdir():
                 if f.suffix == ".json" and "testpoints" in f.name:
                     output.setdefault("testpoints_json", str(f))
@@ -322,10 +338,22 @@ def get_job_status(job_id: str = "") -> str:
         result["output"]      = job.get("output", {})
         result["log_tail"]    = job.get("log_tail", "")
         result["message"]     = "✅ 任务完成！"
-        # 统计测试点和用例数
+        # 优先使用标准 manifest 统计结果
         try:
-            tp_file = job.get("output", {}).get("testpoints_json")
-            if tp_file and Path(tp_file).exists():
+            manifest = job.get("output", {}).get("manifest")
+            if manifest:
+                result["summary"] = {
+                    "status": manifest.get("status"),
+                    "review_score": manifest.get("review", {}).get("score", "N/A"),
+                    "testpoints_total": manifest.get("testpoints", {}).get("total", 0),
+                    "by_source": manifest.get("testpoints", {}).get("by_source", {}),
+                    "testcases_total": manifest.get("testcases", {}).get("total", 0),
+                    "warnings": manifest.get("warnings", []),
+                }
+            else:
+                tp_file = job.get("output", {}).get("testpoints_json")
+                if not (tp_file and Path(tp_file).exists()):
+                    raise FileNotFoundError
                 tp_data = json.loads(Path(tp_file).read_text(encoding="utf-8"))
                 meta = tp_data.get("meta", {})
                 result["summary"] = {
@@ -509,7 +537,7 @@ def distill_knowledge(
 
     def run_distill():
         try:
-            cmd = [sys.executable, str(AGENT_DIR / "kb_distill.py"),
+            cmd = [sys.executable, str(SCRIPT_DIR / "kb_distill.py"),
                    str(tp_path), "--dry-run"]
             if requirement_path:
                 try:
@@ -530,7 +558,7 @@ def distill_knowledge(
             job["finished_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
             job["message"]    = (
                 "提炼完成，查看 log_tail 确认规则后，"
-                f"运行 python kb_distill.py {tp_path} 正式写入知识库"
+                f"运行 python scripts/kb_distill.py {tp_path} 正式写入知识库"
                 if proc.returncode == 0 else "提炼失败"
             )
         except Exception as e:
@@ -559,15 +587,15 @@ def check_knowledge_base(quick: bool = True) -> str:
         quick: True=快速检查（跳过检索测试），False=完整检查
     """
     try:
-        cmd = [sys.executable, str(AGENT_DIR / "kb_check.py"), "--quick"]
+        cmd = [sys.executable, str(SCRIPT_DIR / "kb_check.py"), "--quick"]
         if not quick:
-            cmd = [sys.executable, str(AGENT_DIR / "kb_check.py")]
+            cmd = [sys.executable, str(SCRIPT_DIR / "kb_check.py")]
         result = subprocess.run(cmd, capture_output=True, text=True,
                                 timeout=60, cwd=str(AGENT_DIR))
         output = result.stdout + (result.stderr if result.stderr else "")
         return json.dumps({"output": output, "status": "ok" if result.returncode == 0 else "error"})
     except subprocess.TimeoutExpired:
-        return json.dumps({"error": "检查超时，建议用命令行运行: python kb_check.py --quick"})
+        return json.dumps({"error": "检查超时，建议用命令行运行: python scripts/kb_check.py --quick"})
     except Exception as e:
         return json.dumps({"error": str(e)})
 
@@ -582,9 +610,9 @@ def review_memory(action: str = "stats") -> str:
     """
     try:
         cmd_map = {
-            "stats":  [sys.executable, str(AGENT_DIR / "memory_review.py"), "--stats"],
-            "show":   [sys.executable, str(AGENT_DIR / "memory_review.py")],
-            "export": [sys.executable, str(AGENT_DIR / "memory_review.py"), "--export"],
+            "stats":  [sys.executable, str(SCRIPT_DIR / "memory_review.py"), "--stats"],
+            "show":   [sys.executable, str(SCRIPT_DIR / "memory_review.py")],
+            "export": [sys.executable, str(SCRIPT_DIR / "memory_review.py"), "--export"],
         }
         cmd = cmd_map.get(action, cmd_map["stats"])
         result = subprocess.run(cmd, capture_output=True, text=True,
@@ -592,7 +620,7 @@ def review_memory(action: str = "stats") -> str:
         output = result.stdout
         note   = ""
         if action == "clean":
-            note = "清理操作需要交互确认，请在终端运行: python memory_review.py --clean"
+            note = "清理操作需要交互确认，请在终端运行: python scripts/memory_review.py --clean"
         return json.dumps({"output": output, "note": note})
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -618,7 +646,7 @@ def rebuild_index() -> str:
             log_path = JOBS_DIR / f"{job_id}.log"
             with open(log_path, "w", encoding="utf-8") as log:
                 proc = subprocess.Popen(
-                    [sys.executable, str(AGENT_DIR / "kb_rag.py"), "--rebuild"],
+                    [sys.executable, str(SCRIPT_DIR / "kb_rag.py"), "--rebuild"],
                     stdout=log, stderr=subprocess.STDOUT, cwd=str(AGENT_DIR)
                 )
                 proc.wait()

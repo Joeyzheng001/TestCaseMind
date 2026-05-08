@@ -10,10 +10,10 @@ docx2md.py - 高质量 Word → Markdown 转换
 - 支持批量转换
 
 用法:
-    python docx2md.py 需求文档.docx                   # 转换单个文件
-    python docx2md.py 需求文档.docx -o output.md      # 指定输出路径
-    python docx2md.py *.docx                           # 批量转换
-    python docx2md.py 需求文档.docx --skip-meta        # 跳过元信息表格
+    python scripts/docx2md.py 需求文档.docx                   # 转换单个文件
+    python scripts/docx2md.py 需求文档.docx -o output.md      # 指定输出路径
+    python scripts/docx2md.py *.docx                           # 批量转换
+    python scripts/docx2md.py 需求文档.docx --skip-meta        # 跳过元信息表格
 """
 
 import re

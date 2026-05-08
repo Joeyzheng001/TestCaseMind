@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 from typing import Optional
 
-TASKS_DIR = Path(__file__).parent / ".tasks"
+TASKS_DIR = Path(__file__).resolve().parent.parent / ".tasks"
 TASKS_DIR.mkdir(exist_ok=True)
 
 

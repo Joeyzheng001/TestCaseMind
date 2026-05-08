@@ -27,3 +27,5 @@ input/
 .design_index/
 .mcp_jobs/
 .venv/
+logs/
+.sections/

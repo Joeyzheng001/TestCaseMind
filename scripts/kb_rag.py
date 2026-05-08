@@ -21,8 +21,9 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-KB_DIR = Path(__file__).parent / "knowledge_base"
-INDEX_DIR = Path(__file__).parent / ".kb_index"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+KB_DIR = PROJECT_ROOT / "knowledge_base"
+INDEX_DIR = PROJECT_ROOT / ".kb_index"
 
 # 每个段落的最大字符数（技术文档公式+参数常超800，加大以保持语义完整）
 # 注意：嵌入模型容量上限 ~128 token，超出部分不影响向量但保留在存储文本中供 LLM 阅读
@@ -33,7 +34,7 @@ CHUNK_OVERLAP = 200
 EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 # 本地模型目录（huggingface-cli download 下载后自动使用，无需联网）
 LOCAL_MODEL_DIR = (
-    Path(__file__).parent / "models" / "paraphrase-multilingual-MiniLM-L12-v2"
+    PROJECT_ROOT / "models" / "paraphrase-multilingual-MiniLM-L12-v2"
 )
 
 
@@ -371,7 +372,7 @@ def main():
         retriever._lazy_init()
         count = retriever._collection.count()
         print(f"知识库索引状态: {count} 个段落已索引")
-        print("\n用法: python kb_rag.py '持仓数量因子计算' --top-k 5")
+        print("\n用法: python scripts/kb_rag.py '持仓数量因子计算' --top-k 5")
         return
 
     print(f"\n检索: {args.query}\n{'─' * 50}")

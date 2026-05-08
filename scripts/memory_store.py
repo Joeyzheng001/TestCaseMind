@@ -18,7 +18,7 @@ import json
 import time
 from pathlib import Path
 
-MEMORY_DIR = Path(__file__).parent / "memory"
+MEMORY_DIR = Path(__file__).resolve().parent.parent / "memory"
 MEMORY_DIR.mkdir(exist_ok=True)
 
 LONG_TERM_FILE = MEMORY_DIR / "long_term.json"

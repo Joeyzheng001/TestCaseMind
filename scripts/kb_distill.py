@@ -6,9 +6,9 @@ kb_distill.py - 知识提炼工具
 大模型判断哪些规则是跨PRD通用的，过滤掉业务特定规则。
 
 用法:
-    python kb_distill.py output/xxx/testpoints.json
-    python kb_distill.py output/xxx/testpoints.json --req knowledge_base/需求文档.md
-    python kb_distill.py output/xxx/testpoints.json --dry-run  # 只看不写
+    python scripts/kb_distill.py output/xxx/testpoints.json
+    python scripts/kb_distill.py output/xxx/testpoints.json --req knowledge_base/需求文档.md
+    python scripts/kb_distill.py output/xxx/testpoints.json --dry-run  # 只看不写
 """
 
 import json
@@ -17,11 +17,12 @@ import sys
 import time
 from pathlib import Path
 
-WORKDIR = Path(__file__).parent
+SCRIPT_DIR = Path(__file__).resolve().parent
+WORKDIR = SCRIPT_DIR.parent
 KB_DIR  = WORKDIR / "knowledge_base"
 DISTILL_FILE = KB_DIR / "通用规则积累.md"
 
-sys.path.insert(0, str(WORKDIR))
+sys.path.insert(0, str(SCRIPT_DIR))
 from dotenv import load_dotenv
 load_dotenv(WORKDIR / ".env", override=False)
 
@@ -192,7 +193,7 @@ def main():
                 except Exception:
                     import subprocess
                     r = subprocess.run(
-                        ["python3", str(WORKDIR / "docx2md.py"), str(req_path)],
+                        ["python3", str(SCRIPT_DIR / "docx2md.py"), str(req_path)],
                         capture_output=True, text=True
                     )
                     md_path = req_path.with_suffix(".md")
@@ -244,7 +245,7 @@ def main():
             KBRetriever().rebuild()
             print(f"  ✓ 索引已更新，新规则即刻生效")
         except Exception as e:
-            print(f"  ⚠ 索引重建失败，请手动运行: python kb_rag.py --rebuild")
+            print(f"  ⚠ 索引重建失败，请手动运行: python scripts/kb_rag.py --rebuild")
             print(f"    错误: {e}")
 
 

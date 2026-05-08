@@ -3,8 +3,8 @@
 regen_md.py - 从已有测试点 JSON 重新生成 XMind Markdown 文件
 
 用法:
-    python regen_md.py output/testpoints_xxx.json
-    python regen_md.py output/testpoints_xxx.json --out output/重新生成.md
+    python scripts/regen_md.py output/testpoints_xxx.json
+    python scripts/regen_md.py output/testpoints_xxx.json --out output/重新生成.md
 
 不需要重跑整个 Agent，适合调试 MD 格式问题。
 """
@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 # 让 Python 能找到 agent 模块
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import argparse
 from agent import normalize_testpoint, export_markdown_xmind

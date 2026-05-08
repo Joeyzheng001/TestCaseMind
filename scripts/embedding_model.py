@@ -14,7 +14,9 @@ from pathlib import Path
 
 EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 LOCAL_MODEL_DIR = (
-    Path(__file__).parent / "models" / "paraphrase-multilingual-MiniLM-L12-v2"
+    Path(__file__).resolve().parent.parent
+    / "models"
+    / "paraphrase-multilingual-MiniLM-L12-v2"
 )
 
 _ef_singleton = None

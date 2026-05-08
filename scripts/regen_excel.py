@@ -6,9 +6,9 @@ regen_excel.py - 从已有测试用例 JSON 重新生成 Excel 文件
 适合：调整 Excel 格式、列顺序、颜色、新增列时直接重跑。
 
 用法:
-    python regen_excel.py output/testcases_xxx.json
-    python regen_excel.py output/testcases_xxx.json --out output/新格式.xlsx
-    python regen_excel.py output/testpoints_xxx.json --from-testpoints  # 直接从测试点生成简版 Excel
+    python scripts/regen_excel.py output/testcases_xxx.json
+    python scripts/regen_excel.py output/testcases_xxx.json --out output/新格式.xlsx
+    python scripts/regen_excel.py output/testpoints_xxx.json --from-testpoints  # 直接从测试点生成简版 Excel
 """
 
 import argparse

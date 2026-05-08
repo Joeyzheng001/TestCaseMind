@@ -8,9 +8,9 @@ review_cases.py - 测试用例评审与优化
 2. 优化版用例：补充遗漏场景，修正质量问题，生成新的 MD + Excel
 
 用法:
-    python review_cases.py 需求文档.md 人工用例.md
-    python review_cases.py 需求文档.md 人工用例.md --out output/review/
-    python review_cases.py 需求文档.md 人工用例.md --no-optimize  # 只出报告不优化
+    python scripts/review_cases.py 需求文档.md 人工用例.md
+    python scripts/review_cases.py 需求文档.md 人工用例.md --out output/review/
+    python scripts/review_cases.py 需求文档.md 人工用例.md --no-optimize  # 只出报告不优化
 
 输出:
     output/review_<需求名>_<时间戳>/
@@ -29,7 +29,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-AGENT_DIR = Path(__file__).parent
+AGENT_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(AGENT_DIR / ".env", override=True)
 
 try:

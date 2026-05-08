@@ -10,13 +10,17 @@ pyyaml>=6.0                # YAML 配置文件（memory_review 导出用）
 python-docx>=1.1.0         # Word 文档读取（docx2md.py）
 openpyxl>=3.1.0            # Excel 读写（测试用例导出 + kb_from_excel）
 pandas>=2.0.0              # Excel 数据处理（kb_from_design）
+python-calamine>=0.2.0     # pandas calamine 引擎，兼容复杂 xlsx（kb_from_design）
+xlrd>=2.0.1                # pandas xlrd 引擎，作为 Excel 读取降级方案
 
 # ── 知识库 RAG ────────────────────────────────────────────────────────────────
 chromadb>=0.5.0            # 向量数据库（知识库索引）
 sentence-transformers>=3.0.0  # 文本嵌入模型
+huggingface-hub>=0.20.0    # 下载/缓存本地嵌入模型
 
 # ── MCP Server ────────────────────────────────────────────────────────────────
 mcp>=0.9.0                 # Claude Code MCP 集成
 
-# ── 可选（有更好体验，但不装也能跑）─────────────────────────────────────────
-# huggingface-hub>=0.20.0  # 下载嵌入模型（已包含在 sentence-transformers 里）
+# ── 环境隔离说明 ──────────────────────────────────────────────────────────────
+# 本项目不需要 torchcodec / whisperx / pyannote-audio / torchaudio。
+# 请勿在 TestCaseMind 的独立环境中安装这些音视频依赖，避免污染文本 RAG。

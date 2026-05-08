@@ -6,19 +6,19 @@ memory_review.py - 长期记忆审核与管理
 越用越准的前提是记忆质量高，这个工具帮助保持记忆的高质量。
 
 用法:
-    python memory_review.py              # 查看所有记忆
-    python memory_review.py --clean      # 交互式清理低质量条目
-    python memory_review.py --add        # 手动添加记忆条目
-    python memory_review.py --export     # 导出记忆为可编辑的 YAML
-    python memory_review.py --import f.yaml  # 从 YAML 导入（编辑后导入）
-    python memory_review.py --stats      # 只看统计不交互
+    python scripts/memory_review.py              # 查看所有记忆
+    python scripts/memory_review.py --clean      # 交互式清理低质量条目
+    python scripts/memory_review.py --add        # 手动添加记忆条目
+    python scripts/memory_review.py --export     # 导出记忆为可编辑的 YAML
+    python scripts/memory_review.py --import f.yaml  # 从 YAML 导入（编辑后导入）
+    python scripts/memory_review.py --stats      # 只看统计不交互
 """
 
 import json
 import sys
 from pathlib import Path
 
-WORKDIR  = Path(__file__).parent
+WORKDIR  = Path(__file__).resolve().parent.parent
 MEM_DIR  = WORKDIR / "memory"
 LT_FILE  = MEM_DIR / "long_term.json"
 
@@ -171,7 +171,7 @@ def export_yaml(lt: dict) -> Path:
     with open(out, "w", encoding="utf-8") as f:
         yaml.dump(lt, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
     print(f"  ✓ 已导出到 {out}")
-    print(f"  编辑后运行: python memory_review.py --import {out}")
+    print(f"  编辑后运行: python scripts/memory_review.py --import {out}")
     return out
 
 
@@ -293,10 +293,10 @@ def main():
     show_all(lt)
     show_stats(lt)
     print("\n常用命令:")
-    print("  python memory_review.py --clean    # 清理低质量条目")
-    print("  python memory_review.py --add      # 添加高价值经验")
-    print("  python memory_review.py --export   # 导出编辑")
-    print("  python memory_review.py --stats    # 快速查看统计")
+    print("  python scripts/memory_review.py --clean    # 清理低质量条目")
+    print("  python scripts/memory_review.py --add      # 添加高价值经验")
+    print("  python scripts/memory_review.py --export   # 导出编辑")
+    print("  python scripts/memory_review.py --stats    # 快速查看统计")
 
 
 if __name__ == "__main__":

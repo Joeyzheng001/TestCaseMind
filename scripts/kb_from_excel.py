@@ -6,8 +6,8 @@ kb_from_excel.py - 从表设计文档提取知识库
 作为测试 Agent 的知识库来源（KB 标记）。
 
 用法:
-    python kb_from_excel.py <xlsx路径>
-    python kb_from_excel.py 华锐资管_规则配置_开发设计文档-资管风控表设计.xlsx
+    python scripts/kb_from_excel.py <xlsx路径>
+    python scripts/kb_from_excel.py 华锐资管_规则配置_开发设计文档-资管风控表设计.xlsx
 
 输出（写入 knowledge_base/ 目录）:
     数据字典枚举值.md     — 446个字典代码的枚举值，测试边界值的黄金来源
@@ -25,7 +25,7 @@ except ImportError:
     print("错误: 需要 openpyxl，请先安装: pip install openpyxl")
     sys.exit(1)
 
-KB_DIR = Path(__file__).parent / "knowledge_base"
+KB_DIR = Path(__file__).resolve().parent.parent / "knowledge_base"
 KB_DIR.mkdir(exist_ok=True)
 
 
@@ -280,8 +280,8 @@ def extract_metadata_summary(wb) -> str:
 # ── 主函数 ─────────────────────────────────────────────────────────────────
 def main():
     if len(sys.argv) < 2:
-        print("用法: python kb_from_excel.py <xlsx路径>")
-        print("示例: python kb_from_excel.py 华锐资管_规则配置_开发设计文档-资管风控表设计.xlsx")
+        print("用法: python scripts/kb_from_excel.py <xlsx路径>")
+        print("示例: python scripts/kb_from_excel.py 华锐资管_规则配置_开发设计文档-资管风控表设计.xlsx")
         sys.exit(1)
 
     xlsx_path = Path(sys.argv[1])
@@ -384,7 +384,7 @@ def main():
     print(f"\n  表字段文件写入: knowledge_base/tables/")
 
     print("\n下一步:")
-    print("  python agent.py <需求文档> --kb")
+    print("  python scripts/agent.py <需求文档> --kb")
     print("  Agent 会先读 knowledge_base/tables/00_索引.md，再按需读具体模块文件")
 
 

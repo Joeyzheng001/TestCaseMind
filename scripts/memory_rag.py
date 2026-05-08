@@ -13,9 +13,10 @@ import json
 import hashlib
 from pathlib import Path
 
-MEMORY_DIR = Path(__file__).parent / "memory"
-INDEX_DIR = Path(__file__).parent / ".memory_index"
-LOCAL_MODEL = Path(__file__).parent / "models" / "paraphrase-multilingual-MiniLM-L12-v2"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+MEMORY_DIR = PROJECT_ROOT / "memory"
+INDEX_DIR = PROJECT_ROOT / ".memory_index"
+LOCAL_MODEL = PROJECT_ROOT / "models" / "paraphrase-multilingual-MiniLM-L12-v2"
 EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 

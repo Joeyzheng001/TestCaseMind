@@ -9,9 +9,9 @@ kb_check.py - 知识库健康检查
 4. 问题诊断（空文件、重复文件、过时文件）
 
 用法:
-    python kb_check.py              # 全面检查
-    python kb_check.py --search     # 交互式检索测试
-    python kb_check.py --fix        # 自动修复可修复的问题
+    python scripts/kb_check.py              # 全面检查
+    python scripts/kb_check.py --search     # 交互式检索测试
+    python scripts/kb_check.py --fix        # 自动修复可修复的问题
 """
 
 import json
@@ -20,7 +20,8 @@ import time
 from pathlib import Path
 from collections import defaultdict
 
-WORKDIR  = Path(__file__).parent
+SCRIPT_DIR = Path(__file__).resolve().parent
+WORKDIR  = SCRIPT_DIR.parent
 KB_DIR   = WORKDIR / "knowledge_base"
 IDX_DIR  = WORKDIR / ".kb_index"
 
@@ -75,7 +76,7 @@ def check_files() -> dict:
             stats["docx"].append(f)
             md_version = f.with_suffix(".md")
             if not md_version.exists():
-                issues.append(f"○ 未转换的 Word 文档: {f.name}  →  运行 python docx2md.py {f.name}")
+                issues.append(f"○ 未转换的 Word 文档: {f.name}  →  运行 python scripts/docx2md.py {f.name}")
         elif ext in (".xlsx", ".xls"):
             stats["xlsx"].append(f)
 
@@ -123,7 +124,7 @@ def check_index() -> dict:
     print("─" * 60)
 
     if not IDX_DIR.exists():
-        print("  ❌ 索引不存在，请先运行: python kb_rag.py --rebuild")
+        print("  ❌ 索引不存在，请先运行: python scripts/kb_rag.py --rebuild")
         return {"status": "missing"}
 
     hash_file = IDX_DIR / "kb_hash.txt"
@@ -141,7 +142,7 @@ def check_index() -> dict:
     stored_hash  = hash_file.read_text().strip()
 
     if current_hash != stored_hash:
-        print("  ⚠ 索引已过期（知识库有文件更新），建议运行: python kb_rag.py --rebuild")
+        print("  ⚠ 索引已过期（知识库有文件更新），建议运行: python scripts/kb_rag.py --rebuild")
         status = "stale"
     else:
         print("  ✅ 索引是最新的")
@@ -318,7 +319,7 @@ def overall_score(file_stats: dict, idx_stats: dict,
     if scores["文件质量"] < 70:
         suggestions.append("补充更多知识库文档（数据字典、表设计、开发设计文档）")
     if scores["索引状态"] < 100:
-        suggestions.append("运行 python kb_rag.py --rebuild 更新向量索引")
+        suggestions.append("运行 python scripts/kb_rag.py --rebuild 更新向量索引")
     if scores["检索质量"] < 60:
         suggestions.append("知识库内容不足，检索命中率低，需补充专业文档")
     if scores["记忆积累"] < 30:
@@ -394,14 +395,14 @@ def main():
             if not f.with_suffix(".md").exists():
                 print(f"  转换: {f.name}")
                 import subprocess
-                docx2md = WORKDIR / "docx2md.py"
+                docx2md = SCRIPT_DIR / "docx2md.py"
                 if docx2md.exists():
                     subprocess.run([sys.executable, str(docx2md), str(f)], check=False)
         # 重建过期索引
         if idx_stats.get("status") == "stale":
             print("  重建索引...")
             import subprocess
-            subprocess.run([sys.executable, str(WORKDIR / "kb_rag.py"), "--rebuild"], check=False)
+            subprocess.run([sys.executable, str(SCRIPT_DIR / "kb_rag.py"), "--rebuild"], check=False)
 
     print()
 

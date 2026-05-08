@@ -6,10 +6,10 @@ kb_convert.py - 知识库预处理
 方便后续 grep 检索。依赖 pandoc（brew install pandoc）。
 
 用法:
-    python kb_convert.py              # 转换所有未转换的 docx
-    python kb_convert.py --all        # 强制重转所有 docx（覆盖已有 md）
-    python kb_convert.py --check      # 只查看待转换文件列表，不执行
-    python kb_convert.py --file x.docx  # 转换单个文件
+    python scripts/kb_convert.py              # 转换所有未转换的 docx
+    python scripts/kb_convert.py --all        # 强制重转所有 docx（覆盖已有 md）
+    python scripts/kb_convert.py --check      # 只查看待转换文件列表，不执行
+    python scripts/kb_convert.py --file x.docx  # 转换单个文件
 """
 
 import argparse
@@ -18,7 +18,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-KB_DIR = Path(__file__).parent / "knowledge_base"
+KB_DIR = Path(__file__).resolve().parent.parent / "knowledge_base"
 
 
 def check_tool() -> bool:
@@ -126,7 +126,7 @@ def main():
     if ok:
         md_count = len(list(KB_DIR.glob("**/*.md")))
         print(f"\n知识库现有 {md_count} 个 md 文件，可运行:")
-        print(f"  python agent.py <需求文档> --kb")
+        print(f"  python scripts/agent.py <需求文档> --kb")
 
 
 if __name__ == "__main__":

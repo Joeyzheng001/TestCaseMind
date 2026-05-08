@@ -6,8 +6,8 @@ kb_from_design.py - 从因子开发设计文档提取知识库
 转换为结构化 md 文件，供 test-agent 生成测试点时检索。
 
 用法:
-    python kb_from_design.py 因子设计文档.xlsx
-    python kb_from_design.py 因子设计文档.xlsx --out-dir knowledge_base/design
+    python scripts/kb_from_design.py 因子设计文档.xlsx
+    python scripts/kb_from_design.py 因子设计文档.xlsx --out-dir knowledge_base/design
 
 输出（每个因子一个文件）:
     knowledge_base/design/00_因子索引.md      ← Agent 先读这个
@@ -20,7 +20,7 @@ import re
 import sys
 from pathlib import Path
 
-KB_DIR = Path(__file__).parent / "knowledge_base" / "design"
+KB_DIR = Path(__file__).resolve().parent.parent / "knowledge_base" / "design"
 
 # 不需要提取的 sheet（模板页）
 SKIP_SHEETS = {"因子开发设计文档模板"}
@@ -641,7 +641,7 @@ def main():
     print(f"完成: {ok_count} 个因子文件 + 1 个索引")
     print(f"输出目录: {out_dir}")
     print(f"\n下一步:")
-    print(f"  python agent.py <需求文档> --kb --design knowledge_base/design/")
+    print(f"  python scripts/agent.py <需求文档> --kb --design knowledge_base/design/")
 
 
 if __name__ == "__main__":

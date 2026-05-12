@@ -636,11 +636,11 @@ def _batch_gen_tp_section(title: str, content: str, review: dict,
     for attempt in range(3):
         try:
             _wait_rate_limit()
-            response = client.messages.create(
+            with client.messages.stream(
                 model=MODEL, messages=[{"role": "user", "content": prompt}],
-                max_tokens=8000,
-            )
-            text = "".join(b.text for b in response.content if hasattr(b, "text")).strip()
+                max_tokens=16000,
+            ) as stream:
+                text = stream.get_final_text().strip()
             if not text:
                 if attempt < 2:
                     import time as _t; _t.sleep(2)
@@ -931,11 +931,11 @@ def stage3_testcases_batch(batch: list, batch_no: int, case_id_start: int,
     for attempt in range(3):
         try:
             _wait_rate_limit()
-            response = client.messages.create(
+            with client.messages.stream(
                 model=MODEL, messages=[{"role": "user", "content": prompt}],
-                max_tokens=16000,
-            )
-            text = "".join(b.text for b in response.content if hasattr(b, "text")).strip()
+                max_tokens=32000,
+            ) as stream:
+                text = stream.get_final_text().strip()
             if not text:
                 if attempt < 2:
                     import time as _t; _t.sleep(2)

@@ -177,6 +177,9 @@ def build_excel(rows: list, columns: list, title: str, out_path: Path,
 
         for col_idx, (_, field_key, _, align) in enumerate(columns, 1):
             value = row_data.get(field_key, "")
+            # 支持 expected_result 等字段的数组格式
+            if isinstance(value, list):
+                value = "\n".join(str(v) for v in value)
             cell  = ws.cell(row=row_idx, column=col_idx, value=value)
             cell.border    = border
             cell.fill      = row_fill

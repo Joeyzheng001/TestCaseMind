@@ -1,5 +1,5 @@
 # TestCaseMind 系统介绍
-
+1
 ## 1. 项目定位
 
 TestCaseMind 是一个面向需求文档的 AI 测试用例设计智能体。它以 PRD、因子规格、表设计、开发设计等文档为输入，自动完成需求质量评审、测试点生成、测试用例展开、Excel 交付物导出、测分报告生成，以及知识库和长期记忆沉淀。
@@ -16,19 +16,29 @@ TestCaseMind 是一个面向需求文档的 AI 测试用例设计智能体。它
 
 ## 2. 总体架构
 
-系统分为六层：
+系统分为七层：
 
 1. 入口层
    - 命令行入口：`scripts/agent.py`
    - MCP 入口：`scripts/mcp_server.py`
+   - Claude Code 自然语言入口
 
-2. 工作流编排层
+2. Skills 技能层
+   - `requirement-review`：需求质量评审
+   - `testpoint-gen`：测试点生成规则
+   - `testcase-gen`：测试用例展开规则
+   - `testcase-review`：测试反馈与用例评审
+   - `code-review`（规划中）：代码变更测试影响分析
+   - `auto-testcase-gen`（规划中）：自动化用例生成
+   - `precision-test`（规划中）：精准测试
+
+3. 工作流编排层
    - 需求评审：`stage1_review`
    - 测试点生成：`stage2_testpoints`
    - 测试用例生成：`stage3_testcases`
    - 本地导出：评审报告 Markdown、问题清单 Excel、XMind Markdown、测试用例 Excel、测分报告
 
-3. Agent Harness 层
+4. Agent Harness 层
    - s03 计划展示：`todo_write`
    - s04 子代理：`run_subagent`
    - s05 技能加载：`load_skill`
@@ -37,18 +47,18 @@ TestCaseMind 是一个面向需求文档的 AI 测试用例设计智能体。它
    - s09 长期记忆：`MemoryStore`、`MemoryRAG`
    - s11 容错降级：异常捕获、重试、空结果继续
 
-4. 知识增强层
+5. 知识增强层
    - 文档知识库：`knowledge_base/`
    - 向量索引：`.kb_index/`
    - 检索器：`scripts/kb_rag.py`
    - 知识提炼：`scripts/kb_distill.py`
 
-5. 记忆层
+6. 记忆层
    - 长期记忆：`memory/long_term.json`
    - 需求短期记忆：`memory/<req_stem>.json`
    - 记忆向量索引：`.memory_index/`
 
-6. 交付层
+7. 交付层
    - `output/<需求名>/<时间戳>/review_report*.md`
    - `output/<需求名>/<时间戳>/review_issues*.xlsx`
    - `output/<需求名>/<时间戳>/review_mindmap*.md`
@@ -277,12 +287,15 @@ python scripts/agent.py "需求文档.md" --kb --resume
 
 实现位置：`skills/` 目录和 `load_skill`。
 
-当前有三个技能：
+当前有四个技能：
 
 - `requirement-review`：需求质量评审。
 - `testpoint-gen`：测试点生成规则。
 - `testcase-gen`：测试用例展开规则。
-- `case-review-learning`：根据人工评审后的用例库纳入/未纳入结果，总结未纳入原因并沉淀为后续生成规则。
+- `testcase-review`：测试反馈与用例评审，根据人工评审后的用例库纳入/未纳入结果，总结未纳入原因并沉淀为后续生成规则。
+- `code-review`（规划中）：代码变更测试影响分析，自动识别变更范围并关联相关测试点。
+- `auto-testcase-gen`（规划中）：自动化用例生成，基于代码逻辑路径自动推导测试场景。
+- `precision-test`（规划中）：精准测试，根据代码覆盖率自动补充边界和分支测试用例。
 
 技能文件以 Markdown 描述任务、原则、关键规则和 JSON 输出格式。它们把测试工程经验从代码中抽离出来，成为可维护、可迭代的提示资产。
 
@@ -516,8 +529,8 @@ Markdown 需求文档
   v
 测试用例 Excel / 测分报告
   |
-  | 人工填写“是否纳入用例库/未纳入原因”
-  | learn_from_case_review + case-review-learning skill
+  | 人工填写”是否纳入用例库/未纳入原因”
+  | learn_from_case_review + testcase-review skill
   v
 用例评审学习报告 / 长期记忆 testpoint_hints
   |
@@ -525,6 +538,16 @@ Markdown 需求文档
   v
 长期记忆 / 通用规则知识库
 ```
+
+**未来扩展展望：**
+
+| Skill | 状态 | 说明 |
+| ----- | ---- | ---- |
+| `code-review` | 规划中 | 读取代码变更，自动识别受影响模块并补充相关测试点 |
+| `auto-testcase-gen` | 规划中 | 打通环境、接口、数据库，基于代码逻辑路径自动推导测试场景 |
+| `precision-test` | 规划中 | 结合代码覆盖率，精准补充边界和分支测试用例，减少全量回归 |
+
+> 未来愿景：从需求到代码，从用例到自动化，从全量回归到精准回归。
 
 ## 10. 输出资产说明
 

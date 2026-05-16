@@ -1,0 +1,3133 @@
+{
+  "version": 1,
+  "salt": "mcoxVY_Cx6f7A_cXSdp75w==",
+  "created_at": "2026-05-15T19:06:00.887946",
+  "total_size": 977831809,
+  "files": [
+    {
+      "path": "cards/cards.jsonl",
+      "sha256": "b2704a05ebcd6f10c0d0bbf03b51f235fa43025ea9e8b5f936566b61173196f3",
+      "size": 184454
+    },
+    {
+      "path": "cards/methods/method_5w1h.md",
+      "sha256": "1c2075ea31470179b6ed561159fb22e9ae4ddf909bfa715945383c8235c445b3",
+      "size": 8634
+    },
+    {
+      "path": "cards/methods/method_ahp.md",
+      "sha256": "dbc90a6915aadae73da55b5f09804272d84056bc48b8fae634a86e178a3c9330",
+      "size": 10070
+    },
+    {
+      "path": "cards/methods/method_anliyanjiufa.md",
+      "sha256": "f2c0cad37c542ea70874d560c5927f89f1a5d20a51e2c28f16a3592ed8c1f86c",
+      "size": 7437
+    },
+    {
+      "path": "cards/methods/method_biaoganfenxifa.md",
+      "sha256": "471f7a12f58ecc7d6b473ac7237a175222da38b2f4f12e37be3bbbf3850618c6",
+      "size": 7183
+    },
+    {
+      "path": "cards/methods/method_cmmi_2.md",
+      "sha256": "26e51ffd4162f0a625feb073b2f81e86971b9facd6f58dd418b2e2ce36da36e9",
+      "size": 7078
+    },
+    {
+      "path": "cards/methods/method_deerfeifa.md",
+      "sha256": "d47d7aaa9df3887c135eccb7ecf1209f8e3285965225491b793922daadc1b3dd",
+      "size": 7759
+    },
+    {
+      "path": "cards/methods/method_did.md",
+      "sha256": "b5d8692c664a9834e5cba2f9b966113ca0a55faf86b3ff7fcfa366e8a739d163",
+      "size": 8715
+    },
+    {
+      "path": "cards/methods/method_fce.md",
+      "sha256": "b240ccce6705f24f97b44df12046c55e8fc6d9ca308a54aeaa5e2887931b03f7",
+      "size": 11560
+    },
+    {
+      "path": "cards/methods/method_genyinfenxifa.md",
+      "sha256": "2af4387d78ebc1847b98cd9c1babf57a168a1be6ff3a3d10a1e8b5a7536bc578",
+      "size": 9105
+    },
+    {
+      "path": "cards/methods/method_gompertz.md",
+      "sha256": "6ed0ebf1135cd65f88bd33f258c7614a442928a848d7648672715feb8b62f24b",
+      "size": 11891
+    },
+    {
+      "path": "cards/methods/method_liuchengyouhuafa.md",
+      "sha256": "6bef920a738db01948fd413b69551d596aa56574f6c7829564fe1994646fd653",
+      "size": 5522
+    },
+    {
+      "path": "cards/methods/method_pdca.md",
+      "sha256": "460b23acba6c56beb1078ba1d1b776aeb807e64ae7da5e6ba07a93a5729960ad",
+      "size": 7847
+    },
+    {
+      "path": "cards/methods/method_shiyanyanjiu.md",
+      "sha256": "e7cfb76fcf8cca6442677ad334a42608c0b802a2ca356b10e7fc85230faa7c0a",
+      "size": 9252
+    },
+    {
+      "path": "cards/methods/method_wenjuandiaochafa.md",
+      "sha256": "bf1831829a96b7f9ede0bb672fb87c1839eb70fef05f5e219703df8a0e1af385",
+      "size": 10327
+    },
+    {
+      "path": "cards/methods/method_wenxianyanjiufa.md",
+      "sha256": "c904748cd7817b087851ff96348d6876452b8a89aa234b020d033cd8c0f3e71e",
+      "size": 9098
+    },
+    {
+      "path": "cards/methods/method_yugutu.md",
+      "sha256": "305742e8207af2135633bb92149ca1ebd3de6255a0061796f56b677ac7f2e948",
+      "size": 7082
+    },
+    {
+      "path": "cards/methods/method_zhiliangguanlili.md",
+      "sha256": "aed2ead09c710985fe6438c13ccff272d463a2d3a4808360663f8681d98a226b",
+      "size": 8451
+    },
+    {
+      "path": "cards/risks/risk_ahp.md",
+      "sha256": "7156d29f303f8c9365164cfdf385caaa83b9b90b3b70104ae48ca2f255004807",
+      "size": 7373
+    },
+    {
+      "path": "cards/risks/risk_anlidaibiaoxingbuzu.md",
+      "sha256": "791d39f84ad344b1842f42422ae1426d558df1127affcded854db164f274f6fe",
+      "size": 5008
+    },
+    {
+      "path": "cards/risks/risk_cankaowenxiangeshihunluan.md",
+      "sha256": "c7521d3728a608caa3550f697af88a53f7660348e4c13b09862dd9559dff98b1",
+      "size": 5788
+    },
+    {
+      "path": "cards/risks/risk_chuangxindiankongfanquefa2ju.md",
+      "sha256": "2d708253c98a52f6a0a0af9adc07c4fc31f72f618e47fab60788625e6c46edd9",
+      "size": 7427
+    },
+    {
+      "path": "cards/risks/risk_deerfeifazhuanjiaxinxi.md",
+      "sha256": "5c074c246e205cab243e3dbac10fc3f11f42b7dfc92e7ee29c92ab8280692c07",
+      "size": 5895
+    },
+    {
+      "path": "cards/risks/risk_duicejian2yikongfanquefa2.md",
+      "sha256": "b39b024654801ccec57e8742ad1c71c2e0ff725d26fff4b95464fb88533c7a89",
+      "size": 6933
+    },
+    {
+      "path": "cards/risks/risk_fangfaduiqiquefa2lunzheng.md",
+      "sha256": "23bf73dc0ac5db2e8946932b0eea1679a2855b1e7300cd2d91e68af603f3b99f",
+      "size": 6958
+    },
+    {
+      "path": "cards/risks/risk_fangfaxuanzequefa2liyou.md",
+      "sha256": "7179c1686f987ead32ff70921378f2a3a52e74ef717daffaaf4e4bfbda96152e",
+      "size": 8116
+    },
+    {
+      "path": "cards/risks/risk_guanjiancixuanqubudang.md",
+      "sha256": "de18baf600b8ad89c3f9ea3672ec0853dcdeca46f275cde3b6714bb6712651fd",
+      "size": 5370
+    },
+    {
+      "path": "cards/risks/risk_lunwengeshibuxue.md",
+      "sha256": "ff8e75b500a082c0f3705203f3ef4374324f37b462a3c7be6675aa76c95af1e9",
+      "size": 5942
+    },
+    {
+      "path": "cards/risks/risk_queshujuzhichengkongtan.md",
+      "sha256": "2c5f8298130c9938b26edcffd0d703068feeb35e34c30b6d425c9b83bac08ba4",
+      "size": 8093
+    },
+    {
+      "path": "cards/risks/risk_tubiaobuguifanquebian.md",
+      "sha256": "a2c45c359e4c808a624a160c75548561b54b022a1674b708a71bd0e5ece57677",
+      "size": 5647
+    },
+    {
+      "path": "cards/risks/risk_wenfangfafangan.md",
+      "sha256": "2dae4f988e0b4a42969d5171896838d9a3583d4015ba840aeab013c3b492b78f",
+      "size": 6975
+    },
+    {
+      "path": "cards/risks/risk_wenjuandiaochayangbenliangbu.md",
+      "sha256": "7b1eafc210382ab569142416e782b1b1d2793f908ce7ec50fe5d5a82cd3e6625",
+      "size": 6024
+    },
+    {
+      "path": "cards/risks/risk_wenxianzongshuquefa2pingshu.md",
+      "sha256": "babfb5c54d63b32a52d7fb4b998ce13aee80bdce666be6bf43ca9c319a8b52b1",
+      "size": 7103
+    },
+    {
+      "path": "cards/risks/risk_yanjiufanweiguodaquefa2.md",
+      "sha256": "79797937f96d84d5be360eab0812a16b9ae45806390599a1e0964421178daf9c",
+      "size": 6240
+    },
+    {
+      "path": "cards/risks/risk_yingwenwenxianyan2zhongbuzu.md",
+      "sha256": "8ba1da286f28db7bae6711c3996ac30e3f32f6aa2a076edd6a309eaec0fe368e",
+      "size": 6738
+    },
+    {
+      "path": "cards/risks/risk_yinyongchenjiuquefa2jinnian.md",
+      "sha256": "6c320bdd05b97a1951decf032d73a1c9ddbe721c3fd4da9009ded15c525b5cbf",
+      "size": 6071
+    },
+    {
+      "path": "cards/risks/risk_zhaiyaoyaosubuwanzheng.md",
+      "sha256": "049657fd48501d9345f83a61ab531f3873438e2f97c8f44c0586185e25655eca",
+      "size": 6598
+    },
+    {
+      "path": "cards/risks/risk_zhangjieluojiduanlie.md",
+      "sha256": "27ad4c13c1ada81c2855cf67522551b78e06fa5fad6337cefb43da16ee1b3d0e",
+      "size": 9001
+    },
+    {
+      "path": "cards/risks.jsonl",
+      "sha256": "605dbdaabb1f6723dbdf17c23106ea779c9dc0d9ea02853c5cbcbc16ef7addfe",
+      "size": 199501
+    },
+    {
+      "path": "knowledge_base/cards.sqlite3",
+      "sha256": "e72691342f69f12ef0996dae82cdfd8493e2b5b6c60700a606e026675a1163f4",
+      "size": 417792
+    },
+    {
+      "path": "knowledge_base/papers.sqlite3",
+      "sha256": "043713f0f34b5c999999d2f61a2bef9884c9764942261e289b4b1689d85c0e39",
+      "size": 7933952
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/3_鱼骨图/基于鱼骨图分析企业标准实施偏差成因的应用研究_项庆辉.md",
+      "sha256": "4ab295773745b3b0fb867e2628086ee5e6ac4682eaf3039cf4a7484efa7a9d58",
+      "size": 9378
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/3_鱼骨图/综合鱼骨图及其在项目管理中的应用研究_皮圣雷.md",
+      "sha256": "6921e14069e30414f0faa8f3f5bed8ee47da7661e866b8ab8c1b1337fd73a7b9",
+      "size": 19673
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/3_鱼骨图/鱼骨图分析下8S精益管理提升手术室管理质量效果分析_徐亚莉.md",
+      "sha256": "bb0d86982f2eee795100685ad333354772e063a98bfa8f07a58ca6faa7b2b72d",
+      "size": 17314
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/5W1H/5W1H方法在大科学工程项目沟通管理中的应用研究_王传珂.md",
+      "sha256": "da2c18a883e69a083f19ac6002c866722313b14d0c7f2acdeeedf1649ecdd9d9",
+      "size": 18519
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/5W1H/基于5W1H分析法的档案数据管理研究_周枫.md",
+      "sha256": "17080240733be461c9df2768e790cca20c49a6bd1d2deb1ed89d5e2153e8839b",
+      "size": 25139
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/5W1H/工业工程技术在B公司中的应用研究_王强.md",
+      "sha256": "5a2c15b510662dbfa7d714c631fe745534eda61a68b480ae0917bf08a21a5fdc",
+      "size": 113083
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/5W1H/高校图书馆阅读推广5W1H分析法应用研究_安娜.md",
+      "sha256": "3d5033d32e2aa6731c27d045281aaf8f0b16bdbfe707b6559a220a91e36ab84d",
+      "size": 40534
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/PDCA/PDCA循环在企业绩效管理系统中的运用_曹书民.md",
+      "sha256": "a901081b8d3b31d3e4bf44397feb0c62fc78c516a337d62309c669e3a34974ca",
+      "size": 19335
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/PDCA/PDCA循环推进持续的质量改进_刘宏.md",
+      "sha256": "47c19bb86f45b54c10f245cf635d447d1c82249d25e5735ccfb9b4157d2cbdf7",
+      "size": 15417
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/PDCA/PDCA循环理论在质量管理工作中的运用_斯欣宇.md",
+      "sha256": "7c19647a78001216b6668b06a3c40e1a3099da95d394f71e415fd609eb6d0842",
+      "size": 7536
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/PDCA/基于PDCA的信息系统全面质量管理模型_常金玲.md",
+      "sha256": "0e33d6bf5575de2da5821bbdf7d6ef57645de412188147437574fdb229658392",
+      "size": 12873
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/PMBOK第七版_中文版_pdf/PMBOK第七版_中文版.md",
+      "sha256": "5907a4d48cf6f90300bca0e915eebff42c9bd8fb4812f571df982e677676ef54",
+      "size": 457882
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/WBS/大型施工项目的集成管理_王延树.md",
+      "sha256": "71d02ed9feb1b1b1a71a8da98dc85f1acbe7395503d1728fdadc37db3ce84737",
+      "size": 14593
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/WBS/工作分解结构(WBS)在施工项目管理计划阶段中的应用_薛自力.md",
+      "sha256": "cc20016369aaf7d8c6777fb0cc1e24ee979aff575c76443b70769e5760d5744a",
+      "size": 14448
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/WBS/工作分解结构WBS技术_魏永涛.md",
+      "sha256": "fac5fe1cbbbede26c1cf300dc1aafe14c2ee47c72a428c1d3cb16c6fa372e09b",
+      "size": 10442
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/WBS/改进的WBS方法在工程项目管理中的应用_刘金星.md",
+      "sha256": "f8af2969edd2bcb8b4a52694d99e24563d0bbe57bd5fb32bec162f435497399b",
+      "size": 15919
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/WBS/施工项目结构分解(WBS)方法及准则研究_江萍.md",
+      "sha256": "fe7b515f00931d6d10fd3518166c93b466ab34093d31ffcf9b8971e24a30d023",
+      "size": 13640
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/六西格玛/六西格玛管理与MINITAB软件_何晓群.md",
+      "sha256": "1049aa5751dc8641e72bf5f05e222dda576077d422b26a5b04fd5bf7da496368",
+      "size": 11323
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/六西格玛/基于精益六西格玛的质量管理改进实证研究_吕永卫.md",
+      "sha256": "8e6811a947e353d1069271a0bd70fcdc7b19117d916dee344fee085297b3ebab",
+      "size": 29570
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/六西格玛/精益管理、六西格玛、约束理...业工程方法的系统化集成应用_江志斌.md",
+      "sha256": "7430f1bc7b0dbfae87ae37a53a7fe24351d90ced41b62057cb7bbb6405c6d9a1",
+      "size": 35485
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/六西格玛/论六西格玛管理的本质属性_胡雅琴.md",
+      "sha256": "cd8db9641b2083f65ea99723c118c5ad986049bce7f543eeed3ac3410ddfece8",
+      "size": 10968
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/层次分析法/基于改进层次分析法的模糊综合评价模型_金菊良.md",
+      "sha256": "e7b930d0182a4b99cbc94449b8235233d8eb1a9ef37e1710cd64aa3d830f3bfe",
+      "size": 23296
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/层次分析法/层次分析法中几种标度的比较_骆正清.md",
+      "sha256": "6678896f0f182055fcab369c1a6d07d7b5d59e4667be4be6ac7e8e0e7335a698",
+      "size": 41035
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/层次分析法/层次分析法的研究与应用_郭金玉.md",
+      "sha256": "b473cbfb9e77608bb18cd773a1b66ba2fc6e10df7264b87f54351b98ef117947",
+      "size": 28022
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/层次分析法/模糊层次分析法(FAHP)_张吉军.md",
+      "sha256": "861c7a5e27b217fcff03a4a9c5fd56aa5e29ae503bb57000b0f469a1dcc98d98",
+      "size": 21402
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/层次分析法/运用层次分析法构建国有企业绩效评价体系_申志东.md",
+      "sha256": "379ac1cf072b941915283e1f062e77ec0ee7cb620c0e95a1b0a2c219f616a5ec",
+      "size": 13597
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/德尔菲专家法/专家视野中的职业教育校企合...菲专家咨询法进行的调查分析_吴建新.md",
+      "sha256": "fb38bb8da34fb4a6ed2695d2e5eecdfb741c3be6c91f7639b529a2537a01e379",
+      "size": 46195
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/德尔菲专家法/公立医疗机构公益性评价指标...选——基于德尔菲专家咨询法_陈英耀.md",
+      "sha256": "c144cc3a69142e1142feaa661a6e55dfc56f59fe0b2b46563eb8a583840b97be",
+      "size": 19508
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/德尔菲专家法/基于德尔菲法的专家意见集成模型研究_田军.md",
+      "sha256": "e8f02a661eb38db3f9a700b473752b954a5aff64c4d76942727ef0fd2d15649a",
+      "size": 22924
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/德尔菲专家法/基于德尔菲法的专家评估方法_刘伟涛.md",
+      "sha256": "53e747ccb5c8b5285659d80f82d4810a9a405d4924be4f087837e8ef00761c6b",
+      "size": 7599
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/德尔菲专家法/德尔菲法中的数据统计处理方法及其应用研究_王春枝.md",
+      "sha256": "4ebdc21eaa5b7c92c1d7e604a14f9c7e9bf285104adbe16b9c536222b1862c84",
+      "size": 16604
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/德尔菲专家法/德尔菲法及其构建指标体系的应用进展_王少娜.md",
+      "sha256": "fd43478acb714a4578105440e463c215c34c14b49643906bd5fe38670077a18d",
+      "size": 23350
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/德尔菲专家法/德尔菲法的应用及其难点_徐蔼婷.md",
+      "sha256": "2474f059e5c1d4455acd28d62423230616682eec3c93ac8f4e2d34e734e65aa4",
+      "size": 18692
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/德尔菲专家法/科学教师教学能力结构模型建...德尔菲专家咨询法的调查分析_王碧梅.md",
+      "sha256": "0b8d91ea5177c9973b51ef7f72b7eac12b0a3f2eb3ee61fd290bf9385130b6c8",
+      "size": 34706
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/文献研究法/基于文献研究法的精准扶贫综述_刘胜林.md",
+      "sha256": "4192f321a6b3ad7ad99e17ab6cbbe5e873aa34fa3b5400dcd711667667b90ce3",
+      "size": 25747
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/文献研究法/富有生命力的文献研究法_杜晓利.md",
+      "sha256": "a9f12729e992341fb9da37da037947d88f47992682aa311f144dfc8f125b8d93",
+      "size": 4245
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/文献研究法/文献研究法在高校历史教学中的运用_韩建萍.md",
+      "sha256": "f14cfc62bd6a349d8f322beedb4814dd31e3fe6233b96430a2bf9b37edf53b0d",
+      "size": 15694
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/文献研究法/文献研究法辨析_东阳.md",
+      "sha256": "d1c5531134302f23445a005c2af527d25bfaa200631f539cb441fda17ed4774a",
+      "size": 13359
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/标杆分析法/基于大数据和标杆分析法的市...病种质量评价指标构建及应用_侯冷晨.md",
+      "sha256": "d22ed963847be6b7ee67fd734a27a0a855882e068700081adb4431d1560945f6",
+      "size": 24982
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/标杆分析法/标杆分析法的引进与应用研究_于文益.md",
+      "sha256": "4f8379e47809303b8500ec8ecd4b339aadd033de804a241ed28232c802f6f101",
+      "size": 30322
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/标杆分析法/论标杆分析法在供应链配送中心运营评价中的使用_俞仲秋.md",
+      "sha256": "aea71156c1992c22964bf4e7c046ec759d8040d8cf44469956ddc03e8594a996",
+      "size": 9157
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/案例研究法/“去产能”背景下国有企业并...宝钢吸收合并武钢的案例研究_张伦萍.md",
+      "sha256": "144acd6fadb37f8767a4b74c4778fbec4f99c0388aa58a1e2fc3616ed912cdaf",
+      "size": 18412
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/案例研究法/企业借壳上市动因与绩效的相...——基于证券公司的案例研究_陈蓉.md",
+      "sha256": "ded023e54aba9f9f75da09ba7bd3ca9a585b285bd0af16be879df4afe1515307",
+      "size": 6605
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/案例研究法/再论案例研究法的属性、类型、功能与研究设计_唐权.md",
+      "sha256": "54de6ff714be2ec6dfa6ee7109254299bde86be4514b14beb26f9298b17cd365",
+      "size": 36957
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/案例研究法/案例研究法的理论与应用_孙海法.md",
+      "sha256": "eff1bf77c8615f5bd5af9b0ed74c1b079fa9ee25adccb30eee81afbb1816fd6a",
+      "size": 24756
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/案例研究法/案例研究法的研究与发展综述...(CNKI)的核心期刊文献_汪婷.md",
+      "sha256": "685d1c116c2488a68937d11ad03685cf49d1021c8bad8bb06aa679f0720436e7",
+      "size": 33012
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/案例研究法/案例研究的方法论_孙海法.md",
+      "sha256": "f6f658c12aee501ca9a6afc7135be2d28838837c14c8717bd1ba4ab7d6095452",
+      "size": 25716
+    },
+    {
+      "path": "knowledge_base/references/cleaned/methodologies/案例研究法/论案例研究法与实证研究法的结合_乔坤.md",
+      "sha256": "f168afe590be944dc891d462b426b00f1b0fc12c580e60cb3aa3246aa9c73364",
+      "size": 25340
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/供应链物流/A公司S原料药生产计划与库存管理优化研究_甘永康.md",
+      "sha256": "2635384c98b36db6fc20224bcd04e5cca8f581b6ad12df3525af15ca7d1d950e",
+      "size": 154714
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/供应链物流/A公司纯电动车城市配送路径优化研究_方政.md",
+      "sha256": "cd5aaa0261b33ac240307203fd81c2995cf53bc863bf6abfc2e3f712648da087",
+      "size": 187041
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/供应链物流/F外卖平台即时订单配送调度优化_向飞.md",
+      "sha256": "a457b261ced56a283bb3c2eff176cc4406de45a2a0849756c3f260bdf0d2bef4",
+      "size": 140718
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/供应链物流/N公司生鲜农产品冷链物流配送路径优化研究_墨祥磊.md",
+      "sha256": "26d7633b8a02a8e928ba34487d819b46dc8361b54adee7e8bc9ffb359c665c85",
+      "size": 160876
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/供应链物流/共同配送模式下城市末端物流节点选址与车辆路径优化研究_翟庭钰.md",
+      "sha256": "e0ecb5b272c7bd27362606be833f29171c729d696dff2d468e091ebebd08e0cd",
+      "size": 198844
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/供应链物流/考虑产品备货周期的S企业库存控制研究_刘夙扬.md",
+      "sha256": "7bc98e66479ceb8426cc2db6ca706a6bfd312c2026175df3d485790ccbfc3ca5",
+      "size": 198818
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md",
+      "sha256": "3519650bd93c995366e696f0caf27b0159835c1b3fc11c07ca462d5abe2504cd",
+      "size": 12476
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/其他/FURPS_FURPS+模型：内涵、演进与质量管理论文资料体系.md",
+      "sha256": "3fc3f5ffc4eabfa2e3e125b7c747debbc814ce8869057e8c256c277017ed7926",
+      "size": 12857
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/其他/ISO 15939：软件测量的国际标准框架与实践应用.md",
+      "sha256": "1631b8fd2dee5c40a3ba95cc421fd50abead68f8ddfdcdbad47941a3ae6a6a91",
+      "size": 21016
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/其他/SPEM 在基金风控_敏捷场景中的应用.md",
+      "sha256": "4ef20b28a6f1fa25577697203c5c97b6776d41c53c7dd0354dacad3efc5b1ef1",
+      "size": 13268
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/其他/基于演化博弈的建筑工程材料送检监督策略研究_王骁彬.md",
+      "sha256": "453f3af0e22bb7ca3e9e5c14bf06ff19fc41a85703fa9ead51ff77fd21a86913",
+      "size": 181196
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/其他/模型驱动架构（MDA）：定义、核心架构与实践逻辑.md",
+      "sha256": "b51d49f36930887f7e0c1e7c6c4090da06ad94c5254d10b767c8bc417b6b3f20",
+      "size": 20163
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/其他/软件质量模型的演进与应用.md",
+      "sha256": "323ae7daa71d963de9fc9e469ccc472bf72c0095cb0dcf559fc9e602b4ffe645",
+      "size": 5766
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+      "sha256": "4fac788c70f417d33f34bfed12c067dd74075dbfabe6fa9f8862291b65f33222",
+      "size": 22450
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/成本管理/W商业综合体运营期零星维修工程成本影响因素及管控研究_徐伟伟.md",
+      "sha256": "f4e40ee7db699a2537ebd057aba7ac0e96a12713373ce95a1cf9266b402e3908",
+      "size": 196788
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/成本管理/基于作业成本法的110千伏...变电站项目成本管理优化研究_吴琦.md",
+      "sha256": "ed3593ad14e0bc8411d4a43e69d03b77bfba7346ffe3371fb433345ef257c678",
+      "size": 223998
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/成本管理/基于最小费用最大流算法的X...微服务系统资源分配管理研究_钟建栋.md",
+      "sha256": "83b976cf82679573aa3b6b0ab13049865ea583ed5bbd7d8cef1a43a94b3af3a9",
+      "size": 126939
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/流程优化/D公司上海生产中心服装生产周期优化研究_王鹏.md",
+      "sha256": "f542711b520ff926120945ae54ef7685a4a846c2c82052c158832b9428e207a8",
+      "size": 175898
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/流程优化/H公司建筑电气施工图设计流程优化研究_武研.md",
+      "sha256": "9e46e18741eea1b7d692bc91d5c0cb5280509e96df21c7f539d4123879d82bb0",
+      "size": 151782
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/流程优化/H公司整车低压能量管理系统开发流程改善研究_巢一鸣.md",
+      "sha256": "8e8dc99812d96f159b79209b568849a8e87573b5fe359f31518bb499d21bc22e",
+      "size": 178268
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/流程优化/H公司遥控器产品开发流程优化研究_李松旭.md",
+      "sha256": "efb88decf84d921a675eca40d1859656fd8b47ea7901273b85660c233da041fb",
+      "size": 177206
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/流程优化/SC公司抗胃食管反流系统研发流程优化研究_赵松辉.md",
+      "sha256": "d6b78fd40e43bd2073d4ef6cfb181029cb4a11049c4dffece2a0c0f54485e3d8",
+      "size": 184110
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/流程优化/基于并行工程理论的Z设计院EPC项目设计管理改进研究_唐洪川.md",
+      "sha256": "9b41e4f8092cc3636e2ecebbb3e47ef511adefb441f0d18e59d723dcaf750642",
+      "size": 201162
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/流程优化/基于模块化的Z公司汽车仪表产品研发流程改善研究_张丁日.md",
+      "sha256": "75e46e4cd6edc4b08428742aa3e5b20fd9c015eee8afb2f746027c322bc0e203",
+      "size": 184909
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/流程优化/基于流程优化的Z省信息技术专业职称评审系统改进研究_葛家莹.md",
+      "sha256": "5d8d889a0869208761ee5be35cec36601010444b261cc3f8ab03855be0760591",
+      "size": 152979
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/流程优化/基于物联网的D公司检测实验室信息管理流程改进研究_张茹萱.md",
+      "sha256": "7485fe59c00c6703db0f0cc50e3a3fe8bca602ecbc41aa58dcbc8ca7520ccbcd",
+      "size": 180322
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/流程优化/沣东公司热处理工艺开发流程改善研究_高晓辉.md",
+      "sha256": "f1ab342086f4713d8fc3b6f270e3c14598e3d27313aa4d666db588dbab6fbd2c",
+      "size": 149064
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/绩效评价/A公司行泊一体自动驾驶产品性能综合评价研究_王亚伟.md",
+      "sha256": "2cb543107f295b01bdca32ae7a487a325714a33802a0e409a23ca9f8f85372f2",
+      "size": 166495
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/绩效评价/B公司承建的电子政务项目绩效评价方法研究_俞思佳.md",
+      "sha256": "6cc86a23b2ce5d7fa31286ae9d27487a51229fbdebfc4316f68107817b200620",
+      "size": 128328
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/绩效评价/H集团手机芯片研发项目绩效评估研究_柴凯丽.md",
+      "sha256": "8d64f60544fbf2fa0608af763eded94ad9974c8e99c0286c93e6978880865fe5",
+      "size": 159597
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/绩效评价/W市大型综合医院节能改造设计方案综合评价研究_陈笑笑.md",
+      "sha256": "22c53cb38292bc13f9b2b5697bc60ec03f2eab6ad70af665ac18a89a049d7c95",
+      "size": 232371
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/绩效评价/乡村振兴背景下Q市山地集中式光伏电站选址评价研究_吴双.md",
+      "sha256": "903c931a584ac7f43c6ed45332115cec3b46bbcbc2f3400b2930bb84cda264ec",
+      "size": 173050
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/绩效评价/基于人才画像的公募权益类基金经理综合评价研究_刘燕.md",
+      "sha256": "cf90f25ae23522b2ae31e4bc792d7ae1397f53cc4fb9aa6d56fc1c536557ce29",
+      "size": 173795
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/绩效评价/流域性地质灾害综合治理效益评价体系研究_凌思强.md",
+      "sha256": "5d4f5927fccaf844ca1f4d6f31692fa5008b0af17a11efc1819416dc65a29132",
+      "size": 197734
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/绩效评价/碳排放视角下的装配式内装修项目评价研究_翁延华.md",
+      "sha256": "0516d264555eb72ebb8b90925774a2892e1ec8c349e547bd20a5b4df3e5711c0",
+      "size": 203343
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/绩效评价/药品B证AG企业仿制药研发项目立项评价研究_景林涛.md",
+      "sha256": "742a1ba2ad97d4d6527457586cea65b1d35907dffb6e11a8e4cfb518e4c12e41",
+      "size": 183403
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/A公司PLC产品质量改进研究_朱凌枫.md",
+      "sha256": "661162d1c447edf2d3c8e1e4a2c2b047bb006e302c15db2c2d999bf9cf529f30",
+      "size": 135220
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/A公司“2+2+N”信息化项目咨询复合型人才培训体系研究实践-终稿版.md",
+      "sha256": "df653de843bdbc8f2a519aa19ee7bf185854316f17cb2ae9d1ef699b5dca3e6f",
+      "size": 305227
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/A公司人工智能医学影像用数据集质量管理研究_学位论文-送审版.md",
+      "sha256": "df8504c353a63e22876d4c399585d21f8d92d034aecd2360c3ad3a0bba0dd588",
+      "size": 319302
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/A公司软件质量管理研究+任婷婷.md",
+      "sha256": "68ba071f9777fb0e5c8ddabf43c357287d33b7c9d9800458c35b47f613840a1d",
+      "size": 163501
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/A医院网络安全运营质量管理研究—以Y项目为例.md",
+      "sha256": "a998e4f6243634495c13b1a64515d71964f2aceddb877a7d52d2f5ed3c64a453",
+      "size": 291694
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/A医院网络安全运营项目质量研究 --以Y项目为例_学位论文-送审版.md",
+      "sha256": "7ea39928f7be06e42344357b962761866e24f3606fab54539f3ed639adbfdf14",
+      "size": 281169
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/A高校财务服务质量评价与优化研究-终稿版.md",
+      "sha256": "11d0b8fbc0a6b820ff23678e7736797e247e6f868901d900ea8c5525ed106d7c",
+      "size": 278767
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/BIM技术在医疗综合体项目...电工程质量控制中的应用研究_韩波涛.md",
+      "sha256": "53b26fbdabe462a9fdbfcacf769b918782855f0277fc0a862f1969edf4a012ef",
+      "size": 203342
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/D公司金融数据仓库质量改进研究_谢怡敏.md",
+      "sha256": "24892acc5d2b7e0e52b1ad68778c7db00320631b5395d3e204de8482eb52eaed",
+      "size": 176993
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/E公司电感器研发项目质量管理优化研究_学位论文-答辩版.md",
+      "sha256": "9a764286f68354d8a8cf59a121fc5d5cfa1a7a0c88ca290202226fc1aab32b34",
+      "size": 248012
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/F公司烟气排放连续监测系统产品质量改善研究_王功换.md",
+      "sha256": "2ce16decad23a9b3f3ffcbe888844fcb98cf48604dae7c2d23faaab819dfd1d4",
+      "size": 157582
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/H公司舒利安降压药质量改善研究_王玲芳.md",
+      "sha256": "be938c3e99cc0c051001871cf3968ebbdc9e636eaa8b29b4b3910fd468ce79ba",
+      "size": 140190
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/H公司运维项目质量管理改进研究与实践_终稿版.md",
+      "sha256": "67b4b8b234881af6acf10a29776f56ec5cbfb805d725e9c91d50fc13459bd882",
+      "size": 321284
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/H医疗器械公司公众号平台项目质量管理研究_终稿版.md",
+      "sha256": "7cd27a278da422f5fbe3532d912dc914cf6d43b2d38beefe28c9a01bfcfb4846",
+      "size": 348050
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/JC公司工业车辆智能管理系...建设项目客户满意度提升研究_周华浩.md",
+      "sha256": "f140ed6286ef53c20fb77f87d5d651dc8d3029005ed5ec1c96c881b3af43ce83",
+      "size": 163796
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/J公司安防摄像机产品质量问题管理与改善研究_吴肖蓉.md",
+      "sha256": "ebc6deaadda09419eccfe19223274635806a24d4f6aaf685eaa989406ec6ea7b",
+      "size": 171826
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/L公司配电网供电可靠率提升研究_管委玲.md",
+      "sha256": "19cda1b50488dc9681304f9f9cb84646e36dc5e06656e98e347a754c62da1c25",
+      "size": 142706
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/N银行智能营销软件系统的质量改善研究_姚妍轲.md",
+      "sha256": "0b4477d478c70f8701c0381c7f9966c8e8f58a10eb1ba40c99afcb52d7c72f61",
+      "size": 265440
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/S公司物流服务程序的项目质量研究-终稿版.md",
+      "sha256": "bf3b9b16b7a77d1318308371128ac009a18f8b33a1a04e69fc0561842b5966dd",
+      "size": 302949
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/S公司聚醚改性硅油质量改善研究_宋春燕.md",
+      "sha256": "5e28995a2a7c955ca8b1549431bc65f69e963a3ded8973ddbe4b1aef34a4aa23",
+      "size": 146219
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/S证券公司核心交易系统升级项目质量改进研究_终稿版+致谢昌飞.md",
+      "sha256": "883c79e82b4f85ae5416bbc35b55200c325c48ab226eaa86a0be6e3a01356793",
+      "size": 298249
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/T公司物联网芯片的选型与导入质量管理研究_陈利欢.md",
+      "sha256": "10901769523218fe7aefad4d919c70e839fbf08e1228b21b2a106297e8f6719a",
+      "size": 118025
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/WY公司质量问题归零研究与应用.md",
+      "sha256": "fc53141a93ecd33a8356f0da6bbe0e94417680db06e5bec463b9c518f936bb79",
+      "size": 262146
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/Y公司T产线项目质量管理改善研究.md",
+      "sha256": "5a7a89395fd4c7b5dfde27375d2e620ceb85a99f2eb825a25a2425e56c3d5fae",
+      "size": 218458
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/Y公司电商软件项目开发过程质量管理改进研究_杨慧.md",
+      "sha256": "e1da2b840849fe03f3165ac4c236baf9d1288d6f4323c5da1656a1f03298894e",
+      "size": 122517
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/Y公司软件项目质量管理评价研究+王旭阳.md",
+      "sha256": "b8611959c8cc9dd40ceb1508c2d5b1550d3aab8b2d5f25c0b0060236e0b8a666",
+      "size": 156394
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/Z公司海上风电安装平台总体设计项目质量管理研究.md",
+      "sha256": "9d58ca2f44351b7cebbf03ac44f916790d366bc16e799cb60e43aaaa3fe46265",
+      "size": 273683
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/传统企业官方微信公众平台建设的项目质量研究——以S公司为例_学位论文-送审版.md",
+      "sha256": "af3c412446519f3e55a324cb3a803ecd8981ca19da1e2d34a3a6c307f931eb5f",
+      "size": 263260
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于APQP的L公司新能源...C水加热器开发质量改善研究_张洋.md",
+      "sha256": "7a486f14f0926778bdeb0221dc429f1ea3fb3b996a7fcd9c7d04202f90faa714",
+      "size": 127560
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于CMMI模型的K公司软件项目质量管理改进研究+王子心.md",
+      "sha256": "6fb54f09e5064f9c937ebf70d15dcc140654a427858878f2cf50089d8198ab79",
+      "size": 266466
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于CMMI模型的K公司软件项目质量管理改进研究-终稿版.md",
+      "sha256": "3dbdfd4c6ec9c0035806268c9eb483c4208ca2ac7947e85293fde759ae1a19d6",
+      "size": 266466
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于CMMI模型的S公司半导体软件质量管理研究_终稿版.md",
+      "sha256": "910d44250f02f489464716b32be19b096f8c3351bc14eddce2e4776ac68d57d3",
+      "size": 245505
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于CMMI模型的X公司软件质量管理改进研究_郭波.md",
+      "sha256": "4bd147ce966294deb6f399dd73e92bd3ad5b01cc18c3389ea2a5b62826b64a6d",
+      "size": 137561
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于DMAIC的Y银行普惠...业贷款业务服务质量改进研究_黎云波.md",
+      "sha256": "c4c1b7213d815b85d77eff00ff651152c3a0b3de9c9285961d39f0d149c83370",
+      "size": 149162
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于DMAIC的建筑电气设计质量管理研究_吕国姣.md",
+      "sha256": "7858b33d7c584f015283ffa1c6eea061e9049fa21086160ceb4174a406f98135",
+      "size": 153984
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于DevOps能力模型的Y公司办公软件项目质量管理研究-终稿版.md",
+      "sha256": "c61404c596f7912b00c730b1f160fc9e886f1a9f99e2fdfdda92bbc2323bae0d",
+      "size": 260304
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于ISOIEC17025和LIMS系统的W电池实验室质量管理体系建设项目实施研究-答辩版.md",
+      "sha256": "c904060c2f0ede743517f3362b6c34ab7751767c5042d103c47a35f385d0a503",
+      "size": 308696
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于PDCA循环的混合式BOPPPS技能培训模式探索——以B汽车公司新能源培训为例_答辩版.md",
+      "sha256": "96f1d9e02ec49ff231e5059fad4264988e8d54e8326e445678d11f9a52380e58",
+      "size": 353161
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于PDCA循环的研发项目质量管理研究——以场景化AI研发项目为例-终稿版.md",
+      "sha256": "5aa94f626a4ea06af7ef7cd371bab84df4f744c499498d78953908e9f5cfc700",
+      "size": 232252
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于QFD理论的C公司家用消防产品开发项目质量管理优化研究_终稿版.md",
+      "sha256": "728ffbd4ea76a588e50df8954f60e7817178677fc3704092b3899b1802a9bbe5",
+      "size": 401277
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于Scrum敏捷开发的项目质量管理优化研究_学位论文-送审版.md",
+      "sha256": "d0f5831ab49cf362b9463922f5cac9cc803d22871977e3fff5fb10fe7a1b31b8",
+      "size": 269067
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于三层嵌套式PDCA的A公司广告服务质量管理研究-终稿版.md",
+      "sha256": "23489fe3284fc35c0c08c45d0e61ac3e7a9a467f784bc191831fd4ad3d4380e2",
+      "size": 307381
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于全生命周期管理理念的项目交付质量提升方法研究_朱应保.md",
+      "sha256": "12306635b96fcb1890147d9d9c17b8a04ed3f02b80482b72bba2607e8d63413d",
+      "size": 171830
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于六西格玛的H公司可降解树脂质量改善研究_董开岳.md",
+      "sha256": "843bad9a83e3b1b9a39c6a897612ef01867aaaa4669cb9771b43ff984557e0ab",
+      "size": 158510
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于六西格玛设计管理的X公司天线研发项目质量管理优化研究_学位论文-送审版.md",
+      "sha256": "bcc8ebe78e0908885695fd419230e001c3b2352e4bcc733081bbe0ca13e450be",
+      "size": 281149
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于医学知识图谱的病案首页质量改进研究_李庆玲.md",
+      "sha256": "40479d1e5eee9d8f63269b9d86c57b78ffed0cd4a36e7e70de62de3d4bd42e80",
+      "size": 218768
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于多目标优化的机电类非标产品标准化统型研究_王立婷.md",
+      "sha256": "b9626ce24bf09320401eeb9327f33d4eb55ed63111f6618056b1d128903c2fb8",
+      "size": 126818
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于度量的软件过程管理方法与分析技术的研究_侯红.md",
+      "sha256": "d0806daf2652d7e2c55e329dbd548afd50eb9c1511d5e7203008199d2bf5262e",
+      "size": 244199
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于根因分析法的C车间生产绩效精益改善研究-终稿版_致谢+昌飞.md",
+      "sha256": "777a18ebbeecc21189d37178a6c06ef575fb978ce3eb24449a199a4abb8b7f0d",
+      "size": 286034
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/基于模糊认知图的质量管理度量研究_学位论文-送审版.md",
+      "sha256": "00a68d4f4a17a0810f37be11047d9cc2d7daebe2fa41c19a7c2763b9064d4f16",
+      "size": 291957
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/快消行业新产品开发流程优化研究-以S公司为例_学位论文-送审版.md",
+      "sha256": "d9d52e8c06d2ef05f8054025287e7b01239f508fe784d8d580a9d79aaa88d708",
+      "size": 254883
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/核电EPC工程总承包项目多要素管理机制研究_冯燕.md",
+      "sha256": "12010b7216b4b1edb9425151a7342407dc267c3bb02616c0acb9337b881fd7a7",
+      "size": 253957
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/汽车零部件 S 公司新产品开发项目质量管理改进研究_终稿版.md",
+      "sha256": "e789be06e6afdf5c833f31ca00b85dad0448ba9701a301e15e0804258a26c5d5",
+      "size": 310670
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/盾构隧道成型质量改进研究_饶卫华.md",
+      "sha256": "35f2e61a9bf17cc2f573d67f6efa6ace255f307b7e359676565f37f7f3c9c97c",
+      "size": 198288
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/规模化敏捷开发模式下的质量管理研究-以S公司为例_终稿版.md",
+      "sha256": "42c4b08097d4da3fee12e39844d558f1019fdc2a6dc727c8bfa2fffc765d2cb6",
+      "size": 276087
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/质量管理在A公司生物安全实验室建设项目中的应用研究.md",
+      "sha256": "61fa391b6676e8f06ff6b70e648c552c846277f42f782b6c752559588544fd1f",
+      "size": 222401
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/长租公寓改造工程优化研究_邵琴.md",
+      "sha256": "5b7da2ec5185d1767d5a19fcb4acaa2af9d46a8d4c76d9bfbfea18db1de0fed8",
+      "size": 152076
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/质量管理/高校财务微信公众平台的项目质量研究——以F大学为例-送审版.md",
+      "sha256": "56348f6b65c35920ab1b33caf8073543694060099c95c0e446fd8e215ccb04ec",
+      "size": 288283
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/进度管理/A公司数据平台开发项目进度管理改进研究_赵辉.md",
+      "sha256": "3fcd798e0b724d7fce8213aa4473b341007c7d66e4e6d0aa402bb37a66657d4a",
+      "size": 170889
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/进度管理/EPC总包视角下专业分包商工期延误评估与管控研究_汪能亮.md",
+      "sha256": "21b2c64feb39df61a55238ca14831804db1b744a6bf6053af3bd35b5f3ce60f2",
+      "size": 214399
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/进度管理/G公司汽车涂装缺陷自动化检测项目建设进度管理研究_吴宝通.md",
+      "sha256": "94cf2ad3ac3b5bf6bfc6bcc4f9bff8df8a941bc1f513277aa9dbdefcffc0df6c",
+      "size": 165923
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/进度管理/H公司高压真空开关国产化项目进度管理研究_金烨鹏.md",
+      "sha256": "0dc3b1683e2802c6a9e0c1a80d021dd425c6c1fcf49de24f925dd6c78eef6b56",
+      "size": 169646
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/进度管理/K公司外采模式下的数字化项目进度管理研究_李佳敏.md",
+      "sha256": "2f4db2527d9696d2c0e6dd01ea2211854b7b39cbf9588e47d2c5369b1d0179e8",
+      "size": 164990
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/进度管理/L公司商业火箭总装柔性排产...划管理流程数字化研究与应用_周正天.md",
+      "sha256": "b53a55b19dae2d91116cbf9805546ee83739a0bdf67f5ac81965604c43600706",
+      "size": 146953
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/进度管理/SC公司业财一体化项目进度管理研究_项健威.md",
+      "sha256": "f07d6ab78db5ba546c5c8f03fdb98c503fb69e3793bd0f9d0b224b8b1a988203",
+      "size": 175332
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/进度管理/S公司HJ城际铁路运维系统开发项目进度管理研究_张忙忙.md",
+      "sha256": "20a79972358a228193eb14b04e7e2f4bf4cb5f834c889d6e05e965f6542466e8",
+      "size": 195240
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/进度管理/Y公司智能交管软件开发项目进度管理改进研究_曹虹霞.md",
+      "sha256": "4c5a7708b669ce2dc41e103abdf5374837042a612a583fd705de645393ae914f",
+      "size": 233952
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/进度管理/多产线排产和多能工指派的综合优化_李君.md",
+      "sha256": "671e29936c17a6f907346344def2e8d1e1ff4e03cfad6db3907a409e77fea3d1",
+      "size": 157783
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/需求管理/H公司支付APP产品开发需求管理改进研究_董婷.md",
+      "sha256": "0125ff73b3d349107b4d8fc3e239d0f2255cccd667bcedfaf2b790b2bcaebe1d",
+      "size": 144760
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/需求管理/J公司公共数据平台软件项目需求管理改进研究_许留奇.md",
+      "sha256": "ad9df7e8afefd0fa59ea505777ff8774c092d4bfb1a0374f18dc78b8868a3b2f",
+      "size": 198551
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/需求管理/S公司SDH产品需求管理研究_张立.md",
+      "sha256": "50f1564bbd7fde5eed58067b673542f21e570a3a0a1f3940460124b9c70e032c",
+      "size": 125685
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/需求管理/基于库存分类与需求预测的L...电商公司海外仓库存优化研究_张滟.md",
+      "sha256": "72eada7252a169c3be26d4669de2a0b867150959c559ee8b3ad319256982b53e",
+      "size": 197799
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/需求管理/数据驱动的Z公司光相干断层扫描仪产品需求管理研究_李益芳.md",
+      "sha256": "4a1fe290ee8474371a1be16d04f80261395ef5a03a12f4aa34ecfef01b5a3e91",
+      "size": 175303
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/A保险公司工程车辆保险反欺诈管理研究_郭琦.md",
+      "sha256": "28d6be680640dca9e406b3376666df5d42d787cb67c25ca5e8a34bb91e057788",
+      "size": 143332
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/C企业半导体制造过程安全风险评价与控制研究_闫伶俐.md",
+      "sha256": "b143f0bcf67eae8cac00ff530d57d9dc28b72676db5db9526cd427f743ddea52",
+      "size": 241163
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/D公司负载敏感多路阀国产化项目风险管理研究_赵林林.md",
+      "sha256": "92d05b6a1f8bc058a2379e45f6f9b372b17432d205f0c109820099ef166601bd",
+      "size": 197971
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/E公司软件开发项目风险评估改进研究_宦传建.md",
+      "sha256": "e9af9604dd22361e1341470539243c1d326dcaccb9bb5486573738f76d3d2782",
+      "size": 150580
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/H医院电子病历项目实施阶段风险管理研究_李哲明.md",
+      "sha256": "a32d7c5e9b5b1277e5e2bc874b1f635625e26e49931d97782dc86fc68bcaa20a",
+      "size": 177439
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/KN公司分布式光伏电站投资风险管理研究_韩煜.md",
+      "sha256": "43dd2512c0e7b2c977b3db0b159534bf3544f16cfc6145d603210c20fb7ebe98",
+      "size": 264935
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/L公司量化基金项目中的程序化交易系统风险管理研究_万磊.md",
+      "sha256": "0f1cef054ebf4a09384fa88a815dc6c00d4a79f43e8f02a58ea6066666bbe698",
+      "size": 142271
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/T研究院汽车“四高”路试项目安全风险管理研究_潘金冲.md",
+      "sha256": "04e08cdcb372b14d64a2705dcb8a6c7d58f31fa6235c5a96f94b03d37c30d630",
+      "size": 226158
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/X餐厨垃圾特许经营项目提前终止风险分析_郑超.md",
+      "sha256": "0abb375684ce29ef36a6e6ef223faa7a193dcd5bed9665b7e22aa1555438f378",
+      "size": 178765
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/Z公司房建项目施工合同履行风险管理研究_俞锦东.md",
+      "sha256": "ab4adae78a6519018d2b9f15154f8c2e5d6514c707f473a33bf84fe5447ad564",
+      "size": 236251
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/化工园区供热系统安全风险管理研究_杨楠.md",
+      "sha256": "4f5c95afb8b2ee4997d01a969b09dc39f0118b381c5d011b3d8ba4d29d80fb66",
+      "size": 177015
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/基于ANP-模糊综合评价的...工程EPC项目风险管理研究_路彩娟.md",
+      "sha256": "4f4a70a3d70d18835067223c4f267b5a37a55f17b1a08c06f9ca3ccf67ac527b",
+      "size": 207011
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/基于二叉树实物期权法创新药项目投资决策模型研究_俞婷.md",
+      "sha256": "65b5dc30c6f4871a1927c45d50f75cb5e651a94cfec100fcc97726df4911ad5e",
+      "size": 199140
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/基于交通冲突分析技术的道路交叉口交通安全管理研究_吴凡.md",
+      "sha256": "06661a6f60459991091ae3aba583e1118637b708a388e2c285cd2c5db11886c9",
+      "size": 155685
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/宁波Y综合管廊总承包项目施工风险管理研究_陈斌.md",
+      "sha256": "f0d88c645bc54b9ae6e7a7d946a018310d80aee9923cfc5903efd3a0d7030894",
+      "size": 215873
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/政府代建制A项目质量风险管理研究_林城欢.md",
+      "sha256": "1280ec9d2d874face06f40a81cf579cecf4f38c1a222eb562fad3ff5121ff8f5",
+      "size": 165823
+    },
+    {
+      "path": "knowledge_base/references/cleaned/papers/风险管理/疫情背景下Y货运航空公司的航空维修风险管理研究_曲映玮.md",
+      "sha256": "621fa1f5036ac607d2b833d9826a9059e4138cc905abba5930495b1daae0cc47",
+      "size": 158305
+    },
+    {
+      "path": "knowledge_base/references/cleaned/templates/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).md",
+      "sha256": "816c09a4c92e6c46124293e34a6d30d2d53e2932c1c0b2023624cad1d333d215",
+      "size": 5378
+    },
+    {
+      "path": "knowledge_base/references/cleaned/templates/3.00 复旦MEM硕士毕业论文模板(2025).md",
+      "sha256": "1cd1442e6f4bd5226b405d816e1abce1a87e3124c28f456ea584b0313a254db0",
+      "size": 2325
+    },
+    {
+      "path": "knowledge_base/references/cleaned/templates/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).md",
+      "sha256": "48c073e2b645b3f11db8d8bbbcd1e47605db6c0b01df166ecac21f54becf6a6b",
+      "size": 10364
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/3_鱼骨图/基于鱼骨图分析企业标准实施偏差成因的应用研究_项庆辉.md",
+      "sha256": "74f0ab67f89f8af331bee0bc0b54326708bfc8096eb68e9ef40a5372137e0868",
+      "size": 9883
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/3_鱼骨图/综合鱼骨图及其在项目管理中的应用研究_皮圣雷.md",
+      "sha256": "958a7f003a1f25abac70bc2445629e795705b1fcc3316926fb523dec1d004e16",
+      "size": 20964
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/3_鱼骨图/鱼骨图分析下8S精益管理提升手术室管理质量效果分析_徐亚莉.md",
+      "sha256": "3bff8ec05ebf3b3b98c6923ba533616ada5cfcfcb3ff7d1d7a2698ef2ddaaa51",
+      "size": 17864
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/5W1H/5W1H方法在大科学工程项目沟通管理中的应用研究_王传珂.md",
+      "sha256": "9a0f912d611dcd33995c26563cfe302fb9d70192e64c7200266d4e1ee690a433",
+      "size": 20533
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/5W1H/基于5W1H分析法的档案数据管理研究_周枫.md",
+      "sha256": "4bb361ce6d32dc492a0aebbdbe1f0591b4e2feb2ffce30196776c558e4902d3d",
+      "size": 26963
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/5W1H/工业工程技术在B公司中的应用研究_王强.md",
+      "sha256": "c88da6ee2ca39a6dde6ca8f2e7a189fa2a4ff77027bbe6fd0cb790c90de570d9",
+      "size": 117556
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/5W1H/高校图书馆阅读推广5W1H分析法应用研究_安娜.md",
+      "sha256": "a7cc963e245a322bc85610e8a028b09c31ff72dec67080bde89ed57c17e2b781",
+      "size": 47441
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/PDCA/PDCA循环在企业绩效管理系统中的运用_曹书民.md",
+      "sha256": "2faa2bb2632d58ce3ece7f25ae3bf3d55faa9b304c279980bbfaee5a0d342c7b",
+      "size": 20199
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/PDCA/PDCA循环推进持续的质量改进_刘宏.md",
+      "sha256": "7b9420d03504fcf3173d0b633479bbfc3b8834f557eabea44600c2e335824c23",
+      "size": 15846
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/PDCA/PDCA循环理论在质量管理工作中的运用_斯欣宇.md",
+      "sha256": "ca41d2097314779c8b3caf55d740f876ad69b3cba8b11e5fcbf90b45db9c5018",
+      "size": 8961
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/PDCA/基于PDCA的信息系统全面质量管理模型_常金玲.md",
+      "sha256": "ea3aece5623966c1f7e5608365709342caccf39e53fca4b4f81cd33e547bbfa9",
+      "size": 13836
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/PMBOK第七版_中文版_pdf/PMBOK第七版_中文版.md",
+      "sha256": "62e485c1164ab0f1842eb71237c98ee5b585954212d2ecefba974deb00b7907c",
+      "size": 555416
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/WBS/WBS方法在工程项目管理中的应用研究_徐森.md",
+      "sha256": "b7bdd81d2147bade000651bd9b0c2328956e3c755f182c4601c25892604b86d5",
+      "size": 12018
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/WBS/大型施工项目的集成管理_王延树.md",
+      "sha256": "7bd82e8bf50145e7297c6bd85665a0202d871eb4d80caa2d1d5cc61a4dc643d6",
+      "size": 15197
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/WBS/工作分解结构(WBS)在施工项目管理计划阶段中的应用_薛自力.md",
+      "sha256": "d413cf7645c5fda796c2cc7a62d5628142777176d828985de0c7df326e5fac02",
+      "size": 15526
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/WBS/工作分解结构WBS技术_魏永涛.md",
+      "sha256": "c317ff5cceb5188ba888337681e9199a787c51580d69d6f61b4b3596c740d148",
+      "size": 10651
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/WBS/改进的WBS方法在工程项目管理中的应用_刘金星.md",
+      "sha256": "1596c540ac753dd3c75bd4cbc8ce202345c105f9186aeebb0599050f30b46ab8",
+      "size": 16956
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/WBS/施工项目结构分解(WBS)方法及准则研究_江萍.md",
+      "sha256": "24f9af7d1d39adcebc113bed3b78455a2ab66c96fbc114ce97b1811d0b694205",
+      "size": 14060
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/WBS/浅谈工作分解结构(WBS)在项目管理控制中的应用_黄智辉.md",
+      "sha256": "4bcda872e11edebe857942cedf9703032579d247d367b2d152982c804a4afd4d",
+      "size": 17555
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/六西格玛/六西格玛管理与MINITAB软件_何晓群.md",
+      "sha256": "f52bdcb9d1d9452815152905c27d56b868f97955971f052dd7595259d2f00624",
+      "size": 11863
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/六西格玛/基于精益六西格玛的质量管理改进实证研究_吕永卫.md",
+      "sha256": "3e4a1ae22c50b47b04ad8edf7beb03e332a147f0da0c2eb933bf5964dd447f6a",
+      "size": 31151
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/六西格玛/精益管理、六西格玛、约束理...业工程方法的系统化集成应用_江志斌.md",
+      "sha256": "43299b655b9ab73413c7269d1428ded3ed7d1a412c2238f68f0af8cb88e07070",
+      "size": 39853
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/六西格玛/论六西格玛管理的本质属性_胡雅琴.md",
+      "sha256": "c0e915d31f183512b3b2f551a6e2503f666be9e42a1e90c210e78801ab34da7a",
+      "size": 12722
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/层次分析法/基于改进层次分析法的模糊综合评价模型_金菊良.md",
+      "sha256": "2706384cf8e0e26015f0e20fef28ce36b8df5371892ae97129ed0290fb2f49e2",
+      "size": 24125
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/层次分析法/层次分析法中几种标度的比较_骆正清.md",
+      "sha256": "98c0fe672859349c3f93e6d387a7e654a1f9959e0cfc6ad9299f3ba2e17a575a",
+      "size": 42885
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/层次分析法/层次分析法的研究与应用_郭金玉.md",
+      "sha256": "a8fdaa7c12a804be6abe86559930799b0e6ecadb34f0d63a7a4aa0a4753b6eb9",
+      "size": 29540
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/层次分析法/模糊层次分析法(FAHP)_张吉军.md",
+      "sha256": "37d6dd21e12230c645b63558079918011e8c5546145903fcd22e9f0e05deb3c3",
+      "size": 22515
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/层次分析法/运用层次分析法构建国有企业绩效评价体系_申志东.md",
+      "sha256": "879ef912e94a7249a2e531a77c90e532e41af4fd40988797dc164e0045891d43",
+      "size": 14943
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/德尔菲专家法/专家视野中的职业教育校企合...菲专家咨询法进行的调查分析_吴建新.md",
+      "sha256": "cd5d1774621a8ce39d05f22ae2408afec316064536663fc905d5ba9ba38d16b5",
+      "size": 51408
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/德尔菲专家法/公立医疗机构公益性评价指标...选——基于德尔菲专家咨询法_陈英耀.md",
+      "sha256": "930df8a2f6d6c535c9e3af38c206d38194beb8fa968d5f43d586f7e95df688c6",
+      "size": 22223
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/德尔菲专家法/基于德尔菲法的专家意见集成模型研究_田军.md",
+      "sha256": "149eb466cb74e5931dc1095b79bfe2c9f6f4b89cd746d8845a0242db10714756",
+      "size": 24176
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/德尔菲专家法/基于德尔菲法的专家评估方法_刘伟涛.md",
+      "sha256": "7b9786a9ee2935a61ddc4dc0abec75096c0e21922fd7224563729f03bde3d54e",
+      "size": 8762
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/德尔菲专家法/德尔菲法中的数据统计处理方法及其应用研究_王春枝.md",
+      "sha256": "cdcb573e97fc33b8114333b63b5e7e2aca864a9d6103955289876a850177e4d2",
+      "size": 18392
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/德尔菲专家法/德尔菲法及其构建指标体系的应用进展_王少娜.md",
+      "sha256": "613cf6f00993a169bdee7524c72c3dabd635cbc47aeeaf13589bb7fd7f1e9113",
+      "size": 24302
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/德尔菲专家法/德尔菲法的应用及其难点_徐蔼婷.md",
+      "sha256": "22dac6329f3649b3b3854e891d13a4e0b50f6865013d48429f4fa9c32393e758",
+      "size": 19099
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/德尔菲专家法/科学教师教学能力结构模型建...德尔菲专家咨询法的调查分析_王碧梅.md",
+      "sha256": "ecca0f1dd846fbf131a6f73a44158405348687f07e52c5d73528a9491e78ab19",
+      "size": 36263
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/文献研究法/基于文献研究法的精准扶贫综述_刘胜林.md",
+      "sha256": "ea275336efaba3a8e21083eed68824178388af255e2faf0eae4d19b0b2156854",
+      "size": 31347
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/文献研究法/富有生命力的文献研究法_杜晓利.md",
+      "sha256": "3eef6cc06cb9e0025075d6242bc491bd5ad42448f36e9aa482d9ba9efc3f9a80",
+      "size": 4996
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/文献研究法/文献研究法在高校历史教学中的运用_韩建萍.md",
+      "sha256": "a6f65b97b83f5f2201bb011a2b11bb41a2831a44cd8e712c58f75d58f25e4f0a",
+      "size": 16813
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/文献研究法/文献研究法辨析_东阳.md",
+      "sha256": "8c3ae0503fc857e4172a6be48e6b7d9fcc0c0f1ac6b8504122267473f8c932c8",
+      "size": 13927
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/标杆分析法/基于大数据和标杆分析法的市...病种质量评价指标构建及应用_侯冷晨.md",
+      "sha256": "4ee10cb240a69ea0700e081dcebfbf2f73b53b0c4bba9839c43b6bcf7d8c18a7",
+      "size": 30243
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/标杆分析法/标杆分析法在图书馆绩效评估上的应用_欧明臣.md",
+      "sha256": "e0e5702283cffb2220ce3a9243f5c7f762f47593cf02bc2a64fb7707bda5ca75",
+      "size": 20163
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/标杆分析法/标杆分析法的引进与应用研究_于文益.md",
+      "sha256": "24b89b33e6c16a5e32e746416f476d657694fe1fe7eb526e8677537d905be719",
+      "size": 31165
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/标杆分析法/论标杆分析法在供应链配送中心运营评价中的使用_俞仲秋.md",
+      "sha256": "c361b6c8da1e7eae92f356bd6b49e1a9dd6d14eb872137bdad27535568697850",
+      "size": 9933
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/案例研究法/“去产能”背景下国有企业并...宝钢吸收合并武钢的案例研究_张伦萍.md",
+      "sha256": "ea4a9707a778b042668368194bd6291cb8aa6619db5e3fe6a8add9431af25d0f",
+      "size": 19435
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/案例研究法/企业借壳上市动因与绩效的相...——基于证券公司的案例研究_陈蓉.md",
+      "sha256": "504753d738e65a0fd6d5713c5b4972cca6c561e6369f85bed9883c8174381bac",
+      "size": 7078
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/案例研究法/再论案例研究法的属性、类型、功能与研究设计_唐权.md",
+      "sha256": "12dcbbe7dd9eae924db2092c62ba6b7854ab89fc7978ce17f609df072f034f04",
+      "size": 41727
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/案例研究法/案例研究法的理论与应用_孙海法.md",
+      "sha256": "967fdf6ef68f957c47ca7461aa5bd3b66fc0c17308bbd1e815420a639ee023ce",
+      "size": 26016
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/案例研究法/案例研究法的研究与发展综述...(CNKI)的核心期刊文献_汪婷.md",
+      "sha256": "1d540ffae1c6eb70cf364ab67a973e4db5e9724954bf570b9d1cff7b113d0303",
+      "size": 38273
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/案例研究法/案例研究的方法论_孙海法.md",
+      "sha256": "7e55ee40f5dfcf8c139907982e01095dea980dae5b7cd5b2aee8e2c61dce9b77",
+      "size": 26691
+    },
+    {
+      "path": "knowledge_base/references/converted/methodologies/案例研究法/论案例研究法与实证研究法的结合_乔坤.md",
+      "sha256": "901a81e6f0867fbd9181e38e339804fb9a5499553f053220caee3bda33b2c55f",
+      "size": 26383
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/供应链物流/A公司S原料药生产计划与库存管理优化研究_甘永康.md",
+      "sha256": "5731c998262771245183741ab85ec29b7536bfc388df47d28bfe4f29b0bf66c3",
+      "size": 163170
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/供应链物流/A公司纯电动车城市配送路径优化研究_方政.md",
+      "sha256": "4f31948695bcd691b18570022de07cea3ff9c82acf03ec4c4eab32a03d699c8f",
+      "size": 195837
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/供应链物流/C公司冷链物流配送路径优化研究_朱俞文.md",
+      "sha256": "524eb1732c6397ef5326f45794c77722f994395629f8ac6e4e3f11f84eaf5c28",
+      "size": 139656
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/供应链物流/F外卖平台即时订单配送调度优化_向飞.md",
+      "sha256": "0dd03eefb9a638be8324ef49d8bfe77e25535763c250ed2cc67e69b07170aa59",
+      "size": 149761
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/供应链物流/M在线超市电动车辆配送路径优化研究_王修远.md",
+      "sha256": "f92b33b96c7dc0479ac7c57f9cf3c75f71ceb9f6407174069831edc81c2aadaa",
+      "size": 163615
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/供应链物流/N公司生鲜农产品冷链物流配送路径优化研究_墨祥磊.md",
+      "sha256": "1e6c2dde3cba43b1de695d2e3a0bf395f3b4312c7cf03adc25c20156d92313ab",
+      "size": 172268
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/供应链物流/共同配送模式下城市末端物流节点选址与车辆路径优化研究_翟庭钰.md",
+      "sha256": "e850eb2a1a39ac3374224cd2c6957bda8202156b50d520f654e2695d6903fc48",
+      "size": 207720
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/供应链物流/考虑产品备货周期的S企业库存控制研究_刘夙扬.md",
+      "sha256": "42665ced435045da1927eba97bf890b5b2ac750c7b3b4ed4b66a596af19c0e07",
+      "size": 213220
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/供应链物流/考虑碳排放的A公司冷链物流配送路径优化研究_马志轩.md",
+      "sha256": "b283d577a626325536538de0cb8e739c72d8003788d67f5f2ce2497a0d682a4a",
+      "size": 161404
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md",
+      "sha256": "f62fe5ebbe48f991ac83fd5b9198f07262945a00e8c483aaab79744cbda2a0b6",
+      "size": 12501
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/其他/FURPS_FURPS+模型：内涵、演进与质量管理论文资料体系.md",
+      "sha256": "2e100664cb5d59ba2492d701737813507ba10aefe769c4c0ae3cbc698d6d05c4",
+      "size": 13148
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/其他/ISO 15939：软件测量的国际标准框架与实践应用.md",
+      "sha256": "fcec149969fb0a8d819a730d519d3d99e6299341e0110c211665939b818224b2",
+      "size": 21062
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/其他/SPEM 在基金风控_敏捷场景中的应用.md",
+      "sha256": "4ac4b48807194ffea3e6d3ff59447bb21a5f402d0402e9e945b58b1012a1f2d4",
+      "size": 13298
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/其他/基于演化博弈的建筑工程材料送检监督策略研究_王骁彬.md",
+      "sha256": "bfb1f11b75c259d52dba5aa744cde476e2e14ccf954bdee14ab3e806ac4f75b5",
+      "size": 198502
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/其他/模型驱动架构（MDA）：定义、核心架构与实践逻辑.md",
+      "sha256": "952d02454fe833489d03696e80c7655cfc818e807e94a284e5b41902ab8c47a1",
+      "size": 20194
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/其他/综合评价中确定权重向量的几种方法比较_王靖.md",
+      "sha256": "93cdfb6b6b76cb5e3af592b42721f17e098dfd1f54c5510f16d4562bec33c146",
+      "size": 19967
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/其他/软件质量模型的演进与应用.md",
+      "sha256": "33360e9c8209dd32cf269fa207e201054373c139120d27ff742415aaf8786562",
+      "size": 6124
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+      "sha256": "82f80964455a7ba4f7a6cf473309047ace3e6a9763c8de8aa3efdea97d045d80",
+      "size": 22475
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/成本管理/W商业综合体运营期零星维修工程成本影响因素及管控研究_徐伟伟.md",
+      "sha256": "be290c01f182e34ce8645e9c99440310103f547f5fec725d7691b6a402b7b57b",
+      "size": 208542
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/成本管理/基于作业成本法的110千伏...变电站项目成本管理优化研究_吴琦.md",
+      "sha256": "911530715c36da8379869f8122806056c8d53f6ac72dade5fb1a17b66f42d71e",
+      "size": 231030
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/成本管理/基于最小费用最大流算法的X...微服务系统资源分配管理研究_钟建栋.md",
+      "sha256": "7cec487bffdb1c499b6d1bc16be7ef5d4488f5bf872d2253c306b6f25af7b58a",
+      "size": 133800
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/流程优化/D公司上海生产中心服装生产周期优化研究_王鹏.md",
+      "sha256": "9df8c8538e6d325fd670b8d36d98324ef294942a1905c5d90dfa4a953182089c",
+      "size": 185197
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/流程优化/H公司建筑电气施工图设计流程优化研究_武研.md",
+      "sha256": "22b86da64f736e46bb0860ae6eb2e9c28e1ce2fa5e99cc7aecfe66c59f1574c0",
+      "size": 159348
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/流程优化/H公司整车低压能量管理系统开发流程改善研究_巢一鸣.md",
+      "sha256": "6ceeba66a94c30381b85ba3e6cc13f6b4b466f04693b0f3557cef9b17c88a75f",
+      "size": 188071
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/流程优化/H公司遥控器产品开发流程优化研究_李松旭.md",
+      "sha256": "87672289469f4c6663133c5fc53984c7193d550b18b786fd5e161aa0c5b42d8d",
+      "size": 194824
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/流程优化/SC公司抗胃食管反流系统研发流程优化研究_赵松辉.md",
+      "sha256": "ac60bf275885ce1f6beb62d306c5a5e0785024064c856a6a12e648fcc099fea2",
+      "size": 190833
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/流程优化/基于并行工程理论的Z设计院EPC项目设计管理改进研究_唐洪川.md",
+      "sha256": "889bbdb2e4163ebd36d473ac5c236bced78d5eca4119bbd6fc1029039d86d890",
+      "size": 209399
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/流程优化/基于模块化的Z公司汽车仪表产品研发流程改善研究_张丁日.md",
+      "sha256": "0dad31b61ad5f15d551fc0d1c91ec8bab3c82b6afc76325fdceafd0476b730a0",
+      "size": 197373
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/流程优化/基于流程优化的Z省信息技术专业职称评审系统改进研究_葛家莹.md",
+      "sha256": "bfa7c2810f106ac5bce2f06f4b60bd29be24907003bd6b12b8fbef41d9ce6839",
+      "size": 163389
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/流程优化/基于物联网的D公司检测实验室信息管理流程改进研究_张茹萱.md",
+      "sha256": "679fd8545ce139d46e172f12ba5a7513d6498288ea7d9bcdfa8535f26057c99a",
+      "size": 187690
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/流程优化/沣东公司热处理工艺开发流程改善研究_高晓辉.md",
+      "sha256": "21b242157a876cf655d0d0744364a43de518a3ef3f1819b5cbcacb4da5079378",
+      "size": 156853
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/A公司行泊一体自动驾驶产品性能综合评价研究_王亚伟.md",
+      "sha256": "498a799f5467b3f47ac0b843d62ec9648eb8db8bf837037866a3e2755df8e735",
+      "size": 178737
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/B公司承建的电子政务项目绩效评价方法研究_俞思佳.md",
+      "sha256": "ffce593271dd6668b5bf84e4480ed4a425e97f5d445f4b6ec20ea867c09532cc",
+      "size": 135373
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/H房地产公司战略供应商绩效考评改进研究_李雪波.md",
+      "sha256": "222ad0db9116440e3a1567ec292b655b0e763811cb80c5a679aaa7a69710ef42",
+      "size": 223651
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/H集团手机芯片研发项目绩效评估研究_柴凯丽.md",
+      "sha256": "98cbf15b48057074ad81e6e4c0a652680bba31b10095e05c4c77e21434fed203",
+      "size": 165578
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/NY安置房项目的代建单位比选研究_徐基丰.md",
+      "sha256": "fd37fed6b682c5f373eaad7bb2c94777b5fd218465c1953052ddbcd62460ea8d",
+      "size": 237569
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/S公司光芯片研发团队协同度评价与优化研究_吴维轲.md",
+      "sha256": "e491cb53e294c567bc8822ae8433c2949fe5f86a288bcb904d66feffccd2dadf",
+      "size": 192763
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/W市大型综合医院节能改造设计方案综合评价研究_陈笑笑.md",
+      "sha256": "e19e867cdd53628e44619961d3c10d170a0af660c9b6f89333773c1256b2d51c",
+      "size": 243498
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/乡村振兴背景下Q市山地集中式光伏电站选址评价研究_吴双.md",
+      "sha256": "9cc0be5e1db42cfcd20fd106f4789dd6da08110f4800ef41e124fffd90c01af2",
+      "size": 243439
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/基于人才画像的公募权益类基金经理综合评价研究_刘燕.md",
+      "sha256": "d2e8257a030163f71dc765ea142ddb1396c631185ada142475ea6fc52afdf690",
+      "size": 189692
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/基于平衡计分卡的T房地产公司住宅项目运营管理评价研究_张钰.md",
+      "sha256": "4bb6321d14a7254b4e629e9a0d14398a8ca0f192d0e67b5913bb65303754797a",
+      "size": 217009
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/流域性地质灾害综合治理效益评价体系研究_凌思强.md",
+      "sha256": "e31072aa1f0dd002e11db052be9a218040b6d7b5ef9334c1d3665d5fa8134e1f",
+      "size": 216392
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/碳排放视角下的装配式内装修项目评价研究_翁延华.md",
+      "sha256": "ae84cbf030dd83f579f2b31da363f11d4970176d97e28311a1bf8e5b9269ab02",
+      "size": 217441
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/绩效评价/药品B证AG企业仿制药研发项目立项评价研究_景林涛.md",
+      "sha256": "c7c10565c12ba15882a55cb60f690ff5093ff74d545aaf38508dac0f4f6d5900",
+      "size": 194321
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/A公司PLC产品质量改进研究_朱凌枫.md",
+      "sha256": "0e2c8becce3eb5f026adc068e91c7a1b182b9b720c7b2504e7642e7e209cb457",
+      "size": 139929
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/A公司“2+2+N”信息化项目咨询复合型人才培训体系研究实践-终稿版.md",
+      "sha256": "1b369534dc2aa98efc042745d56a60e5efaa0690a815627beb16b57b3f5d7867",
+      "size": 449606
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/A公司人工智能医学影像用数据集质量管理研究_学位论文-送审版.md",
+      "sha256": "beb2d8f30b30061d0d57510ea644c0dbdde39ce1c3300f63935c443ccd3f0a17",
+      "size": 445421
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/A公司智能家庭网关产品的质量改进研究_钱海旦.md",
+      "sha256": "63e360f443a5e99d36fbd05667b8e062347b327d50f3181e2d2b88575b477062",
+      "size": 169324
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/A公司软件质量管理研究+任婷婷.md",
+      "sha256": "6019a58afbca3a2d31e685c9a3378ec41aa8ae723691b91dea1b1eff419e754e",
+      "size": 170578
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/A医院网络安全运营质量管理研究—以Y项目为例.md",
+      "sha256": "0b69c3d1630dbd5cedc82fa4221bafa150c8f7b9bc73181fab29d67c93ca5088",
+      "size": 432815
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/A医院网络安全运营项目质量研究 --以Y项目为例_学位论文-送审版.md",
+      "sha256": "0447de2bb9d179615b144d7e4e66a6d72c648b8110117b49ad769f69d521612a",
+      "size": 414489
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/A高校财务服务质量评价与优化研究-终稿版.md",
+      "sha256": "cec213a76d0a1b4c3e2e9bb7fcf35ff315cb5ea202269c7ada15a245deb3f5c4",
+      "size": 410952
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/BIM技术在医疗综合体项目...电工程质量控制中的应用研究_韩波涛.md",
+      "sha256": "1c7c51ade54bbe9cad7cb379d979bd4c6da2c0de3fc8392846f89c2e60cb7abe",
+      "size": 227572
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/D公司金融数据仓库质量改进研究_谢怡敏.md",
+      "sha256": "3b34f815c36c6677f70c06fdd8e6df25888923b8baa1e062397f53d45b131952",
+      "size": 189586
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/E公司电感器研发项目质量管理优化研究_学位论文-答辩版.md",
+      "sha256": "0be65e64d124a9b63d013eceddc526f58f53d1d4bf0d69d0f94aceb1a890f486",
+      "size": 352300
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/E车企新能源汽车动力电池回收网络规划研究_李宇琦.md",
+      "sha256": "8cb14ba34fd748e036bfc72f193377aae65ebf3be67384189b02c4d0532a4d00",
+      "size": 148524
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/F公司烟气排放连续监测系统产品质量改善研究_王功换.md",
+      "sha256": "b8a5d8ecd92d5ac61c5395a6567f869507eb725800e178dd13daf0125176b0cd",
+      "size": 162645
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/F汽车零配件企业及时交货率提升研究_徐慈煊.md",
+      "sha256": "f5374b46fa3d079af9a8b2ecba526b717f4d73375509b8bc0f5d29ed4e056556",
+      "size": 147928
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/H公司Y股票软件开发项目质量管理改进研究_叶彩梅.md",
+      "sha256": "d2667466ce2d6d966d7aee3524ca897bd87ee1d199d8b5862fce7d41fffe9869",
+      "size": 139263
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/H公司舒利安降压药质量改善研究_王玲芳.md",
+      "sha256": "0954a3316b0c30d14793ff4cf6af0d928040a44cc7456acb8ce333280ddc696d",
+      "size": 151100
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/H公司运维项目质量管理改进研究与实践_终稿版.md",
+      "sha256": "6c6629e0bc70a7701579aad91dc79a1290fe0a49d83763806c5e77f8a4417e2f",
+      "size": 461660
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/H医疗器械公司公众号平台项目质量管理研究_终稿版.md",
+      "sha256": "445e88c60ed047eb190d39d804f1561a29fb8f07344553fa9dbde9247b5dbdf3",
+      "size": 497666
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/JC公司工业车辆智能管理系...建设项目客户满意度提升研究_周华浩.md",
+      "sha256": "9d2ea9f336fd19b15de07fe3cdb621de98921e1f9ec059b898331ae9b1617142",
+      "size": 177006
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/J公司安防摄像机产品质量问题管理与改善研究_吴肖蓉.md",
+      "sha256": "af0fecd1d15f8ab244709b022ce432db9fe847c630e355930536fe884c6f7b97",
+      "size": 182826
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/L公司配电网供电可靠率提升研究_管委玲.md",
+      "sha256": "4b63c6183cf1c6088341d1f0545b363844ebbf8f461047c571f994e03983bae2",
+      "size": 149563
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/N银行智能营销软件系统的质量改善研究_姚妍轲.md",
+      "sha256": "177471584f4c4ad7429d86c7a7ea5e172a4fdbdfd9e59cbb2c2d7c7dea298596",
+      "size": 329666
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/S公司物流服务程序的项目质量研究-终稿版.md",
+      "sha256": "abc7a3be81bd3a5ba41e7ce4680e17e02e9d77b815bfd2f407c6a6b1aee6eae1",
+      "size": 430482
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/S公司聚醚改性硅油质量改善研究_宋春燕.md",
+      "sha256": "56d4ce25109bb9cbb50880365c8950f91029a2ac9c5006ef89e8841bb766ee96",
+      "size": 151763
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/S证券公司核心交易系统升级项目质量改进研究_终稿版+致谢昌飞.md",
+      "sha256": "651ee7d4d1d2db8a09f4e5a12f07b996c71c19ea7c42f1d52761a49797248476",
+      "size": 442457
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/T公司物联网芯片的选型与导入质量管理研究_陈利欢.md",
+      "sha256": "b1b4a710016ff0a7b739dd49603d03bec05e4fb448ceb599ea6a798495f326df",
+      "size": 123432
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/WY公司质量问题归零研究与应用.md",
+      "sha256": "cc4e6be643bbdd2ff7e66e7753ab8a5435fd0a5a2e5d368963cd56061f45be62",
+      "size": 401125
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/Y公司T产线项目质量管理改善研究.md",
+      "sha256": "50147f24a84a2ee7f33f06b546382c57de097fa96dd97ddf278e4e6f405d5eaa",
+      "size": 332235
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/Y公司电商软件项目开发过程质量管理改进研究_杨慧.md",
+      "sha256": "e700ed2a10c02a703015582f0c5a838b0d53e1bc5a5af8526719bdde2f8bd6d4",
+      "size": 128094
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/Y公司软件项目质量管理评价研究+王旭阳.md",
+      "sha256": "57e21ced33ecd4be41a83409e0f44f03bbbe110c82ab1b0f5c6c4e13ab763f16",
+      "size": 167307
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/Z公司海上风电安装平台总体设计项目质量管理研究.md",
+      "sha256": "f4082e3d9b2b0483be1f92a7069907b9bf7632e87a8583a787b521402a72429e",
+      "size": 420509
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/传统企业官方微信公众平台建设的项目质量研究——以S公司为例_学位论文-送审版.md",
+      "sha256": "f20c44ebdd74f1564987f5ef9672104e0e6b4efd45e21a78b76c921806a07f20",
+      "size": 393103
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于APQP的L公司新能源...C水加热器开发质量改善研究_张洋.md",
+      "sha256": "024acb1ba58e2bb3f88f0cc565fd504c941e334860046585b7632aa5a47aaa7e",
+      "size": 139368
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于CMMI模型的K公司软件项目质量管理改进研究+王子心.md",
+      "sha256": "9c0404376284098f508da79fa2a5f53b20f9e6aca963e3b9c0edbbd2021a917a",
+      "size": 389855
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于CMMI模型的K公司软件项目质量管理改进研究-终稿版.md",
+      "sha256": "2cb39d4596a20d2bfa8bc198d8420cc8eb7512e2f8c7420e12f1077a66d537a4",
+      "size": 389855
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于CMMI模型的S公司半导体软件质量管理研究_终稿版.md",
+      "sha256": "0a9bab8e84bbd41793676764e48ce20a082bafa79c38e738ac0199f45e81faba",
+      "size": 360715
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于CMMI模型的X公司软件质量管理改进研究_郭波.md",
+      "sha256": "a1c13dd167b69e5f30511b498b87dc71c3bcf5c50d4c0e455f69576404ae6dce",
+      "size": 172877
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于DMAIC的Y银行普惠...业贷款业务服务质量改进研究_黎云波.md",
+      "sha256": "3252823446d89e0815f873964aec3e132524af3f146aa08c6f1c502098b959fa",
+      "size": 155762
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于DMAIC的建筑电气设计质量管理研究_吕国姣.md",
+      "sha256": "af46d5864438426849a2e8d0c4f637dace0a8d32bb4f901535478278bf08e3b2",
+      "size": 160592
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于DevOps能力模型的Y公司办公软件项目质量管理研究-终稿版.md",
+      "sha256": "3ef60d517667db39cce27150598fa6758b8badf26afd29cd4cb3295ab635e4a2",
+      "size": 381606
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于ISOIEC17025和LIMS系统的W电池实验室质量管理体系建设项目实施研究-答辩版.md",
+      "sha256": "2ef0b2db7b2cbd77717d87359c77099f4ac92594ad9f5ee564fe6ee74de41607",
+      "size": 469081
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于PDCA循环的混合式BOPPPS技能培训模式探索——以B汽车公司新能源培训为例_答辩版.md",
+      "sha256": "56efd9417d7179798db6f13f2aef379c6eb3e7b033ddcdb29b1929a907d8f328",
+      "size": 496483
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于PDCA循环的研发项目质量管理研究——以场景化AI研发项目为例-终稿版.md",
+      "sha256": "dbdecd267406f8f55ad5cf1ec2460b3716ed3fc75fcd3a2c2bc7d2125cdfb232",
+      "size": 326306
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于QFD理论的C公司家用消防产品开发项目质量管理优化研究_终稿版.md",
+      "sha256": "e5036669555be485ae4aabba3688f7a76a04868ea94f6353f1540195a29e6a28",
+      "size": 596307
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于Scrum敏捷开发的项目质量管理优化研究_学位论文-送审版.md",
+      "sha256": "befce7529ee7790ce22782d9d36be43c7487371f549d6e1f6fd10773d89af732",
+      "size": 386777
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于三层嵌套式PDCA的A公司广告服务质量管理研究-终稿版.md",
+      "sha256": "36e85c68aaa213401cf12db4a66b1ad680fdb8c545addb3a0edb36e9826f18eb",
+      "size": 444477
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于全生命周期管理理念的项目交付质量提升方法研究_朱应保.md",
+      "sha256": "b17f9330009b682803b13acd8d93c148009ed83614b17ae0aafbae09b9c221ae",
+      "size": 183742
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于六西格玛的H公司可降解树脂质量改善研究_董开岳.md",
+      "sha256": "125bf537690eceb0f81d32e31dc2bdab6bf33f0bf2724dff7b6a4cd72c755679",
+      "size": 166022
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于六西格玛设计管理的X公司天线研发项目质量管理优化研究_学位论文-送审版.md",
+      "sha256": "3ee5d9a53e353e9b5fdbb17b443b58f0b3a14a523e444ea3b93569cb1ec68d20",
+      "size": 411009
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于医学知识图谱的病案首页质量改进研究_李庆玲.md",
+      "sha256": "9e67eed679ddaf9057527bb342c468df41b76d19af88e3e1c81edb569007f9ed",
+      "size": 227811
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于多目标优化的机电类非标产品标准化统型研究_王立婷.md",
+      "sha256": "179fae7802aea2168128005ccc09b1967ea7f32d0902ac34ca754a7e6a385ed3",
+      "size": 138634
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于度量的软件过程管理方法与分析技术的研究_侯红.md",
+      "sha256": "ae71f79c0bc6f4f6f62180530a5409d23419d0229deeda900a750857d096769d",
+      "size": 282049
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于根因分析法的C车间生产绩效精益改善研究-终稿版_致谢+昌飞.md",
+      "sha256": "9b334f7f3a76d08cc71483dad27238d0ff70d1f6b4bf71be4ff2ef793e9c101b",
+      "size": 417618
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/基于模糊认知图的质量管理度量研究_学位论文-送审版.md",
+      "sha256": "25c48330e8fc9288de3c2de52a8f7b1f415be996d3d7b6d80cbbea10e7cc76ca",
+      "size": 428254
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/快消行业新产品开发流程优化研究-以S公司为例_学位论文-送审版.md",
+      "sha256": "3c8ea23cbeb6dee8a812521a2fd0403f6526f12bb690d611c85fbdb696d261e3",
+      "size": 396631
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/核电EPC工程总承包项目多要素管理机制研究_冯燕.md",
+      "sha256": "15db53bb2652b380758f41cc1aa313a33b3bd74fefa06596f4e3ef63623d3713",
+      "size": 274419
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/汽车零部件 S 公司新产品开发项目质量管理改进研究_终稿版.md",
+      "sha256": "bdd22bb5d7de8aa9ec39794873e0f819cf726965047dd0e5963cfc12cf1980ee",
+      "size": 444223
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/盾构隧道成型质量改进研究_饶卫华.md",
+      "sha256": "640c5e6cff0a6f271dd1796dc6c2fdd7a26903587243b98c69c059fc8ee7b986",
+      "size": 212345
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/规模化敏捷开发模式下的质量管理研究-以S公司为例_终稿版.md",
+      "sha256": "7e6d3a2c64f3a506d226368a495b9293e6a2433aeee233e11a8826ea839bf5b9",
+      "size": 441575
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/质量管理在A公司生物安全实验室建设项目中的应用研究.md",
+      "sha256": "c7884404827a7a9ad7e7ca5a2f8540c76f973d2726434f5e2f4c52099811961d",
+      "size": 371291
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/长租公寓改造工程优化研究_邵琴.md",
+      "sha256": "e894a4b1646d41dfb94d056567a270fc4c70afe440a0e69c817b8aabf40e8103",
+      "size": 170643
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/质量管理/高校财务微信公众平台的项目质量研究——以F大学为例-送审版.md",
+      "sha256": "daf22a88e0316e64e814a76f4073ff9eeb4febc006197f2716b5fac22fa5c625",
+      "size": 466621
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/A公司数据平台开发项目进度管理改进研究_赵辉.md",
+      "sha256": "b532bbca4e9e96c46399038fe8e9ead792d5b0b33648d3694ce08a57f53f3312",
+      "size": 184031
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/EPC总包视角下专业分包商工期延误评估与管控研究_汪能亮.md",
+      "sha256": "303108ec8f195c393d27655f8bd38ea1c3da479b7b8e470eacfa3a69cfe7358a",
+      "size": 226196
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/G公司汽车涂装缺陷自动化检测项目建设进度管理研究_吴宝通.md",
+      "sha256": "f5215708fe8b7d11ab69211e452ce7ebcf4a27825fd013fdcf60517697038317",
+      "size": 174643
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/H公司高压真空开关国产化项目进度管理研究_金烨鹏.md",
+      "sha256": "5dccc3ac84c85871ec22299e09320dc69cfac27f31ba74d39f248d2d3945e21e",
+      "size": 184010
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/K公司外采模式下的数字化项目进度管理研究_李佳敏.md",
+      "sha256": "18a0816d0e993b62397e96bb7e0c6e9f6ca4ebe2ba91af53c0b87c818851d95b",
+      "size": 177938
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/L公司商业火箭总装柔性排产...划管理流程数字化研究与应用_周正天.md",
+      "sha256": "9fdfea101be348d678a612292ff871be22af7c310d6585288b7e899124ef7f8a",
+      "size": 158966
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/SC公司业财一体化项目进度管理研究_项健威.md",
+      "sha256": "068ff13b641a423def1b857ec3df8b098985cbb9fac833e95117147611ab989c",
+      "size": 183729
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/S公司HJ城际铁路运维系统开发项目进度管理研究_张忙忙.md",
+      "sha256": "1b6e1b8f50217f85db2f31ac4adde829c5d8a59fc985beec816161b2dcdcf2d9",
+      "size": 202223
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/Y公司智能交管软件开发项目进度管理改进研究_曹虹霞.md",
+      "sha256": "b57e6786300ed9bea79686740692c39aa92c4c8c5c4a6905c5ea598d7cb05ec3",
+      "size": 289790
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/基于关键链技术的Z公司市场...易软件开发项目进度管理研究_徐佳丽.md",
+      "sha256": "9aa02ace9403e7c3356172cf002ed31789ca026a395894e4320d052cc64cdb55",
+      "size": 140473
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/进度管理/多产线排产和多能工指派的综合优化_李君.md",
+      "sha256": "9b0342506cfd8ad010ead758e46f07a79748ffd19a248ce5fd182da42993a3b8",
+      "size": 169998
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/需求管理/H公司支付APP产品开发需求管理改进研究_董婷.md",
+      "sha256": "a08af42f22e156cb9a6b926f849f8d0ba24a2b372c52b84e17f6322130eaf6e4",
+      "size": 150340
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/需求管理/J公司公共数据平台软件项目需求管理改进研究_许留奇.md",
+      "sha256": "43124e32f43b61e3fde4195875d9b0a071310537b0ea6fe5aa1c2d130d35c2c4",
+      "size": 210263
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/需求管理/S公司SDH产品需求管理研究_张立.md",
+      "sha256": "77ab8fd78772dccff0ad900a39494a11b48b0adbe5a4ce54e4e9dd7eef2d752b",
+      "size": 133039
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/需求管理/发电企业内网安全防护措施的决策管理研究_陈锡宙.md",
+      "sha256": "9e55053c9f93507ee688bb1c7af5959264b9e05d17456d5020e3e6d7fd0a9087",
+      "size": 165979
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/需求管理/基于Uniformat_Ⅱ...RBF神经网络投资估算研究_张利学.md",
+      "sha256": "6f3f262b5d97a32289ecbdf32942d9b1118e2e5e896d4e16f3a4cd1bf469eafd",
+      "size": 198934
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/需求管理/基于库存分类与需求预测的L...电商公司海外仓库存优化研究_张滟.md",
+      "sha256": "90553583f4fe8580cb1007a77fac58125b4b558f07e448a50647be141bab4371",
+      "size": 208981
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/需求管理/数据驱动的Z公司光相干断层扫描仪产品需求管理研究_李益芳.md",
+      "sha256": "08d0e1f8207ae403ea972809da97ca587b514bcb886d0eb81bfb39f41e8b5eb5",
+      "size": 183830
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/A保险公司工程车辆保险反欺诈管理研究_郭琦.md",
+      "sha256": "f935b1399b29f47ef0bcf166f9e30593ea91b864ce7b2cc8d933394c81809217",
+      "size": 150486
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/C企业半导体制造过程安全风险评价与控制研究_闫伶俐.md",
+      "sha256": "fe02063139ec78421750ebaad3260006fa60dd0d2e0d5612176b37090af539c4",
+      "size": 267623
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/D公司负载敏感多路阀国产化项目风险管理研究_赵林林.md",
+      "sha256": "60f4da0fe5fd5bfadc9a1af88b0facd8af04c6b6357a60d90e54286061f0a8e2",
+      "size": 215241
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/E公司软件开发项目风险评估改进研究_宦传建.md",
+      "sha256": "a8a260692a2e63e05866281a940858e8054dee56a1644437d54b377b0e700f64",
+      "size": 166981
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/H医院电子病历项目实施阶段风险管理研究_李哲明.md",
+      "sha256": "aa0a15aad4a2d32c1adfde643c0c68cda48e1ca60253547cd2e3a80290f3d759",
+      "size": 189751
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/KN公司分布式光伏电站投资风险管理研究_韩煜.md",
+      "sha256": "98751ef7aed4d82a4f62d799524b94b2931f73775532671aca45aeecfd01137a",
+      "size": 331908
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/L公司量化基金项目中的程序化交易系统风险管理研究_万磊.md",
+      "sha256": "85359b39a339548576cce66d5ae5954703e5cfccda82e49580621a5e3052332a",
+      "size": 147848
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/T研究院汽车“四高”路试项目安全风险管理研究_潘金冲.md",
+      "sha256": "ef7728d3d1489a0d1ef41661290c4a20e10bcebd1204134961339b611675c976",
+      "size": 239741
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/X餐厨垃圾特许经营项目提前终止风险分析_郑超.md",
+      "sha256": "2d44bb4647030c8daa6a7b43b871c367a62b88fbf788916049ae42d0af675c3e",
+      "size": 186684
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/Y公司网络摄像机产品软件测试设计与执行改进研究_王光利.md",
+      "sha256": "6d16e8e1f7d8fad501fb232887e3e26702e4c8958bd74f012450c4411f97d263",
+      "size": 187077
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/Z公司房建项目施工合同履行风险管理研究_俞锦东.md",
+      "sha256": "f560cdee2dbf775b51538e83c931bc1a817f3375a4552c8082614485ed54cbf8",
+      "size": 250392
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/化工园区供热系统安全风险管理研究_杨楠.md",
+      "sha256": "984546c08a98460c4f528e915fbfc92937662c1666e8985242d6eee67e6371ef",
+      "size": 189351
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/基于ANP-模糊综合评价的...工程EPC项目风险管理研究_路彩娟.md",
+      "sha256": "f6069d108cc5f46edad36ae18814056f680a93194d7f260c9a0cecdfac0ef3fb",
+      "size": 216102
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/基于BP神经网络的Y农商银行城投债风险管理研究_唐辰瑜.md",
+      "sha256": "1dc643aa7df054275b0d1dc58f278a3b208452e282b04e7e0d735b95cf36099a",
+      "size": 234576
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/基于二叉树实物期权法创新药项目投资决策模型研究_俞婷.md",
+      "sha256": "dc3fb9b3494a06d3b2c702c9cc3e3bc2bb02b8072feb4218ba22fc659ef41ebe",
+      "size": 204575
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/基于交通冲突分析技术的道路交叉口交通安全管理研究_吴凡.md",
+      "sha256": "d252e647ea76314320ee2915aaa60aef0a3c2da7e3ca0d92732ffb2f5bd65c64",
+      "size": 167452
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/基于实物期权法B-S模型的...处理PPP项目投资决策研究_杨斌.md",
+      "sha256": "850d4354054797556e0f5028d377b64ad873f2fb6606a6dcf6717202e2a0156c",
+      "size": 126681
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/宁波Y综合管廊总承包项目施工风险管理研究_陈斌.md",
+      "sha256": "d67b8deeb5f04e1b4a9d92352c991885201957d3ead4e0135c651c7abc01d1b2",
+      "size": 231040
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/政府代建制A项目质量风险管理研究_林城欢.md",
+      "sha256": "ae63675c464423738b6c4a26342f5b745555c7a9fe1be1aedb5a777798019384",
+      "size": 178433
+    },
+    {
+      "path": "knowledge_base/references/converted/papers/风险管理/疫情背景下Y货运航空公司的航空维修风险管理研究_曲映玮.md",
+      "sha256": "6fd6dd998a70bb79d875108980c495f5745a230429f63aa5dca100b50809cfbd",
+      "size": 165741
+    },
+    {
+      "path": "knowledge_base/references/converted/templates/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).md",
+      "sha256": "6072686a9d3d56d326536510d29da9566aca2cd8136683e9c6215badcb018dd7",
+      "size": 8752
+    },
+    {
+      "path": "knowledge_base/references/converted/templates/3.00 复旦MEM硕士毕业论文模板(2025).md",
+      "sha256": "6d5b7df6f447f9dddfae27f465ce4c220118dfe2603e2e73ff291c52dd11b76e",
+      "size": 2505
+    },
+    {
+      "path": "knowledge_base/references/converted/templates/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).md",
+      "sha256": "5836918b43b4647c34d66791eb75087e470cc4649be685d23a6bbb6e7d1b3481",
+      "size": 10806
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/1.文献研究法/基于文献研究法的精准扶贫综述_刘胜林.pdf",
+      "sha256": "87189bf72899c387520266c2443f7bd0ac34a7341f7f8d1623874bf2c6af3a93",
+      "size": 187757
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/1.文献研究法/富有生命力的文献研究法_杜晓利.pdf",
+      "sha256": "f0588fe5a500bedcae4a714054318f02435aca2a7c0520bade882fb464591d4c",
+      "size": 272476
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/1.文献研究法/文献研究法在高校历史教学中的运用_韩建萍.pdf",
+      "sha256": "672f95c0dfec0b0183121832256b82f319479311b275fcb29edf539188ec8b88",
+      "size": 165403
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/1.文献研究法/文献研究法辨析_东阳.pdf",
+      "sha256": "defd094eb5e80972dbdc301463b13fff8bc0c097bde6af057b608cdbc4762930",
+      "size": 1368455
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/10.标杆分析法/基于大数据和标杆分析法的市...病种质量评价指标构建及应用_侯冷晨.pdf",
+      "sha256": "ff81cf85809a87f65edd0dbc5f4039460fa9dfe19b71a3582c812b4c84f45737",
+      "size": 496833
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/10.标杆分析法/标杆分析法在图书馆绩效评估上的应用_欧明臣.pdf",
+      "sha256": "95c134d9f48a9bca20a0562dc1e9354534e652ff801e8ba606823e3fb656866c",
+      "size": 440131
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/10.标杆分析法/标杆分析法的引进与应用研究_于文益.pdf",
+      "sha256": "c6ec089c36f100f51bcadb269d0bd0fe194e20ba9cbd4be071e0c30236d8e91e",
+      "size": 1629073
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/10.标杆分析法/论标杆分析法在供应链配送中心运营评价中的使用_俞仲秋.pdf",
+      "sha256": "ea04f5c3f772302a98eb578921c4c4cd289e5608a96343723bd26d04d72e6cad",
+      "size": 57688
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/2.案例研究法/“去产能”背景下国有企业并...宝钢吸收合并武钢的案例研究_张伦萍.pdf",
+      "sha256": "ca2ee3a1a1929a34c17cde50c4330a758a6da91110a6205fb27a0570890ada4e",
+      "size": 1364033
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/2.案例研究法/企业借壳上市动因与绩效的相...——基于证券公司的案例研究_陈蓉.pdf",
+      "sha256": "6b47dab79189e53e04fa5f88d47b629378753fa91e7e5562b8c9ace020bae184",
+      "size": 1584517
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/2.案例研究法/再论案例研究法的属性、类型、功能与研究设计_唐权.pdf",
+      "sha256": "37b8bbcfcc4d8dda70b59c89c8dfef8b7929aef1ece0e50fb6dda1b3f787e19f",
+      "size": 256460
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/2.案例研究法/案例研究法的理论与应用_孙海法.pdf",
+      "sha256": "f534acacdd88c131c14d3011236d71f987143dd4848806c360d647c26c98a6c2",
+      "size": 380989
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/2.案例研究法/案例研究法的研究与发展综述...(CNKI)的核心期刊文献_汪婷.pdf",
+      "sha256": "8584f26bf4c04818850a1ebccab23e78932b6f000f99e9028ec08194ff27539b",
+      "size": 374542
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/2.案例研究法/案例研究的方法论_孙海法.pdf",
+      "sha256": "ea7220901addc3859abda54b272cd66c1f44e289dbe005d136e26056d4afb651",
+      "size": 374372
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/2.案例研究法/论案例研究法与实证研究法的结合_乔坤.pdf",
+      "sha256": "ea9fa4d8b9447f36260dc42a61c6e5200b699d676b20122a2519e378cee4e702",
+      "size": 412586
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/3 鱼骨图/基于鱼骨图分析企业标准实施偏差成因的应用研究_项庆辉.pdf",
+      "sha256": "f9e6b04821a6a9d57ac6f350cb7ee8eb5137258a6277b82df45b372bb7099368",
+      "size": 1491978
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/3 鱼骨图/综合鱼骨图及其在项目管理中的应用研究_皮圣雷.pdf",
+      "sha256": "41d782e2156e25b0a9cfd15cb3d67b496ac1d10669e13c69a451347bda2c8b86",
+      "size": 808999
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/3 鱼骨图/鱼骨图分析下8S精益管理提升手术室管理质量效果分析_徐亚莉.pdf",
+      "sha256": "9b7d6f981fdbebf3fe5e454bf92c744dd3f5d9e69e9e5a6f0de05e7dc946146b",
+      "size": 1637124
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/4.WBS/WBS方法在工程项目管理中的应用研究_徐森.pdf",
+      "sha256": "379d5aa6aac77bf22c63ab86b6f4dd9355abad6f08976959b575858194a2bbb2",
+      "size": 874274
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/4.WBS/大型施工项目的集成管理_王延树.pdf",
+      "sha256": "e87935aff1a928e555c69890a672aa894ee7832de147150b28dbd902ecd62f2e",
+      "size": 313200
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/4.WBS/工作分解结构(WBS)在施工项目管理计划阶段中的应用_薛自力.pdf",
+      "sha256": "50e231057cfff5b23c2f3ae3bedb932e441b5061e8e4233009d09ec170e5bd3b",
+      "size": 257789
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/4.WBS/工作分解结构WBS技术_魏永涛.pdf",
+      "sha256": "39ab0fda27338d0171488848c1262d7ba4abe15ee92a8f7d311e2aff4cd96b1f",
+      "size": 1187896
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/4.WBS/改进的WBS方法在工程项目管理中的应用_刘金星.pdf",
+      "sha256": "efd7d011679dcbd4be9b11fdbd9f4c5aa23c11f50246c2c39b39f81339e278d8",
+      "size": 1157375
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/4.WBS/施工项目结构分解(WBS)方法及准则研究_江萍.pdf",
+      "sha256": "33e50179111b185ef1cb2688eeb8cc3f11ddad8ff017e6d7a32fc9a30f8bdfeb",
+      "size": 278595
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/4.WBS/浅谈工作分解结构(WBS)在项目管理控制中的应用_黄智辉.pdf",
+      "sha256": "2c4b21b09926d0be2639b4e3b38cd3dfc78efd3bc7bf069943b2e7157cd49d4e",
+      "size": 351814
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/4.WBS/项目管理工具系列谈之七——...BS)_定义项目的工作范围_周小桥.pdf",
+      "sha256": "19ce05e48717e5541e915317a11cb53ca1087fea8dc1e273398953c3cda1aabc",
+      "size": 139605
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/5.六西格玛/六西格玛管理与MINITAB软件_何晓群.pdf",
+      "sha256": "766d100b1c95e08831fb1347078735c6ffe17c95f34bd3fa9cb193eb221d8566",
+      "size": 134269
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/5.六西格玛/基于精益六西格玛的质量管理改进实证研究_吕永卫.pdf",
+      "sha256": "e2f89c6a3c1797f15fef041dc6ccb59f06bdbf09ffa32958e58dedfb751be3ae",
+      "size": 675023
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/5.六西格玛/精益管理、六西格玛、约束理...业工程方法的系统化集成应用_江志斌.pdf",
+      "sha256": "3716e68ba6a79e7bed58bcf9d87cf564c5c7d09f449bd2a57ed92de255dcab1c",
+      "size": 1775264
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/5.六西格玛/论六西格玛管理的本质属性_胡雅琴.pdf",
+      "sha256": "7255f961228981479111e1edaf3cdc8039ad527b29299940bb1c8ee745fbebee",
+      "size": 285032
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/6.5W1H/5W1H方法在大科学工程项目沟通管理中的应用研究_王传珂.pdf",
+      "sha256": "78f25be4f0da457d051231d48e9101f46dae3535cc6e94a683791d175129c96f",
+      "size": 296979
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/6.5W1H/基于5W1H分析法的档案数据管理研究_周枫.pdf",
+      "sha256": "5de2b4b30b67c5a6d6bb389e711688ed33987cba0dca43900027669f8e410ac4",
+      "size": 1184493
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/6.5W1H/工业工程技术在B公司中的应用研究_王强.pdf",
+      "sha256": "37bf734d5c14c66d2f936ee6f913f3255953750bb6478dd559d0eb96daf8d214",
+      "size": 8695553
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/6.5W1H/高校图书馆阅读推广5W1H分析法应用研究_安娜.pdf",
+      "sha256": "291d64c8ba4f0382ca29cf959df555dcb237cfebd2541208cd10c7da0b5207f2",
+      "size": 315573
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/7.德尔菲专家法/专家视野中的职业教育校企合...菲专家咨询法进行的调查分析_吴建新.pdf",
+      "sha256": "6ddc76c4828de37d97916e2c36cc5917b2d7650efa22fcb21be012cb215ed19f",
+      "size": 832395
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/7.德尔菲专家法/公立医疗机构公益性评价指标...选——基于德尔菲专家咨询法_陈英耀.pdf",
+      "sha256": "7eba22c38af81f8a83990ca51ef2e127a10203d6fc2b0dd474c32f7639337ad9",
+      "size": 207594
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/7.德尔菲专家法/基于德尔菲法的专家意见集成模型研究_田军.pdf",
+      "sha256": "4bff64b9c0e41f97156c5508862078d4d97d58264145dc1fa69eef9c78db32e5",
+      "size": 373765
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/7.德尔菲专家法/基于德尔菲法的专家评估方法_刘伟涛.pdf",
+      "sha256": "55fcae12731425a07f19b7142cf83f0ca8abec85fb8e6e21169f93ca7215c595",
+      "size": 679810
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/7.德尔菲专家法/德尔菲法中的数据统计处理方法及其应用研究_王春枝.pdf",
+      "sha256": "33d5c093d00cfc13fa2e17cdbeaa30fc254e71e649794b96f5e5c7f3fdf7119b",
+      "size": 201303
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/7.德尔菲专家法/德尔菲法及其构建指标体系的应用进展_王少娜.pdf",
+      "sha256": "3f4d807905b285c09a3e8bd59561afe4f29617d197ce4d98fb97c85bb9abcf13",
+      "size": 236493
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/7.德尔菲专家法/德尔菲法的应用及其难点_徐蔼婷.pdf",
+      "sha256": "9a4b33929861268bcc1f88e9b2760e2f3685be6f1d126e0c10177779abfdeb15",
+      "size": 86039
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/7.德尔菲专家法/科学教师教学能力结构模型建...德尔菲专家咨询法的调查分析_王碧梅.pdf",
+      "sha256": "9c0023b8896177855081c3da4af44ab29b4e2a19aaa9adb8a3eb43649e223414",
+      "size": 352830
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/8.层次分析法/基于改进层次分析法的模糊综合评价模型_金菊良.pdf",
+      "sha256": "fc125acb6aacbc25f6c0b4e86228b06250216bf17a8cba2302b57b5e32189060",
+      "size": 318493
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/8.层次分析法/层次分析法中几种标度的比较_骆正清.pdf",
+      "sha256": "4ebd8da6bd4dc122d76a79795565f2519bdb90b450bd000637fa293691ff8c16",
+      "size": 446636
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/8.层次分析法/层次分析法权重计算方法分析及其应用研究_邓雪.pdf",
+      "sha256": "6c31243a29bde822d731647115328198b86a720d9aa9134e58ebf5dcfd74af92",
+      "size": 484928
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/8.层次分析法/层次分析法的研究与应用_郭金玉.pdf",
+      "sha256": "cfb4c81fbae8392997d73b9c984a0c2307c63f135cae724b77aaff5527a6e400",
+      "size": 421264
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/8.层次分析法/模糊层次分析法(FAHP)_张吉军.pdf",
+      "sha256": "7a5aa0285b38edc81fef392f6026a9f025c66403905bbebfb41d679e5609e831",
+      "size": 380446
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/8.层次分析法/运用层次分析法构建国有企业绩效评价体系_申志东.pdf",
+      "sha256": "76217d3a3851ce4451bfdb84afafaf2ce7aa8f82530a28a8410e9e0eddf00543",
+      "size": 695264
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/9.PDCA/PDCA循环在企业绩效管理系统中的运用_曹书民.pdf",
+      "sha256": "cbf169e8e89e3db9cd38e5e944f537ce476f4840bf12e4dbe54360dab27f0d8f",
+      "size": 368810
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/9.PDCA/PDCA循环推进持续的质量改进_刘宏.pdf",
+      "sha256": "c1e8b7d40a75d58471cedcc67f8e37dac120813e3e2930b74041d9ec0591d5ff",
+      "size": 136109
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/9.PDCA/PDCA循环理论在质量管理工作中的运用_斯欣宇.pdf",
+      "sha256": "fb2cf6503d0b4ca4b20892b781074a2c4bc0ae97c5e79053e07fc286e430272f",
+      "size": 520729
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/9.PDCA/基于PDCA的信息系统全面质量管理模型_常金玲.pdf",
+      "sha256": "958bdc4ffc40d23913f69a05e5e4caf189ce05853e59ad461bb8dfc367908331",
+      "size": 278079
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/PMBOK第七版_中文版.pdf",
+      "sha256": "b0ff29a7b11d8b5018e37555bee9baaa960ae27d4061ddde0aaaad0e1d96082a",
+      "size": 8850757
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.docx",
+      "sha256": "fa19419a3cdd7ed1084ee7b1ff800a85c4f57af75b60c45701ad01f472779884",
+      "size": 14735
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/其他/FURPS_FURPS+模型：内涵、演进与质量管理论文资料体系.docx",
+      "sha256": "406eb43e79cf6770a904d78aa241f0a8ebd4deb984fb0e35b8567784b971d36d",
+      "size": 14660
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/其他/ISO 15939：软件测量的国际标准框架与实践应用.docx",
+      "sha256": "6925add42bd1aa250d5c3cb79dfffa1794631d206a68a4fc4c67bff5cbea2c51",
+      "size": 18948
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/其他/SPEM 在基金风控_敏捷场景中的应用.docx",
+      "sha256": "260b5d34e3829ecc555b083d19e033303441eebf87ca68a42f8e0184bb79d422",
+      "size": 14454
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/其他/模型驱动架构（MDA）：定义、核心架构与实践逻辑.docx",
+      "sha256": "f727e27f6d0b8517526b96eae4612786335949fc445558190c89244e7010ea76",
+      "size": 17653
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/其他/综合评价中确定权重向量的几种方法比较_王靖.pdf",
+      "sha256": "1e563cc4c76c94c017c53a8fbd2c98fc9d372e1b176ca38bca5fa387122e2bdd",
+      "size": 472920
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/其他/论文方法_系统工程  第5版 汪应洛_清华教材.pdf",
+      "sha256": "473a2b95f8f8e86a8be54132ae093be27ab85dda170dd7be9743621e356b32ae",
+      "size": 61939576
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/其他/软件质量模型的演进与应用.docx",
+      "sha256": "3ade083dc09f8374a8e6dbb0ec1b812de227c2e27cba1e08963555a64b16929c",
+      "size": 11596
+    },
+    {
+      "path": "knowledge_base/references/方法论资料类/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.docx",
+      "sha256": "253b4d2d52c8feb7c60500cec567f8dc45b3fff2427b48337276acffdbb29a7a",
+      "size": 17945
+    },
+    {
+      "path": "knowledge_base/references/模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+      "sha256": "72fe1479f332a19a6f0cacdecb4761156c9f015ebd22ef8303fbcca74a35018b",
+      "size": 252227
+    },
+    {
+      "path": "knowledge_base/references/模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+      "sha256": "00709fc0088deae16e284f5cbea0c968ba04c544cac9472428bf00a7b5c7b050",
+      "size": 59229
+    },
+    {
+      "path": "knowledge_base/references/模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+      "sha256": "77147b5b5d1a0d47287b7bed663522f143bac0910b1eb5d4ebc0015fbb268cff",
+      "size": 100352
+    },
+    {
+      "path": "knowledge_base/references/模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+      "sha256": "dcc2611a10791c4f8748bd21a33bf05944f03846f2f1dc1fd1bc0306afcd29ab",
+      "size": 68608
+    },
+    {
+      "path": "knowledge_base/references/模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+      "sha256": "a08fdb38fc962c14ef3b0a0c9dbd52da9872049ce3dbe50fdf44b7530f5e62bc",
+      "size": 19688
+    },
+    {
+      "path": "knowledge_base/references/论文类/供应链物流/A公司S原料药生产计划与库存管理优化研究_甘永康.pdf",
+      "sha256": "937815851328fe80d844a489e2a81a48cec4e033cfd4e23f5001ac006497a8bc",
+      "size": 2686373
+    },
+    {
+      "path": "knowledge_base/references/论文类/供应链物流/A公司纯电动车城市配送路径优化研究_方政.pdf",
+      "sha256": "c026c10c49d456f043a9360cd17bc2a6d443fb194a4fd902c5eb2e2e0c6a2279",
+      "size": 3151700
+    },
+    {
+      "path": "knowledge_base/references/论文类/供应链物流/C公司冷链物流配送路径优化研究_朱俞文.pdf",
+      "sha256": "abe65f10940415aecc0842707491c51730dd323be7ef8fdb82d521fa77722a94",
+      "size": 19693063
+    },
+    {
+      "path": "knowledge_base/references/论文类/供应链物流/F外卖平台即时订单配送调度优化_向飞.pdf",
+      "sha256": "dbe4e39f934e023d14d98347c35abd84904b91dceb4df5e8d86c93178b78a152",
+      "size": 3394800
+    },
+    {
+      "path": "knowledge_base/references/论文类/供应链物流/M在线超市电动车辆配送路径优化研究_王修远.pdf",
+      "sha256": "6160c8317ecc4339585f77cb8cadfad93bd721b9659a9c9956de8285a0c3b5f9",
+      "size": 4510790
+    },
+    {
+      "path": "knowledge_base/references/论文类/供应链物流/N公司生鲜农产品冷链物流配送路径优化研究_墨祥磊.pdf",
+      "sha256": "65d57f98c038da609ae2211d750f54ecffa4b096a24a26245aaf1ddb70c0b98a",
+      "size": 3443574
+    },
+    {
+      "path": "knowledge_base/references/论文类/供应链物流/共同配送模式下城市末端物流节点选址与车辆路径优化研究_翟庭钰.pdf",
+      "sha256": "a5f16c6334d8be7ddcaf60ab9eb47118358821a2f15e61be5b03129e520dcb06",
+      "size": 3600285
+    },
+    {
+      "path": "knowledge_base/references/论文类/供应链物流/考虑产品备货周期的S企业库存控制研究_刘夙扬.pdf",
+      "sha256": "74e92a215afeb54b031b5e47614bdeccc26a98666ab1a5d34d512444740e05c7",
+      "size": 4542242
+    },
+    {
+      "path": "knowledge_base/references/论文类/供应链物流/考虑碳排放的A公司冷链物流配送路径优化研究_马志轩.pdf",
+      "sha256": "e33c9d8b57d2f6c58e6fd389fb4a19380e3360b5c29684931ab0f72ffa50af3c",
+      "size": 5335037
+    },
+    {
+      "path": "knowledge_base/references/论文类/其他/基于演化博弈的建筑工程材料送检监督策略研究_王骁彬.pdf",
+      "sha256": "5ab5370562bbf0b541e0ffcbb40f07f5c4118efd5f0900ead6d1538bf3a1c1db",
+      "size": 4533958
+    },
+    {
+      "path": "knowledge_base/references/论文类/成本管理/W商业综合体运营期零星维修工程成本影响因素及管控研究_徐伟伟.pdf",
+      "sha256": "2b3f1f081f0b5e356c930df1580a9942df60db7d0a6f30bfabab30609f99cc0a",
+      "size": 2444590
+    },
+    {
+      "path": "knowledge_base/references/论文类/成本管理/基于作业成本法的110千伏...变电站项目成本管理优化研究_吴琦.pdf",
+      "sha256": "aaea0c6112ebe24a528bcd0a159dc9726fddf36fdc6806bdf6ff126f02a4c6a5",
+      "size": 3662939
+    },
+    {
+      "path": "knowledge_base/references/论文类/成本管理/基于最小费用最大流算法的X...微服务系统资源分配管理研究_钟建栋.pdf",
+      "sha256": "55529d2e0b214a2e0d8dcf69bab535d61e43a4741108663d62d857af6108e3ce",
+      "size": 7870459
+    },
+    {
+      "path": "knowledge_base/references/论文类/流程优化/D公司上海生产中心服装生产周期优化研究_王鹏.pdf",
+      "sha256": "5df5dc43fb6e82b14334e29aee0979a7537a946c71be25e1dfe509bf331d2c30",
+      "size": 5120633
+    },
+    {
+      "path": "knowledge_base/references/论文类/流程优化/H公司建筑电气施工图设计流程优化研究_武研.pdf",
+      "sha256": "c27035ff521e35da956f7454da483ad107d2e4b6c4a0ef00808cfbb092e818cf",
+      "size": 5064958
+    },
+    {
+      "path": "knowledge_base/references/论文类/流程优化/H公司整车低压能量管理系统开发流程改善研究_巢一鸣.pdf",
+      "sha256": "cc37740d9361b145b91156a1da59d362b04ddf9eeba1bd76904ab07c7eea1a5e",
+      "size": 5468513
+    },
+    {
+      "path": "knowledge_base/references/论文类/流程优化/H公司遥控器产品开发流程优化研究_李松旭.pdf",
+      "sha256": "d41003a5ef6c5ac8f814ebc8a641ffa6ca484140a6728433da3dc0c9a10d66fc",
+      "size": 7317794
+    },
+    {
+      "path": "knowledge_base/references/论文类/流程优化/SC公司抗胃食管反流系统研发流程优化研究_赵松辉.pdf",
+      "sha256": "907d406ec9f1cc4348fa20e3efc223bb815046ddbe00ed628fd5245e68e6f913",
+      "size": 5171014
+    },
+    {
+      "path": "knowledge_base/references/论文类/流程优化/基于并行工程理论的Z设计院EPC项目设计管理改进研究_唐洪川.pdf",
+      "sha256": "74d2eaf0e719552e9db59909a13164d930046563886a421cb3635966beccd927",
+      "size": 5112069
+    },
+    {
+      "path": "knowledge_base/references/论文类/流程优化/基于模块化的Z公司汽车仪表产品研发流程改善研究_张丁日.pdf",
+      "sha256": "1eee9e89766a17f5a9eebe883b0ba459094c01f9724759196809c1703991e37b",
+      "size": 5670069
+    },
+    {
+      "path": "knowledge_base/references/论文类/流程优化/基于流程优化的Z省信息技术专业职称评审系统改进研究_葛家莹.pdf",
+      "sha256": "4a8f67d83014e3e728d59ca3ce0814fe48eaa8b82b82fd1719a5c41943c04b99",
+      "size": 3793444
+    },
+    {
+      "path": "knowledge_base/references/论文类/流程优化/基于物联网的D公司检测实验室信息管理流程改进研究_张茹萱.pdf",
+      "sha256": "d33642f02a4641f0af6ba23395a8a8047033d06b042b5d0513327a99718b8a0d",
+      "size": 6893714
+    },
+    {
+      "path": "knowledge_base/references/论文类/流程优化/沣东公司热处理工艺开发流程改善研究_高晓辉.pdf",
+      "sha256": "d994ad7fa0cb360cf58975a042c926342455eb0964a4cfdbc6bae3e3fc570422",
+      "size": 5462647
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/A公司行泊一体自动驾驶产品性能综合评价研究_王亚伟.pdf",
+      "sha256": "4b5e53f11d94219b5aa38219fe3168ea58035ff482591d9bd60b0e36552d13fb",
+      "size": 2735220
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/B公司承建的电子政务项目绩效评价方法研究_俞思佳.pdf",
+      "sha256": "a0b4dd2f1f6c0032dae2acaa13cd4301aea35eb1bb010136bbc0d59f9ddac4d8",
+      "size": 3125329
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/H房地产公司战略供应商绩效考评改进研究_李雪波.pdf",
+      "sha256": "c8d76c82ded29b88290010af33b41c089a0859fb0f1b36fb587a6ae8d4f2c0d2",
+      "size": 3847589
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/H集团手机芯片研发项目绩效评估研究_柴凯丽.pdf",
+      "sha256": "8038d00edcc63ea8a4fee9289eab9074526388725b944b863f4701711c659e10",
+      "size": 2264465
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/NY安置房项目的代建单位比选研究_徐基丰.pdf",
+      "sha256": "ab4d17dbe6a0348fa4a2adaef1022ea0526a1f2c8dee06e9df91c31db59c89a8",
+      "size": 3995439
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/S公司光芯片研发团队协同度评价与优化研究_吴维轲.pdf",
+      "sha256": "0b0537b19931eee34e5bc15e5fa7c191b067ed8f1e9985a3ca73e98638d782e5",
+      "size": 5618308
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/W市大型综合医院节能改造设计方案综合评价研究_陈笑笑.pdf",
+      "sha256": "24e060bd63a306270cb455bffe133b120531a074ec2d852252f6e076322de0e7",
+      "size": 4328821
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/乡村振兴背景下Q市山地集中式光伏电站选址评价研究_吴双.pdf",
+      "sha256": "ac411da587f198ba99770c9110cb76315cc85f4773db4e0d11efd1bf2c42058e",
+      "size": 5287667
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/基于人才画像的公募权益类基金经理综合评价研究_刘燕.pdf",
+      "sha256": "7e209b36645b97efdd915b4458906948aa591780a8d9ddef8c66bb2d55745881",
+      "size": 2936798
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/基于平衡计分卡的T房地产公司住宅项目运营管理评价研究_张钰.pdf",
+      "sha256": "1be8d53e1dcef435eab289f6398d93e13111cfb6aa93eb1b1d3ab3a546616869",
+      "size": 3093841
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/流域性地质灾害综合治理效益评价体系研究_凌思强.pdf",
+      "sha256": "5f36f516bd90299fe43784f6197609fdc73c95e1937bb77905081e93267d7948",
+      "size": 3895073
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/碳排放视角下的装配式内装修项目评价研究_翁延华.pdf",
+      "sha256": "145e0f4c53bf67f0ba19b0deeea9a734898f1e62c467df9a7b3655c3d19db736",
+      "size": 3762111
+    },
+    {
+      "path": "knowledge_base/references/论文类/绩效评价/药品B证AG企业仿制药研发项目立项评价研究_景林涛.pdf",
+      "sha256": "74e813b0cc3f100b984454e847e63f99158f1d9790a823c9a5c19f235e525bb6",
+      "size": 2920385
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/A公司PLC产品质量改进研究_朱凌枫.pdf",
+      "sha256": "461345577e4da0e4838c0cb4ba370be6810043d85eb74d4c9bdaa9e7e520a8df",
+      "size": 6024150
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/A公司“2+2+N”信息化项目咨询复合型人才培训体系研究实践-终稿版.pdf",
+      "sha256": "410840f684dd86637897f923def396f7e1ed1a0dc6ada7a16e01102b0bdde854",
+      "size": 4339052
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/A公司人工智能医学影像用数据集质量管理研究_学位论文-送审版.pdf",
+      "sha256": "c6fd8e924082fd10288fc4785c901fd42bd79142e05ae6ce9d66cf84b7745184",
+      "size": 2331760
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/A公司智能家庭网关产品的质量改进研究_钱海旦.pdf",
+      "sha256": "6d6dba43f974642a2f05f7eac5a92a1d0454b211e73d855157f83d7e70b3d926",
+      "size": 3157034
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/A公司软件质量管理研究+任婷婷.pdf",
+      "sha256": "f1dd0a65f28113d117f0781ed2a386bfe33fe32803710181afaa38f38ab0a898",
+      "size": 2158729
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/A医院网络安全运营质量管理研究—以Y项目为例.pdf",
+      "sha256": "23e487f0e727dd7dd764cc896b9481939c9d2da68b2a47b740c7be3903d3e90e",
+      "size": 4024739
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/A医院网络安全运营项目质量研究 --以Y项目为例_学位论文-送审版.pdf",
+      "sha256": "376c99b722442c6c78828a3174fa8d1b4efb99a5dae87caf383d9a17eedd9b02",
+      "size": 3350695
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/A高校财务服务质量评价与优化研究-终稿版.pdf",
+      "sha256": "a354f330f70c4085b5b5f3868d4cdf711229016bffe57301c23586382d0319d2",
+      "size": 4862650
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/BIM技术在医疗综合体项目...电工程质量控制中的应用研究_韩波涛.pdf",
+      "sha256": "3f97c47bed852d372c44c289ac7ed7aab44aa32d00976b4ace4e5dbd93ca6a5f",
+      "size": 4383105
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/D公司金融数据仓库质量改进研究_谢怡敏.pdf",
+      "sha256": "642d8fcb3552c8fd3e78c201d029839dcb1ae7b800b7d2868fca9363f4604c23",
+      "size": 3994998
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/E公司电感器研发项目质量管理优化研究_学位论文-答辩版.pdf",
+      "sha256": "d84fde0f866d1f7b68556736d81db135783893be11ec8096dbc096d47890c063",
+      "size": 2571680
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/E车企新能源汽车动力电池回收网络规划研究_李宇琦.pdf",
+      "sha256": "9e15a77a8a4a2155820cd5471495e02e77aeea4cec142a51c681169fd02b453a",
+      "size": 3094257
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/F公司烟气排放连续监测系统产品质量改善研究_王功换.pdf",
+      "sha256": "61be1cf0b5c94345dd0c240bf4f6e681beae2eaef4a6a6cf90e8fc030c14a30f",
+      "size": 5849221
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/F汽车零配件企业及时交货率提升研究_徐慈煊.pdf",
+      "sha256": "ccf3d7d2e2f165fabd6374eb862ee8d220f408fe5cfde99ec3d5abaa8086ac8a",
+      "size": 3433864
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/H公司Y股票软件开发项目质量管理改进研究_叶彩梅.pdf",
+      "sha256": "f990f7b4e5bfb2f3413fb6dfa9484065b372ce0d23185d5b15154e0ccc0a196d",
+      "size": 4892227
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/H公司舒利安降压药质量改善研究_王玲芳.pdf",
+      "sha256": "c981012c6dd750b2ef1ea7eabad56a5bf64bd57e5a96722dfb841c36c3748946",
+      "size": 5458905
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/H公司运维项目质量管理改进研究与实践_终稿版.pdf",
+      "sha256": "34cb69549c90593b49bd5f2e651edc51939e99d2340c0826e79063748a3838e9",
+      "size": 2739415
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/H医疗器械公司公众号平台项目质量管理研究_终稿版.pdf",
+      "sha256": "eafd781e6893104f9fbf33ac043de5e14a6b0e01425df42fbcebb3e38a00f772",
+      "size": 3586674
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/JC公司工业车辆智能管理系...建设项目客户满意度提升研究_周华浩.pdf",
+      "sha256": "1a2ccec30de73e891cae048cb2a1c7b42029ba89c24248cac1e93b5925a6f1c1",
+      "size": 9834671
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/J公司安防摄像机产品质量问题管理与改善研究_吴肖蓉.pdf",
+      "sha256": "c4ea205efea3679e25fc8e8f8ec381cf90dc719e50ebd3979962b20d4daa4803",
+      "size": 5406945
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/L公司配电网供电可靠率提升研究_管委玲.pdf",
+      "sha256": "58a79cf9c08ce4b9e86985863a915a4fd485a561f0f8bc0981ea1cff5b81e2bc",
+      "size": 5040098
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/N银行智能营销软件系统的质量改善研究_姚妍轲.pdf",
+      "sha256": "35403eb6e478e176b72c953b43b375ce46cf6fdafe6f29b33c4f22a7bcbd9656",
+      "size": 11037372
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/S公司产品研发项目流程设计.pdf",
+      "sha256": "181c6d1c5e973cc587cce4bd44cd901c4d1fc9eb39903ca4b919cbf6c887b2ee",
+      "size": 33039561
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/S公司物流服务程序的项目质量研究-终稿版.pdf",
+      "sha256": "fe7b89ef6a696f2437b31295c3e6f16fecf0f044be135af370da906090d9489e",
+      "size": 3305476
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/S公司聚醚改性硅油质量改善研究_宋春燕.pdf",
+      "sha256": "f05a054c10e33016acc6b5f158618c67232bffb1cabecff45af17827a887da70",
+      "size": 5362598
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/S证券公司核心交易系统升级项目质量改进研究_终稿版+致谢昌飞.pdf",
+      "sha256": "6949df71137a70e1363afddfb194ea4a1ed499d32fb133106e99288d49b5969e",
+      "size": 4223274
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/T公司物联网芯片的选型与导入质量管理研究_陈利欢.pdf",
+      "sha256": "080429ef5d998fdb14be121d049be3b3345774abd7300bc4dc16b9f6c187cbdc",
+      "size": 2614545
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/WY公司质量问题归零研究与应用.pdf",
+      "sha256": "dbc9b4149b79af48aeae76e9fd0dae91214bb7664c8181875e8946fa7b2957ef",
+      "size": 3034373
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/Y公司T产线项目质量管理改善研究.pdf",
+      "sha256": "acaba4058e2ec83c68dbfdec2aba3e0f303b35b5d385df51553a789b14c45149",
+      "size": 3273341
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/Y公司电商软件项目开发过程质量管理改进研究_杨慧.pdf",
+      "sha256": "41e57c61e6a8e84350fde22951cf9c6a551cec179eb9d3d34e97df966a2d3601",
+      "size": 2726921
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/Y公司软件项目质量管理评价研究+王旭阳.pdf",
+      "sha256": "72bd1a00a2bfac5fed93ed23f82917d81665939a16a1001110fc9790aaf93368",
+      "size": 2044291
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/Z公司海上风电安装平台总体设计项目质量管理研究.pdf",
+      "sha256": "48c1e3e4d81a72ff3ce159658cd01c71a48b8df5a959f4d4b5575a9c0ebd4f95",
+      "size": 2827274
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/传统企业官方微信公众平台建设的项目质量研究——以S公司为例_学位论文-送审版.pdf",
+      "sha256": "08c3a65376e5c90670302254d2dcbb5b447ae11e3a2dcfc7794947cfa1842518",
+      "size": 3541647
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于APQP的L公司新能源...C水加热器开发质量改善研究_张洋.pdf",
+      "sha256": "781b7abfb8e0138d80a44fe11bba0648cdfd8e398397738460450fc2d6827f68",
+      "size": 6083428
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于CMMI模型的K公司软件项目质量管理改进研究+王子心.pdf",
+      "sha256": "1e70e033da5fc99e297192b2aca1d1a62a6debcc3b2f17569fe192735c0caff0",
+      "size": 2985636
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于CMMI模型的K公司软件项目质量管理改进研究-终稿版.pdf",
+      "sha256": "1e70e033da5fc99e297192b2aca1d1a62a6debcc3b2f17569fe192735c0caff0",
+      "size": 2985636
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于CMMI模型的S公司半导体软件质量管理研究_终稿版.pdf",
+      "sha256": "0e2c7eb463fcae4410120c7bbda080ec27cbce50cdaace5f00c328a9c1f48a53",
+      "size": 1874745
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于CMMI模型的X公司软件质量管理改进研究_郭波.pdf",
+      "sha256": "0221a53f0cfdc78cf9847dc6157574b80b8be2e59a9274fc1b326cfff4b54de5",
+      "size": 7009197
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于DMAIC的Y银行普惠...业贷款业务服务质量改进研究_黎云波.pdf",
+      "sha256": "fb4875f7fec9b1babb3626357aa579b6d0ddb94ed1d2163c4db45dc2296e6b91",
+      "size": 3089269
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于DMAIC的建筑电气设计质量管理研究_吕国姣.pdf",
+      "sha256": "b883727d133cda8b2a2c56aa5a396c8b6508e6963875421061b147eec7670156",
+      "size": 5069425
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于DevOps能力模型的Y公司办公软件项目质量管理研究-终稿版.pdf",
+      "sha256": "4ec369a604d119f1c81e34f08c56dd91f63e674af7685468d78381759f989901",
+      "size": 3150677
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于ISOIEC17025和LIMS系统的W电池实验室质量管理体系建设项目实施研究-答辩版.pdf",
+      "sha256": "42b03a31478378b16a1a130f222924ecaa3915d2ebff50774f6d0edf00fb532d",
+      "size": 8152551
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于PDCA循环的混合式BOPPPS技能培训模式探索——以B汽车公司新能源培训为例_答辩版.pdf",
+      "sha256": "b88ac442bef11e718cc94297b14d1cfda5a172b2656d560af496ed9e3bc1b2cd",
+      "size": 2562145
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于PDCA循环的研发项目质量管理研究——以场景化AI研发项目为例-终稿版.pdf",
+      "sha256": "6ebc5514675190c2ec26211f683681622496cafdf13bab7eb51ac8912950230f",
+      "size": 1915689
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于QFD理论的C公司家用消防产品开发项目质量管理优化研究_终稿版.pdf",
+      "sha256": "e991f9d27a4f92789ec9fd8afd6ead875c9f6d9204e95a655faaf53d124eace7",
+      "size": 7858488
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于Scrum敏捷开发的项目质量管理优化研究.pdf",
+      "sha256": "940f6ca729212c5d290480448938cfac3a2dbd457a7e322f208860cb2dcbed12",
+      "size": 38674081
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于Scrum敏捷开发的项目质量管理优化研究_学位论文-送审版.pdf",
+      "sha256": "3f6a933f5103c67edb992a6c23307cb752a3470e4eeb566585a5ddab48898fec",
+      "size": 2647550
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于三层嵌套式PDCA的A公司广告服务质量管理研究-终稿版.pdf",
+      "sha256": "785b6ed1faaf3f3e09c3bffca3d1581ef3a59f7d71e9d03111038561f9ecfbac",
+      "size": 2264870
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于全生命周期管理理念的项目交付质量提升方法研究_朱应保.pdf",
+      "sha256": "e15a28a2ce6098d7148c76f54138bf2471444f7d1f3198b2a33ac3afcca36016",
+      "size": 4822562
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于六西格玛的H公司可降解树脂质量改善研究_董开岳.pdf",
+      "sha256": "6c2ee68c2f4e1fb46662d584ab451242f0c6f122a2daaa5051664a077a37a291",
+      "size": 5350928
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于六西格玛设计管理的X公司天线研发项目质量管理优化研究_学位论文-送审版.pdf",
+      "sha256": "48ac501bb3ae00ccdc8df94653aea268470880bbca572a1560e4646dae9ad9a7",
+      "size": 3407127
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于医学知识图谱的病案首页质量改进研究_李庆玲.pdf",
+      "sha256": "069c17648aaf94a0109d7e6d037346736e25a4bf3208cd0c0e140a77c7980374",
+      "size": 5474820
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于多目标优化的机电类非标产品标准化统型研究_王立婷.pdf",
+      "sha256": "94732e6ee435f81b459661c03d1d75b563a5613d539fbea814abe1457ad6ed1b",
+      "size": 2878732
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于度量的软件过程管理方法与分析技术的研究_侯红.pdf",
+      "sha256": "3b58367418c812c86693665cc34b9ada98a3dd3f73d74c6d5ba9559f690d559f",
+      "size": 6115808
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于根因分析法的C车间生产绩效精益改善研究-终稿版_致谢+昌飞.pdf",
+      "sha256": "3239b23ceb4b9f1f83531df2e8d0d29220e7b6984f97abc80fa371789aa41f6d",
+      "size": 2508450
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于模糊认知图的质量管理度量研究.pdf",
+      "sha256": "faf74ff0f7f45e8d3635b84a300c5026f24faa339b07503ccf61d4747b55f226",
+      "size": 43996294
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/基于模糊认知图的质量管理度量研究_学位论文-送审版.pdf",
+      "sha256": "e9d10f1c2d698feb553d44946f6aafb4dd3ff74c2f432c816e337d6d9ce8876a",
+      "size": 3133914
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/复且大学博士、硕士学位论文现范 - e4d6bc89c4b64d3d9581e6d0f460ee7c.pdf",
+      "sha256": "cb90a5adce6c108c251001fff8edc7ad745db43e294a4d126ba813c6a0adf118",
+      "size": 34685676
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/快消行业新产品开发流程优化研究-以S公司为例_学位论文-送审版.pdf",
+      "sha256": "ae4e171241335ff1c9e8a1ad3cdd72742fee466243a24bb62c26fa2075a49a03",
+      "size": 4166820
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/敏捷开发在B公司制药行业MES软件开发中的研究.pdf",
+      "sha256": "0619e9465222bad016a01cc35ba977ea944579081718b5ff5ec6b5a26dee3970",
+      "size": 35424544
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/核电EPC工程总承包项目多要素管理机制研究_冯燕.pdf",
+      "sha256": "424c31a2e0878b5431149c0ee929cffc7f331881dd579583065bd8c1844d7fe3",
+      "size": 4175197
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/汽车零部件 S 公司新产品开发项目质量管理改进研究_终稿版.pdf",
+      "sha256": "d1a1b1398d99407c1e22a2ee2ed0cf643b3eb74cb2250bef85d287258d2c7bcd",
+      "size": 4380897
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/盾构隧道成型质量改进研究_饶卫华.pdf",
+      "sha256": "7f07f559e2e441755267fa9b6463edced22316e91e8a2d43041b69355058730b",
+      "size": 5699937
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/规模化敏捷开发模式下的质量管理研究-以S公司为例_终稿版.pdf",
+      "sha256": "91db356a8eade60c76a50e0edf0b8704b8a975692421a18d99bcca82d231cb21",
+      "size": 4768096
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/质量管理在A公司生物安全实验室建设项目中的应用研究.pdf",
+      "sha256": "4a94c042b426ca247796c58085566459fb1f6593e54acd982891ae5d276241c3",
+      "size": 2893934
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/长租公寓改造工程优化研究_邵琴.pdf",
+      "sha256": "2c9ec11a22521052d2e9b874572189e9fa30baab387e4eeaaa09463da87f69a7",
+      "size": 8610912
+    },
+    {
+      "path": "knowledge_base/references/论文类/质量管理/高校财务微信公众平台的项目质量研究——以F大学为例-送审版.pdf",
+      "sha256": "3781e46013c666091f1af6ae325754df4eb5a90a8aed6a3236edb7f7d86ff033",
+      "size": 3820668
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/A公司数据平台开发项目进度管理改进研究_赵辉.pdf",
+      "sha256": "4e61cf968707ac3f4668690d24cc993ccb657f03725c46610dc4693f9a043c91",
+      "size": 2721345
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/EPC总包视角下专业分包商工期延误评估与管控研究_汪能亮.pdf",
+      "sha256": "89c61aaff18a62a11736582ce81ad695b86c7886ccd3370c41bb8d41f4f7dcff",
+      "size": 4549972
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/G公司汽车涂装缺陷自动化检测项目建设进度管理研究_吴宝通.pdf",
+      "sha256": "3a79e7e1940b30a58c42cefb981743241fe03c4747b03df509f16cf8a3f9231b",
+      "size": 2918837
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/H公司高压真空开关国产化项目进度管理研究_金烨鹏.pdf",
+      "sha256": "514d6cfd563b2d8127ad29cf0610e69b938841b0b810cf25286312fda2908be7",
+      "size": 2518333
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/K公司外采模式下的数字化项目进度管理研究_李佳敏.pdf",
+      "sha256": "86be1370bbc80d4267c992f51ad38a681c601e94af6ec31deda39caf7abcb0fd",
+      "size": 5162184
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/L公司商业火箭总装柔性排产...划管理流程数字化研究与应用_周正天.pdf",
+      "sha256": "af33abb1aff9a400aabb14d8901751ed3e9fc927657ae19a937cc773ac47fafa",
+      "size": 4944112
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/SC公司业财一体化项目进度管理研究_项健威.pdf",
+      "sha256": "6ec1875802556874711fca98f400bad610932ba0ba01cc8707bb7acba8c97d5e",
+      "size": 14827899
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/S公司HJ城际铁路运维系统开发项目进度管理研究_张忙忙.pdf",
+      "sha256": "01cd681127632b01603bd1ac4cd2b03ea1d9e586795fec4fd71de51d3b0f0917",
+      "size": 5788642
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/Y公司智能交管软件开发项目进度管理改进研究_曹虹霞.pdf",
+      "sha256": "0777a8cfa373ded6e55ed0f576f293742b46205004b3973d41085baada1dd627",
+      "size": 9468593
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/基于关键链技术的Z公司市场...易软件开发项目进度管理研究_徐佳丽.pdf",
+      "sha256": "e3befda024324fa0a33cfef54a57ecc334ccd4c5768c79dbf8cde0980ce6534a",
+      "size": 4759241
+    },
+    {
+      "path": "knowledge_base/references/论文类/进度管理/多产线排产和多能工指派的综合优化_李君.pdf",
+      "sha256": "262851a1f71a8def99145d361e5e3a7b6b4f58d67839dedf555145f09a3666fd",
+      "size": 4278028
+    },
+    {
+      "path": "knowledge_base/references/论文类/需求管理/H公司支付APP产品开发需求管理改进研究_董婷.pdf",
+      "sha256": "94e4a75781c19738b25e840ae46665dea0bc600abbcaac8aed774b98d59926fb",
+      "size": 2771821
+    },
+    {
+      "path": "knowledge_base/references/论文类/需求管理/J公司公共数据平台软件项目需求管理改进研究_许留奇.pdf",
+      "sha256": "a4a73068e26cf143ef72152e318a7094ea1bd42b087ed46011096a7c9ec3f699",
+      "size": 4035308
+    },
+    {
+      "path": "knowledge_base/references/论文类/需求管理/S公司SDH产品需求管理研究_张立.pdf",
+      "sha256": "d7899c18df50c13e6021089af49c19237b231823715fb0337529151054db891b",
+      "size": 2635697
+    },
+    {
+      "path": "knowledge_base/references/论文类/需求管理/发电企业内网安全防护措施的决策管理研究_陈锡宙.pdf",
+      "sha256": "232980c573df23b66a5189aa1978ffc651b1fe37e214ffff873d544e235d7e8a",
+      "size": 2674944
+    },
+    {
+      "path": "knowledge_base/references/论文类/需求管理/基于Uniformat_Ⅱ...RBF神经网络投资估算研究_张利学.pdf",
+      "sha256": "9254938a271408fe2b4b15fc7a172440f6445d170d2848cd3eb9703876912f1d",
+      "size": 5216096
+    },
+    {
+      "path": "knowledge_base/references/论文类/需求管理/基于库存分类与需求预测的L...电商公司海外仓库存优化研究_张滟.pdf",
+      "sha256": "619ad0d1ce1ef399392ad7b9d7f4565046afff7c945a23e05b71369dc6bab210",
+      "size": 3598330
+    },
+    {
+      "path": "knowledge_base/references/论文类/需求管理/数据驱动的Z公司光相干断层扫描仪产品需求管理研究_李益芳.pdf",
+      "sha256": "442a02857106dec3f0780f2194452e1d20462d041d672693a0bb31121911a12e",
+      "size": 5794395
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/A保险公司工程车辆保险反欺诈管理研究_郭琦.pdf",
+      "sha256": "316784d8cafd9092080d092c7b233671b57931bb8f192dd147c7fb74025f2860",
+      "size": 2031752
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/C企业半导体制造过程安全风险评价与控制研究_闫伶俐.pdf",
+      "sha256": "e3fef23be7df6c699bb6d4523c08e30372222dc7a578d9427d31f5ce24a252ec",
+      "size": 4826890
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/D公司负载敏感多路阀国产化项目风险管理研究_赵林林.pdf",
+      "sha256": "ab0fab4fb49c14130d0d42d6d92c1e80b5db47d290653a01686957e3180899d8",
+      "size": 4096137
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/E公司软件开发项目风险评估改进研究_宦传建.pdf",
+      "sha256": "a67ec04a2cc39a50ca6996cdb09241579d8c5c23752430e532806c0cad71f079",
+      "size": 2696751
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/H医院电子病历项目实施阶段风险管理研究_李哲明.pdf",
+      "sha256": "90c7401aa40c4731edb7e1abb4ff7f477cbecebc7c70bfab577795a1c9d5e9ad",
+      "size": 2804791
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/KN公司分布式光伏电站投资风险管理研究_韩煜.pdf",
+      "sha256": "44ec193b8605906d98fe6033393e6a1ce96d8228ef9ca2594a076d95aee6bd9b",
+      "size": 10572969
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/L公司量化基金项目中的程序化交易系统风险管理研究_万磊.pdf",
+      "sha256": "30d1f37d9a0949ff9b9300baebbda580c167f09a7de11b7f5a1e775a9d4a812d",
+      "size": 4614952
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/T研究院汽车“四高”路试项目安全风险管理研究_潘金冲.pdf",
+      "sha256": "b986cc4acaa6bd18978eb4878de2881be7c29edc57487642b347918ded5c6b8b",
+      "size": 3065717
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/X餐厨垃圾特许经营项目提前终止风险分析_郑超.pdf",
+      "sha256": "994f69391e02e0748011757d68afcd2d6d2c306facb966c5ac6ce945c75b382f",
+      "size": 3501690
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/Y公司网络摄像机产品软件测试设计与执行改进研究_王光利.pdf",
+      "sha256": "4d90dafe1c2c52928256e87f21c50e00cce4383944591db6ed8f61a267a43181",
+      "size": 4178972
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/Z公司房建项目施工合同履行风险管理研究_俞锦东.pdf",
+      "sha256": "377f1e84fee75b0d443eb534aaddf4ecebdf090b2b7aa5e1eba857548a35180c",
+      "size": 2888358
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/化工园区供热系统安全风险管理研究_杨楠.pdf",
+      "sha256": "63f0b4d236e1f5e07163e625c711b5f7993c89571eda64c5883acf21d5413c2b",
+      "size": 2898088
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/基于ANP-模糊综合评价的...工程EPC项目风险管理研究_路彩娟.pdf",
+      "sha256": "b4932ed6a8a9236138f2c4c53bec5ad5328bcf3f7792e36210a85c3788c38dd7",
+      "size": 4797050
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/基于BP神经网络的Y农商银行城投债风险管理研究_唐辰瑜.pdf",
+      "sha256": "301eeb48dece49522ce201b853f55a34f6f76dbd4d0ca08fcbc8a7d6d4d6e76c",
+      "size": 5453447
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/基于二叉树实物期权法创新药项目投资决策模型研究_俞婷.pdf",
+      "sha256": "e771ede43ef89a0c6aaa8fb92dde210601342d534c09958539caa5029ec4d811",
+      "size": 2721828
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/基于交通冲突分析技术的道路交叉口交通安全管理研究_吴凡.pdf",
+      "sha256": "9b8e1edab9746cf970232d80404a32707c32d6827424566e88f80a19c9404fa0",
+      "size": 7536867
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/基于实物期权法B-S模型的...处理PPP项目投资决策研究_杨斌.pdf",
+      "sha256": "ae444fb6cac57a91d4d868049dd499f017e0b23aa5e59a5a391c6c422c9d4252",
+      "size": 2700443
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/宁波Y综合管廊总承包项目施工风险管理研究_陈斌.pdf",
+      "sha256": "b5f4f7651af895ae30bac15c6969ac9480c30d0fb8e6e8e4a50ad6be57fb0ac4",
+      "size": 3697799
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/政府代建制A项目质量风险管理研究_林城欢.pdf",
+      "sha256": "dc68996f653c8cb99027301f2dc54e9b12f848e1303fcf1a05ccf10010e2b5ef",
+      "size": 3668785
+    },
+    {
+      "path": "knowledge_base/references/论文类/风险管理/疫情背景下Y货运航空公司的航空维修风险管理研究_曲映玮.pdf",
+      "sha256": "fbd3e4db64a7a317887cb46484e12404db018e7eeab51e1e2dbae172453310f6",
+      "size": 8145681
+    },
+    {
+      "path": "knowledge_base/templates/methodology_catalog.json",
+      "sha256": "b96b620284deba238adcd95ce2389b5208c6203fab84dd6a4b11aa6e04d57176",
+      "size": 64269
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+# Environment
+.env
+.env.local
+.env.*.local
+.thesismind/
+
+# ── 知识产权资产 (明文) ──
+# 以下目录包含 curated 论文模板、方法卡片、引用库等核心 IP
+# 仅通过 assets_enc/ 加密分发，clone 后不可直接使用
+knowledge_base/
+cards/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Backup
+backup/
+
+# Output
+output/
+generated/
+*.docx
+*.xmind
+*.pdf
+
+# Logs
+logs/
+*.log
+
+# Cache
+.cache/
+.pytest_cache/
+knowledge_base/vector_store.sqlite3
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Coverage
+.coverage
+htmlcov/
+
+# Dependencies
+*.lock

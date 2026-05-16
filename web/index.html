@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThesisMind 论文辅助工作台</title>
+  <link rel="stylesheet" href="/styles.css?v=28" />
+</head>
+
+<body>
+  <main class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img class="brand-mark" src="/logo.png" alt="ThesisMind" />
+        <div>
+          <h1>ThesisMind</h1>
+          <p>工程管理论文辅助工作台</p>
+        </div>
+      </div>
+      <nav class="steps" aria-label="工作流">
+        <button class="step active" data-step="setup"><span>01</span>基本配置</button>
+        <button class="step" data-step="paper_info"><span>02</span>论文信息</button>
+        <button class="step" data-step="methods"><span>03</span>方法论选择</button>
+        <button class="step" data-step="framework"><span>04</span>研究框架</button>
+        <button class="step" data-step="outline"><span>05</span>章节大纲</button>
+        <button class="step" data-step="citations"><span>06</span>引用生成</button>
+        <button class="step" data-step="writing"><span>07</span>章节写作</button>
+        <button class="step services-toggle" id="servicesToggle"><span>08</span>增值服务 <span class="chevron" id="servicesChevron">▸</span></button>
+      </nav>
+      <nav class="services-sub" id="servicesSub" hidden>
+        <button class="step sub-item" data-step="proposal">开题报告</button>
+        <button class="step sub-item" data-step="ppt_proposal">开题PPT</button>
+        <button class="step sub-item" data-step="ppt_midterm">中期PPT</button>
+        <button class="step sub-item" data-step="ppt_defense">答辩PPT</button>
+        <button class="step sub-item" data-step="table_generator">表格生成器</button>
+      </nav>
+      <nav class="steps" aria-label="VIP">
+        <button class="step vip-toggle" id="vipToggle"><span>09</span>VIP服务 <span class="chevron" id="vipChevron">▸</span></button>
+      </nav>
+      <nav class="services-sub" id="vipSub" hidden>
+        <button class="step sub-item" data-step="blind_review">盲审检查</button>
+        <button class="step sub-item" data-step="aigc_check">AIGC率评估</button>
+        <button class="step sub-item" data-step="aigc_reduce">AIGC降重</button>
+      </nav>
+      <nav class="steps" aria-label="管理工具">
+        <button class="step" data-step="kb_init"><span>📚</span>知识库初始化</button>
+        <button class="step" data-step="paper_manager"><span>📄</span>论文管理</button>
+        <button class="step" data-step="license"><span>🔑</span>许可证管理</button>
+      </nav>
+      <div class="license-badge" id="licenseBadge" title="点击管理许可证">
+        <span class="license-dot" id="licenseDot"></span>
+        <span class="license-label" id="licenseLabel">许可证</span>
+        <span class="license-days" id="licenseDays"></span>
+      </div>
+    </aside>
+
+    <div class="model-badge" id="modelBadge" title="当前模型">读取中</div>
+
+    <section class="workspace">
+      <section class="panel page active" id="setup">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">论文辅助工具</p>
+            <h2>从主题到大纲的本地化研究设计</h2>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>大模型服务商</span>
+            <select id="providerInput">
+              <option value="deepseek">DeepSeek</option>
+              <option value="minimax">MiniMax</option>
+              <option value="moonshot">Moonshot (月之暗面)</option>
+              <option value="zhipu">智谱 GLM</option>
+              <option value="qwen">阿里通义千问</option>
+              <option value="bytedance">字节豆包</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="openai">OpenAI (ChatGPT)</option>
+              <option value="openai_compatible">OpenAI Compatible</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>模型</span>
+            <input id="modelInput" placeholder="例如 deepseek-v4-pro" />
+          </label>
+          <label class="field">
+            <span>Base URL</span>
+            <input id="baseUrlInput" placeholder="例如 https://api.deepseek.com/anthropic" />
+          </label>
+          <label class="field">
+            <span>API Key</span>
+            <input id="apiKeyInput" type="password" autocomplete="off" placeholder="留空则沿用本地已保存 Key" />
+          </label>
+        </div>
+
+        <div class="license-inline" id="licenseInline">
+          <div class="license-inline-status">
+            <span class="license-inline-dot" id="licenseInlineDot"></span>
+            <span class="license-inline-label" id="licenseInlineLabel">许可证状态</span>
+            <span class="license-inline-days" id="licenseInlineDays"></span>
+          </div>
+          <div class="license-inline-activate" id="licenseInlineActivate">
+            <input id="licenseInlineCode" placeholder="TM-XXXX-XXXX-..." class="license-code-input compact" />
+            <button class="ghost" id="activateLicenseInlineBtn">激活</button>
+            <span class="save-tip" id="licenseInlineTip"></span>
+          </div>
+          <div class="license-inline-trial" id="licenseInlineTrial">
+            <button class="ghost" id="startTrialInlineBtn">开始免费试用</button>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="ghost" id="saveConfig">保存配置</button>
+          <button class="primary" id="testConnection">测试连接</button>
+          <span class="save-tip" id="saveTip"></span>
+          <span class="save-tip" id="testStatus"></span>
+          <button class="primary" data-next="paper_info">下一步</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="paper_info">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">论文基本信息</p>
+            <h2>设置论文主题、研究方向和项目背景</h2>
+          </div>
+        </div>
+
+        <div class="form-grid form-grid-compact">
+          <div class="paper-info-top-row">
+            <label class="field inline-field project-history-field">
+              <span>历史项目</span>
+              <div class="inline-select-row">
+                <select id="projectSelect"></select>
+                <button class="ghost" id="openNewProjectModal" type="button">新建项目</button>
+              </div>
+            </label>
+          </div>
+          <div class="paper-info-meta-row">
+            <div class="meta-item">
+              <span class="meta-label">论文题目</span>
+              <strong id="currentTopic" class="meta-value">未设置</strong>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">研究方向</span>
+              <strong id="currentDirection" class="meta-value">未设置</strong>
+            </div>
+          </div>
+          <label class="field wide">
+            <span>论文主题</span>
+            <input id="topicInput" placeholder="请输入论文题目或研究主题" />
+          </label>
+          <div class="project-context-pair">
+            <label class="field wide">
+              <span>示例参考 <button class="ghost example-toggle" id="toggleExample" type="button">展开示例</button></span>
+              <textarea id="projectContextExample" readonly hidden></textarea>
+            </label>
+          </div>
+          <div class="project-context-pair">
+            <label class="field project-context-field">
+              <span>项目背景</span>
+              <textarea id="projectBgInput" placeholder="描述你的项目：企业名称、项目内容、时间范围、当前阶段、你在项目中的角色等。&#10;&#10;示例格式：&#10;我在写一篇硕士论文，论文题目是《基于H公司XXX项目质量管理优化研究》&#10;项目启动时间是2024年8月，一期2024.8-2025.1..."></textarea>
+            </label>
+            <label class="field project-context-field">
+              <span>论文思路</span>
+              <textarea id="projectApproachInput" placeholder="描述论文结构与方法论：分几章、每章核心任务、使用什么研究方法、逻辑如何串联等。&#10;&#10;示例格式：&#10;论文分为六章。第一章绪论，第二章研究理论和框架（CMMI 2.0），第三章H公司质量管理问题识别...&#10;研究方法：文献研究法、问卷调查法、德尔菲法、AHP、PDCA、准实验+DID"></textarea>
+            </label>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="ghost" id="savePaperInfo">保存</button>
+          <button class="primary" data-next="methods">下一步</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="methods">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">方法论选择</p>
+            <h2>从知识库扫描可用研究方法</h2>
+          </div>
+          <button class="ghost" id="refreshMethods">重新扫描</button>
+        </div>
+        <div class="method-toolbar">
+          <input id="methodSearch" placeholder="搜索方法论，比如 CMMI、PDCA、AHP" />
+          <span id="methodCount">0 个方法</span>
+        </div>
+        <div class="method-tabs" aria-label="方法论阶段">
+          <button class="method-tab active" data-method-phase="discover">发现问题</button>
+          <button class="method-tab" data-method-phase="solve">解决问题</button>
+          <button class="method-tab" data-method-phase="validate">验证问题</button>
+        </div>
+        <p class="hint">每个阶段可多选方法。系统按知识库和方法特征推荐到对应 tab，默认不勾选；不确定适用阶段的方法会出现在多个 tab 中。</p>
+        <div class="custom-method">
+          <input id="customMethodInput" placeholder="自定义当前阶段的方法，如 问卷调查法、前后对比评价" />
+          <button class="ghost" id="addCustomMethod">添加到当前阶段</button>
+        </div>
+        <div id="methodList" class="method-list"></div>
+        <div class="actions split">
+          <button class="ghost" data-next="paper_info">上一步</button>
+          <button class="primary" id="generateFramework">生成研究框架</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="framework">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">研究框架图</p>
+            <h2>预览、编辑研究框架并生成数据表格</h2>
+          </div>
+          <div class="head-actions">
+            <button class="ghost" id="saveFrameworkBtn">保存框架</button>
+            <button class="ghost" id="downloadFrameworkMermaid">下载 Mermaid</button>
+            <button class="ghost" id="downloadFrameworkPng">下载 PNG</button>
+            <button class="ghost" id="downloadFrameworkSvg">下载 SVG 模板</button>
+          </div>
+        </div>
+
+        <!-- SVG Preview -->
+        <div class="svg-preview" id="svgPreview"></div>
+
+        <!-- Mermaid Editor Toggle -->
+        <div class="mermaid-toggle-bar">
+          <button class="ghost active" id="viewSvgBtn">查看 SVG 图</button>
+          <button class="ghost" id="viewMermaidBtn">编辑 Mermaid 源码</button>
+          <span class="save-tip" id="frameworkSaveTip"></span>
+        </div>
+
+        <!-- Mermaid Editor (hidden by default) -->
+        <div class="mermaid-editor-section" id="mermaidEditorSection" hidden>
+          <textarea class="mermaid-editor" id="mermaidEditor" placeholder="在此编辑 Mermaid 源码..." spellcheck="false"></textarea>
+          <div class="mermaid-preview" id="mermaidLivePreview"></div>
+          <div class="mermaid-error" id="mermaidError" hidden></div>
+          <button class="primary" id="applyMermaidBtn" style="grid-column:1/-1;margin-top:8px;">应用并保存</button>
+        </div>
+
+        <div class="actions split">
+          <button class="ghost" data-next="methods">上一步</button>
+          <button class="primary" data-next="outline">确认框架</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="outline">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">章节大纲</p>
+            <h2>选择字数并生成可编辑大纲</h2>
+          </div>
+          <label class="word-select">
+            <span>论文字数</span>
+            <select id="wordCount">
+              <option value="30000">3 万字</option>
+              <option value="40000">4 万字</option>
+              <option value="50000" selected>5 万字</option>
+              <option value="60000">6 万字</option>
+              <option value="80000">8 万字</option>
+            </select>
+          </label>
+        </div>
+        <div id="subsectionProgress" class="serial-progress" hidden>
+          <div class="snail-track">
+            <div class="snail" id="subsectionSnailRunner" aria-hidden="true">
+              <span class="snail-shell"></span>
+              <span class="snail-body"></span>
+              <span class="snail-eye"></span>
+            </div>
+          </div>
+          <div class="serial-progress-text" id="subsectionProgressText">准备生成三级目录</div>
+        </div>
+        <div class="actions">
+          <button class="primary" id="generateOutline">生成大纲</button>
+          <button class="ghost" id="generateAllSubsections">一键生成三级目录</button>
+          <button class="ghost" id="saveOutline">保存大纲</button>
+          <button class="ghost" id="downloadOutline" disabled>下载 Markdown</button>
+          <span class="word-summary" id="wordSummary">预计 0 字 · 实际 0 字</span>
+          <span class="save-tip" id="outlineStatus"></span>
+        </div>
+        <div id="outlineLog" class="task-log"></div>
+        <div id="outlinePreview" class="outline-preview"></div>
+        <div class="actions split">
+          <button class="ghost" data-next="framework">上一步</button>
+          <button class="primary" data-next="citations">进入引用生成</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="citations">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">引用清单与引用库</p>
+            <h2>从引用库中选取论文参考文献</h2>
+          </div>
+          <span class="save-tip" id="citationStatus"></span>
+        </div>
+
+        <!-- Hidden generation infrastructure (used by idiot flow) -->
+        <div id="citationProgress" class="serial-progress" hidden>
+          <div class="snail-track">
+            <div class="snail" id="citationSnailRunner" aria-hidden="true">
+              <span class="snail-shell"></span>
+              <span class="snail-body"></span>
+              <span class="snail-eye"></span>
+            </div>
+          </div>
+          <div class="serial-progress-text" id="citationProgressText">准备生成引用</div>
+        </div>
+        <div id="citationLog" class="task-log" hidden></div>
+        <div id="citationList" class="citation-list" hidden></div>
+
+        <!-- ===== TOP: 引用清单 ===== -->
+        <div class="library-section" id="checklistSection">
+          <div class="library-head">
+            <h3>&#x1F4CB; 引用清单 <span id="checklistCount"></span></h3>
+            <div class="library-actions">
+              <button class="ghost" id="checklistClearAll">清空清单</button>
+            </div>
+          </div>
+          <div class="library-table-wrap">
+            <table class="library-table">
+              <thead>
+                <tr>
+                  <th>引用内容</th>
+                  <th class="lib-col-type">类型</th>
+                  <th class="lib-col-year">年份</th>
+                  <th class="lib-col-status">状态/质量</th>
+                  <th class="lib-col-actions">操作</th>
+                </tr>
+              </thead>
+              <tbody id="checklistTableBody"></tbody>
+            </table>
+          </div>
+          <div class="library-empty" id="checklistEmpty">尚未添加引用。请从下方引用库中选择并添加。</div>
+        </div>
+
+        <!-- ===== BOTTOM: 引用库 ===== -->
+        <div class="library-section" id="librarySection">
+          <div class="library-head">
+            <h3>&#x1F4DA; 引用库 <span id="libraryCount"></span></h3>
+            <div class="library-actions"></div>
+          </div>
+          <div class="lib-toolbar">
+            <div class="lib-toolbar-row">
+              <label class="lib-field">
+                <span>研究方向</span>
+                <select id="libDirectionFilter">
+                  <option value="">全部</option>
+                </select>
+              </label>
+              <label class="lib-field">
+                <span>方法论</span>
+                <div class="lib-method-wrap">
+                  <select id="libMethodFilter">
+                    <option value="">全部</option>
+                  </select>
+                  <input id="libCustomMethodInput" placeholder="自定义…" />
+                  <button class="ghost" id="libAddCustomMethod" type="button">+</button>
+                </div>
+              </label>
+              <label class="lib-field">
+                <span>关键词</span>
+                <input id="libKeywordFilter" placeholder="标题/正文…" />
+              </label>
+              <label class="lib-field lib-field-sm">
+                <span>校验状态</span>
+                <select id="libVerifiedFilter">
+                  <option value="">全部</option>
+                  <option value="1">已确认</option>
+                  <option value="-2">格式错误</option>
+                  <option value="-1">虚假</option>
+                  <option value="0">未校验</option>
+                </select>
+              </label>
+              <label class="lib-field lib-field-sm">
+                <span>最低质量</span>
+                <input id="libMinQuality" type="number" min="0" max="1" step="0.1" value="0" />
+              </label>
+              <label class="lib-field lib-field-sm">
+                <span>每页</span>
+                <select id="libLimit">
+                  <option value="20">20</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                </select>
+              </label>
+              <button class="primary" id="libSearch">查询</button>
+            </div>
+          </div>
+          <div class="library-table-wrap">
+            <table class="library-table">
+              <thead>
+                <tr>
+                  <th>引用内容</th>
+                  <th class="lib-col-type">类型</th>
+                  <th class="lib-col-year">年份</th>
+                  <th class="lib-col-status">状态/质量</th>
+                  <th class="lib-col-actions">操作</th>
+                </tr>
+              </thead>
+              <tbody id="libraryTableBody"></tbody>
+            </table>
+          </div>
+          <div class="cm-pagination" id="libraryPagination"></div>
+          <div class="library-empty" id="libraryEmpty" hidden>没有匹配的引用卡片</div>
+        </div>
+
+        <div class="actions split">
+          <button class="ghost" data-next="outline">上一步</button>
+          <button class="primary" data-next="writing">进入章节写作</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="writing">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">章节写作</p>
+            <h2>按小节扩写、重写和预览</h2>
+          </div>
+          <div class="head-actions">
+            <button class="ghost" id="completeAllWriting">一键串行完成</button>
+            <button class="ghost" id="exportWord">导出 Word</button>
+            <button class="ghost" id="exportPdf">导出 PDF</button>
+            <span class="save-tip" id="writingStatus"></span>
+          </div>
+        </div>
+        <div id="writingList" class="writing-list"></div>
+        <div id="serialProgress" class="serial-progress" hidden>
+          <div class="snail-track">
+            <div class="snail" id="snailRunner" aria-hidden="true">
+              <span class="snail-shell"></span>
+              <span class="snail-body"></span>
+              <span class="snail-eye"></span>
+            </div>
+          </div>
+          <div class="serial-progress-text" id="serialProgressText">准备开始</div>
+        </div>
+        <div class="actions split">
+          <button class="ghost" data-next="citations">上一步</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="blind_review">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">盲审风险检查</p>
+            <h2>基于 16 条风险规则的自动化扫描</h2>
+          </div>
+          <div class="head-actions">
+            <button class="primary" id="runRiskScan">运行风险扫描</button>
+            <span class="save-tip" id="riskScanStatus"></span>
+          </div>
+        </div>
+        <p class="hint">扫描已完成写作的章节草稿，检测数据支撑、方法堆砌、章节断裂、专家依据、一致性检验等 16 类常见盲审风险。</p>
+        <div id="riskScanSummary" class="risk-summary" hidden></div>
+        <div id="riskScanResults" class="risk-results"></div>
+        <div class="actions split">
+          <button class="ghost" data-next="writing">上一步</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="aigc_check">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">VIP服务</p>
+            <h2>AIGC率评估 —— 检测论文内容是否像AI生成</h2>
+          </div>
+          <div class="head-actions">
+            <button class="primary" id="runAigcCheck">运行AIGC检测</button>
+            <span class="save-tip" id="aigcCheckStatus"></span>
+          </div>
+        </div>
+        <p class="hint">扫描所有已写章节草稿，分析文本的AI生成特征，评估AIGC风险等级。左侧展示原文（黄色高亮为疑似AI段落），点击高亮可在右侧查看具体原因。</p>
+        <div id="aigcCheckResult" class="aigc-layout" hidden>
+          <div class="aigc-text-panel" id="aigcTextPanel"></div>
+          <div class="aigc-reason-panel" id="aigcReasonPanel">
+            <div class="aigc-reason-placeholder">点击左侧<span class="aigc-mark-dot"></span>黄色高亮区域查看疑似原因</div>
+          </div>
+        </div>
+        <div id="aigcCheckEmpty" class="empty-state" hidden></div>
+        <div class="actions split">
+          <button class="ghost" data-next="writing">上一步</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="aigc_reduce">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">VIP服务</p>
+            <h2>AIGC降重 —— 对高AIGC率段落进行改写</h2>
+          </div>
+          <div class="head-actions">
+            <button class="primary" id="runAigcReduce">一键AIGC降重</button>
+            <span class="save-tip" id="aigcReduceStatus"></span>
+          </div>
+        </div>
+        <p class="hint">对AIGC检测中标红的高风险段落逐段改写，降低整体AIGC率，改写后可对比原文与改写结果。</p>
+        <div id="aigcReduceResult" class="risk-results"></div>
+        <div class="actions split">
+          <button class="ghost" data-next="aigc_check">上一步</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="proposal">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">开题报告生成</p>
+            <h2>基于前两章内容自动生成开题报告</h2>
+          </div>
+          <div class="head-actions">
+            <button class="primary" id="generateProposal">生成开题报告</button>
+            <button class="ghost" id="saveProposal">保存</button>
+            <span class="save-tip" id="proposalStatus"></span>
+          </div>
+        </div>
+        <p class="hint">系统将提取第一章（绪论）和第二章（研究理论）的已写内容，结合论文题目、研究方向和已选方法论，按 MEM 开题报告模板自动生成完整开题报告。</p>
+        <div id="proposalResult" class="proposal-result"></div>
+        <div class="actions split">
+          <button class="ghost" data-next="blind_review">上一步</button>
+          <div>
+            <button class="ghost" id="exportProposalMd" hidden>导出 Markdown</button>
+            <button class="ghost" id="exportProposalDocx" hidden>导出 Word</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel page" id="ppt_proposal">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">PPT制作</p>
+            <h2>基于开题报告生成开题答辩PPT</h2>
+          </div>
+          <div class="head-actions">
+            <button class="primary" id="generatePptProposal">生成PPT</button>
+            <span class="save-tip" id="pptProposalStatus"></span>
+          </div>
+        </div>
+        <p class="hint">系统将基于已生成的开题报告内容，自动提取关键信息并生成开题答辩PPT。</p>
+        <div id="pptProposalResult" class="proposal-result"></div>
+        <div class="actions split">
+          <button class="ghost" data-next="proposal">上一步</button>
+          <button class="primary" id="downloadPptProposal" hidden>下载PPT</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="ppt_midterm">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">PPT制作</p>
+            <h2>中期答辩PPT制作</h2>
+          </div>
+          <div class="head-actions">
+            <button class="primary" id="generatePptMidterm">生成PPT</button>
+            <span class="save-tip" id="pptMidtermStatus"></span>
+          </div>
+        </div>
+        <p class="hint">系统将基于论文大纲和已写内容，自动生成中期答辩PPT。</p>
+        <div id="pptMidtermResult" class="proposal-result"></div>
+        <div class="actions split">
+          <button class="ghost" data-next="proposal">上一步</button>
+          <button class="primary" id="downloadPptMidterm" hidden>下载PPT</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="ppt_defense">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">PPT制作</p>
+            <h2>论文答辩PPT制作</h2>
+          </div>
+          <div class="head-actions">
+            <button class="primary" id="generatePptDefense">生成PPT</button>
+            <span class="save-tip" id="pptDefenseStatus"></span>
+          </div>
+        </div>
+        <p class="hint">系统将基于完整论文内容，自动生成毕业答辩PPT。</p>
+        <div id="pptDefenseResult" class="proposal-result"></div>
+        <div class="actions split">
+          <button class="ghost" data-next="proposal">上一步</button>
+          <button class="primary" id="downloadPptDefense" hidden>下载PPT</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="table_generator">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">增值服务</p>
+            <h2>表格生成器 —— 上传 Excel 或描述内容，AI 智能制表</h2>
+          </div>
+        </div>
+        <p class="hint">上传 Excel 文件（可选），描述你想要的表格格式，系统将调用 AI 生成格式化表格。也可仅凭文本描述生成表格。</p>
+
+        <div class="table-generator">
+          <div class="table-upload-area" id="tableUploadZone">
+            <p class="table-upload-icon">📊</p>
+            <p class="table-upload-label">拖拽 Excel 文件至此，或点击选择</p>
+            <p class="table-upload-hint" style="color:var(--muted);font-size:12px;">支持 .xlsx / .xls，也可不传文件仅凭描述生成</p>
+            <input type="file" id="tableFileInput" accept=".xlsx,.xls" hidden />
+            <button class="ghost" id="tableUploadBtn">选择文件</button>
+            <span class="file-name" id="tableFileName"></span>
+          </div>
+          <textarea class="table-desc" id="tableDescription" placeholder="描述你想要的表格，例如：把以上数据整理成三线表，包含指标名称、数值、单位、备注四列..."></textarea>
+          <div class="table-actions">
+            <button class="primary" id="generateTableBtn">生成表格</button>
+            <span class="save-tip" id="tableGenStatus"></span>
+          </div>
+          <div class="table-result" id="tableResult" hidden>
+            <div class="table-result-head">
+              <h4>生成结果</h4>
+              <button class="ghost" id="copyTableBtn">复制表格</button>
+            </div>
+            <div class="table-result-content" id="tableResultContent"></div>
+          </div>
+        </div>
+
+        <div class="actions split">
+          <button class="ghost" data-next="ppt_defense">上一步</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="kb_init">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">系统管理</p>
+            <h2>知识库初始化</h2>
+          </div>
+        </div>
+        <p class="hint">扫描知识库目录，构建向量索引。首次使用或更换论文库后需要运行。</p>
+        <div class="actions">
+          <button class="primary" id="initKnowledgeBase" type="button">开始初始化</button>
+          <span class="save-tip" id="initKbStatus"></span>
+        </div>
+        <div id="initKbLog" class="task-log"></div>
+      </section>
+
+      <section class="panel page" id="paper_manager">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">系统管理</p>
+            <h2>论文管理</h2>
+          </div>
+          <button class="ghost" id="refreshPapers">刷新列表</button>
+        </div>
+
+        <div class="paper-upload-zone" id="paperUploadZone">
+          <div class="paper-upload-inner">
+            <p class="paper-upload-icon">📁</p>
+            <p class="paper-upload-label">拖拽 PDF / DOCX 至此，或点击选择文件</p>
+            <p class="paper-upload-hint">上传后将自动转换为 Markdown 格式</p>
+            <input type="file" id="paperFileInput" accept=".pdf,.docx,.doc" hidden />
+            <button class="ghost" id="paperUploadBtn">选择文件并上传</button>
+          </div>
+          <span class="save-tip" id="paperUploadTip"></span>
+        </div>
+
+        <div class="paper-list-section">
+          <div class="paper-list-head">
+            <h3>论文列表 <span id="paperCount"></span></h3>
+            <div class="paper-list-filters">
+              <select id="paperDirectionFilter">
+                <option value="">全部方向</option>
+              </select>
+              <input id="paperKeywordFilter" placeholder="搜索标题/摘要…" />
+              <button class="ghost" id="paperSearchBtn">搜索</button>
+            </div>
+          </div>
+          <div class="library-table-wrap">
+            <table class="library-table">
+              <thead>
+                <tr>
+                  <th>标题</th>
+                  <th class="lib-col-type">年份</th>
+                  <th class="lib-col-type">方向</th>
+                  <th class="lib-col-type">引用数</th>
+                  <th class="lib-col-type">质量分</th>
+                  <th class="lib-col-actions">操作</th>
+                </tr>
+              </thead>
+              <tbody id="paperTableBody"></tbody>
+            </table>
+          </div>
+          <div class="library-empty" id="paperListEmpty">暂无论文，请上传 PDF 或 DOCX 文件。</div>
+        </div>
+
+        <div id="paperPipelineSection" class="paper-pipeline" hidden>
+          <div class="paper-pipeline-head">
+            <h4>运行流水线: <span id="paperPipelineTitle"></span></h4>
+            <button class="primary" id="runPaperPipeline">运行完整流水线</button>
+          </div>
+          <div id="paperPipelineLog" class="task-log"></div>
+        </div>
+
+        <div id="paperDetailRow" class="paper-detail-row" hidden></div>
+      </section>
+
+      <section class="panel page" id="license">
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">系统管理</p>
+            <h2>许可证管理</h2>
+          </div>
+        </div>
+        <div class="license-status-card" id="licenseStatusCard">
+          <div class="license-tier-icon" id="licenseTierIcon">🎓</div>
+          <div class="license-tier-name" id="licenseTierName">加载中...</div>
+          <div class="license-tier-desc" id="licenseTierDesc"></div>
+          <div class="license-meta" id="licenseMeta"></div>
+        </div>
+        <div class="license-actions" id="licenseActions">
+          <div class="license-activate-section" id="licenseActivateSection" hidden>
+            <h3>激活许可证</h3>
+            <p class="hint">输入16位许可证激活码，升级到更高版本</p>
+            <div class="license-input-row">
+              <input id="licenseCodeInput" placeholder="TM-XXXXXXXX-XXXXXXXX-..." class="license-code-input" />
+              <button class="primary" id="activateLicenseBtn">激活</button>
+            </div>
+            <span class="save-tip" id="licenseActivateTip"></span>
+          </div>
+          <div class="license-trial-section" id="licenseTrialSection" hidden>
+            <h3>免费试用</h3>
+            <p class="hint">无需激活码，立即体验全部功能3天</p>
+            <button class="primary" id="startTrialBtn">开始免费试用</button>
+            <span class="save-tip" id="licenseTrialTip"></span>
+          </div>
+        </div>
+
+        <!-- Admin-only: Generate license -->
+        <div class="license-admin-section" id="licenseGenerateSection" hidden>
+          <h3>生成许可证</h3>
+          <p class="hint">管理员可生成各等级许可证激活码</p>
+          <div class="license-generate-form">
+            <label class="field">
+              <span>许可证等级</span>
+              <select id="licenseGenTier">
+                <option value="basic">基础版 (1年)</option>
+                <option value="pro">畅想版 (2年)</option>
+                <option value="vip">VIP版 (2年)</option>
+                <option value="admin">管理员版 (10年)</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>用户邮箱 (可选)</span>
+              <input id="licenseGenEmail" placeholder="user@example.com" />
+            </label>
+            <button class="primary" id="licenseGenBtn">生成许可证</button>
+          </div>
+          <div class="generated-code" id="generatedCodeBox" hidden>
+            <div class="generated-code-label">激活码</div>
+            <code id="generatedCodeText"></code>
+            <button class="ghost" id="copyGeneratedCode">复制激活码</button>
+            <span class="save-tip" id="genCodeTip"></span>
+          </div>
+        </div>
+
+        <!-- Admin-only: License history -->
+        <div class="license-admin-section" id="licenseHistorySection" hidden>
+          <h3>许可证历史</h3>
+          <div class="library-table-wrap">
+            <table class="library-table">
+              <thead>
+                <tr>
+                  <th>操作</th>
+                  <th>类型</th>
+                  <th>邮箱</th>
+                  <th>激活码</th>
+                  <th>生成/激活时间</th>
+                  <th>到期时间</th>
+                </tr>
+              </thead>
+              <tbody id="licenseHistoryBody"></tbody>
+            </table>
+          </div>
+          <div class="library-empty" id="licenseHistoryEmpty">无历史记录</div>
+        </div>
+      </section>
+    </section>
+
+    <aside class="chat-float" id="chatFloat" hidden>
+      <div class="chat-float-header" id="chatFloatHeader">
+        <h3 id="chatFloatTitle">论文助手</h3>
+        <div class="chat-float-header-actions">
+          <button class="ghost" id="viewBestPractices" title="查看已保存的最佳实践">经验库</button>
+          <button class="ghost icon-button" id="minimizeChat" title="最小化">−</button>
+          <button class="ghost icon-button" id="closeChat" title="关闭">×</button>
+        </div>
+      </div>
+      <div class="chat-float-body">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-empty">连接成功后，在这里与论文助手对话，获取每一步的引导建议。</div>
+        </div>
+        <div class="chat-input-area">
+          <textarea id="chatInput" placeholder="输入消息，比如"第一步该做什么？"" rows="2"></textarea>
+          <button class="primary" id="sendChat">发送</button>
+        </div>
+      </div>
+    </aside>
+    <button class="chat-bubble" id="chatBubble" title="打开论文助手" hidden>💬</button>
+  </main>
+
+  <!-- 我是白痴模态框 -->
+  <div class="modal-backdrop" id="idiotModal" hidden>
+    <section class="modal idiot-modal">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">🤡 自动模式</p>
+          <h3>正在帮你完成「<span id="idiotPageLabel">当前页</span>」的所有步骤</h3>
+        </div>
+        <button class="ghost icon-button" id="closeIdiotModal" type="button">×</button>
+      </div>
+      <div class="idiot-body">
+        <div class="idiot-progress">
+          <div class="idiot-status" id="idiotStatus">准备中...</div>
+          <div class="idiot-bar-track"><div class="idiot-bar-fill" id="idiotBar"></div></div>
+        </div>
+        <div class="idiot-game-area">
+          <p class="idiot-game-label">等待时来一局贪吃蛇 🐍</p>
+          <canvas id="snakeCanvas" width="280" height="280"></canvas>
+          <p class="idiot-game-hint">方向键控制 · 吃到食物得分</p>
+        </div>
+      </div>
+      <div class="actions split">
+        <button class="ghost" id="closeIdiotDone" type="button">关闭（任务继续后台运行）</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="tableModal" hidden>
+    <section class="modal table-modal">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">表格生成</p>
+          <h3>从当前小节内容生成格式化表格</h3>
+        </div>
+        <button class="ghost icon-button" id="closeTableModal" type="button">x</button>
+      </div>
+      <label class="field wide">
+        <span>原始文本（当前小节内容）</span>
+        <textarea id="tableModalText" rows="6" readonly></textarea>
+      </label>
+      <label class="field wide">
+        <span>描述你想要的表格</span>
+        <textarea id="tableModalDescription" placeholder="例如：把上面的问题列表整理成表格，包含问题编号、问题描述、严重程度三列..." rows="3"></textarea>
+      </label>
+      <div class="table-modal-result" id="tableModalResult" hidden>
+        <div class="table-result-content" id="tableModalResultContent"></div>
+      </div>
+      <div class="actions split">
+        <button class="ghost" id="cancelTableModal" type="button">取消</button>
+        <div>
+          <button class="ghost" id="insertModalTableBtn" hidden>插入到小节</button>
+          <button class="primary" id="generateModalTableBtn">生成表格</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="newProjectModal" hidden>
+    <section class="modal">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">新建论文项目</p>
+          <h3>创建一个干净的独立工作区</h3>
+        </div>
+        <button class="ghost icon-button" id="closeNewProjectModal" type="button">×</button>
+      </div>
+      <label class="field">
+        <span>研究方向</span>
+        <select id="newProjectDirection"></select>
+      </label>
+      <label class="field">
+        <span>项目名称或论文主题</span>
+        <input id="newProjectTopic" placeholder="例如：基于H公司车载系统项目质量管理优化研究" />
+      </label>
+      <p class="hint">新项目会拥有独立的大纲、引用、草稿和长期记忆，不会覆盖历史项目。</p>
+      <div class="actions split">
+        <button class="ghost" id="cancelNewProject" type="button">取消</button>
+        <button class="primary" id="confirmNewProject" type="button">确认新建</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- 引用编辑模态框 -->
+  <div class="modal-backdrop" id="cmEditModal" hidden>
+    <section class="modal cm-edit-modal">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">编辑引用卡片</p>
+          <h3 id="cmEditCardId"></h3>
+        </div>
+        <button class="ghost icon-button" id="cmEditClose" type="button">×</button>
+      </div>
+      <div class="form-grid">
+        <label class="field wide">
+          <span>GB/T 7714 格式化引用</span>
+          <textarea id="cmEditFormatted" rows="4"></textarea>
+        </label>
+        <label class="field">
+          <span>文献标题</span>
+          <input id="cmEditTitle" />
+        </label>
+        <label class="field">
+          <span>作者</span>
+          <input id="cmEditAuthors" placeholder="多个作者用分号分隔" />
+        </label>
+        <label class="field">
+          <span>年份</span>
+          <input id="cmEditYear" />
+        </label>
+        <label class="field">
+          <span>文献类型</span>
+          <select id="cmEditRefType">
+            <option value="期刊文章">期刊文章</option>
+            <option value="图书">图书</option>
+            <option value="会议论文">会议论文</option>
+            <option value="学位论文">学位论文</option>
+            <option value="标准">标准</option>
+            <option value="报告">报告</option>
+            <option value="专利">专利</option>
+            <option value="电子资源">电子资源</option>
+            <option value="其他">其他</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>来源论文</span>
+          <input id="cmEditSource" readonly />
+        </label>
+      </div>
+      <div class="actions split">
+        <button class="ghost" id="cmEditDelete" type="button" style="color:#c44;border-color:#e99">删除此卡片</button>
+        <div>
+          <button class="ghost" id="cmEditCancel" type="button">取消</button>
+          <button class="primary" id="cmEditSave" type="button">保存修改</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <button class="snake-float" id="snakeFloat" title="等累了？来一局贪吃蛇 🐍">🐍</button>
+  <script src="/app.js?v=48" defer></script>
+</body>
+
+</html>

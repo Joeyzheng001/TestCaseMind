@@ -4,6 +4,8 @@
 
 import re
 import json
+import sqlite3
+import os
 from typing import Any, Dict, List, Optional, Tuple
 from collections import OrderedDict
 
@@ -16,11 +18,15 @@ _QUANTITY_RE = re.compile(
     re.UNICODE,
 )
 
-# 方法承诺: 在正文中明确声明将使用某方法
-_METHOD_PROMISE_RE = re.compile(
-    r"(?:本文|本研究|本章|将采用|拟采用|使用|运用|通过|应用|引入)"
-    r"({methods})\s*(?:方法|法|模型|工具|技术|分析|评价|评估)?",
-    re.UNICODE,
+# 方法承诺: 在正文中明确声明将使用某方法 — 模板中 {methods} 由 _build_method_promise_re() 填入
+_METHOD_PROMISE_TEMPLATE = (
+    r"(?:本文(?:将|拟|)?(?:采用|使用|运用|通过|应用|引入)|"
+    r"本研究(?:将|拟|)?(?:采用|使用|运用|通过|应用|引入)|"
+    r"本章(?:将|拟|)?(?:采用|使用|运用|通过|应用|引入)|"
+    r"将(?:采用|使用|运用|通过|应用|引入)|"
+    r"拟采用|"
+    r"采用|使用|运用|通过|应用|引入)"
+    r"\s*({methods})\s*(?:方法|法|模型|工具|技术|分析|评价|评估)?"
 )
 
 # 数据承诺: "50份问卷"、"30个样本"、"XX公司2025年Q1"
@@ -37,8 +43,8 @@ _DEFINITION_RE = re.compile(
     re.UNICODE,
 )
 
-# 从 web_server 复用方法论别名（避免循环导入，此处硬编码高频方法）
-_METHOD_NAMES = [
+# 兜底方法名列表（当卡片库不可用时使用）
+_FALLBACK_METHOD_NAMES = [
     "层次分析法", "AHP", "模糊综合评价", "FCE", "PDCA", "DMAIC",
     "六西格玛", "鱼骨图", "5M1E", "SWOT", "WBS", "RBS", "帕累托",
     "德尔菲", "Scrum", "DevOps", "CMMI", "BIM", "EVM", "挣值管理",
@@ -50,10 +56,78 @@ _METHOD_NAMES = [
     "精益管理", "敏捷管理", "标准化管理", "KPI", "绩效考核",
 ]
 
-_METHODS_PATTERN = re.compile(
-    "|".join(re.escape(m) for m in sorted(_METHOD_NAMES, key=len, reverse=True)),
-    re.UNICODE,
-)
+_methods_pattern_cache: Optional[re.Pattern] = None
+
+
+def _load_method_names_from_db() -> List[str]:
+    """从 cards.sqlite3 动态加载全部方法名（含 short_name 去重）。"""
+    db_path = os.path.join(
+        os.path.dirname(__file__), "..", "knowledge_base", "cards.sqlite3"
+    )
+    names = []
+    try:
+        conn = sqlite3.connect(db_path)
+        rows = conn.execute(
+            "SELECT name, short_name FROM cards "
+            "WHERE type='method_card' AND scope='platform'"
+        ).fetchall()
+        conn.close()
+        seen = set()
+        for name, short_name in rows:
+            for val in (name, short_name):
+                v = (val or "").strip()
+                if v and v not in seen:
+                    seen.add(v)
+                    names.append(v)
+                for token in v.split():
+                    token = token.strip()
+                    if len(token) >= 2 and token not in seen:
+                        seen.add(token)
+                        names.append(token)
+    except Exception:
+        return []
+    return names
+
+
+def _get_methods_pattern() -> re.Pattern:
+    """获取方法名匹配正则，优先从卡片库加载，失败时回退硬编码列表。"""
+    global _methods_pattern_cache
+    if _methods_pattern_cache is not None:
+        return _methods_pattern_cache
+    names = _load_method_names_from_db()
+    if not names:
+        names = _FALLBACK_METHOD_NAMES
+    _methods_pattern_cache = re.compile(
+        "|".join(re.escape(m) for m in sorted(names, key=len, reverse=True)),
+        re.UNICODE,
+    )
+    return _methods_pattern_cache
+
+
+def _invalidate_methods_pattern_cache() -> None:
+    """在卡片库重建后清除缓存，使下次匹配使用最新方法列表。"""
+    global _methods_pattern_cache, _method_promise_pattern_cache
+    _methods_pattern_cache = None
+    _method_promise_pattern_cache = None
+
+
+_method_promise_pattern_cache: Optional[re.Pattern] = None
+
+
+def _get_method_promise_pattern() -> re.Pattern:
+    """构建方法承诺正则：只匹配「本文将采用 X 方法」等明确承诺句式。"""
+    global _method_promise_pattern_cache
+    if _method_promise_pattern_cache is not None:
+        return _method_promise_pattern_cache
+    names = _load_method_names_from_db()
+    if not names:
+        names = _FALLBACK_METHOD_NAMES
+    methods_alt = "|".join(re.escape(m) for m in sorted(names, key=len, reverse=True))
+    _method_promise_pattern_cache = re.compile(
+        _METHOD_PROMISE_TEMPLATE.replace("{methods}", methods_alt),
+        re.UNICODE,
+    )
+    return _method_promise_pattern_cache
 
 
 def _extract_quantity_commitments(text: str) -> List[Dict[str, Any]]:
@@ -72,17 +146,37 @@ def _extract_quantity_commitments(text: str) -> List[Dict[str, Any]]:
 
 
 def _extract_method_commitments(text: str) -> List[Dict[str, Any]]:
-    found = set()
-    for m in _METHODS_PATTERN.finditer(text):
+    # 第一轮：明确承诺句式「本文将采用 X 方法」
+    promise_pattern = _get_method_promise_pattern()
+    promised: Dict[str, str] = {}  # method_name → matched raw text
+    for m in promise_pattern.finditer(text):
+        # group(1) is the method name captured from the alternation group
+        method = m.group(1)
+        if method and method not in promised:
+            promised[method] = m.group(0)
+
+    # 第二轮：其余方法名称出现（作为已使用方法）
+    simple_pattern = _get_methods_pattern()
+    used: Dict[str, str] = {}
+    for m in simple_pattern.finditer(text):
         method = m.group(0)
-        if method not in found:
-            found.add(method)
-    commitments = []
-    for method in found:
+        if method and method not in promised and method not in used:
+            used[method] = m.group(0)
+
+    commitments: List[Dict[str, Any]] = []
+    for method, raw in promised.items():
         commitments.append({
             "type": "method",
             "method": method,
-            "raw": f"承诺使用: {method}",
+            "source": "promise",
+            "raw": raw,
+        })
+    for method, raw in used.items():
+        commitments.append({
+            "type": "method",
+            "method": method,
+            "source": "usage",
+            "raw": raw,
         })
     return commitments
 
@@ -178,12 +272,16 @@ def _build_aggregate_summary(
                 "chapter": chapter_block["chapter"],
             })
 
+    all_methods = by_type.get("method", [])
     return {
         "total_quantities": [
             q for q in by_type.get("quantity", [])
         ],
         "promised_methods": [
-            m for m in by_type.get("method", [])
+            m for m in all_methods if m.get("source") == "promise"
+        ],
+        "used_methods": [
+            m for m in all_methods if m.get("source") != "promise"
         ],
         "data_sources": [
             d for d in by_type.get("data", [])
@@ -219,10 +317,16 @@ def build_commitment_brief(memory: Dict[str, Any]) -> str:
         for q in quantities:
             lines.append(f"  {_fmt_ch(q.get('chapter', '?'))}: {q['raw']}")
 
-    methods = summary.get("promised_methods", [])
-    if methods:
-        lines.append("- 方法承诺（后续章节必须实际应用这些方法）：")
-        for m in methods:
+    promised = summary.get("promised_methods", [])
+    if promised:
+        lines.append("- 已承诺使用的方法（后续章节必须实际应用，不能只提名字）：")
+        for m in promised:
+            lines.append(f"  {_fmt_ch(m.get('chapter', '?'))}: {m['method']}（明确承诺）")
+
+    used = summary.get("used_methods", [])
+    if used:
+        lines.append("- 前文已出现的方法（后续章节可复用，不作硬性要求）：")
+        for m in used:
             lines.append(f"  {_fmt_ch(m.get('chapter', '?'))}: {m['method']}")
 
     data_sources = summary.get("data_sources", [])
@@ -248,13 +352,60 @@ def build_commitment_brief(memory: Dict[str, Any]) -> str:
 # ==================== 闭合校验 ====================
 
 
+def _check_definition_drift(
+    content: str, term: str, committed_def: str, source_chapter: str
+) -> Optional[Dict[str, Any]]:
+    """检查术语在内容中是否被重新定义为不同含义。
+
+    如果内容中重新定义了同一术语但含义不同，返回 drift 信息。
+    如果定义一致或只是使用术语（未重新定义），返回 None。
+    """
+    escaped = re.escape(term)
+    redefine_re = re.compile(
+        escaped + r"\s*(?:是指|定义为|指|即|指的是|特指)\s*(.+?)(?:[。；;]|$)",
+        re.UNICODE,
+    )
+    m = redefine_re.search(content)
+    if not m:
+        return None
+    new_def = m.group(1).strip()[:80]
+    # 简单比较：用公共子串比例判断定义是否漂移
+    if _definition_similarity(committed_def, new_def) < 0.3:
+        return {
+            "term": term,
+            "source_chapter": source_chapter,
+            "committed_definition": committed_def,
+            "found_definition": new_def,
+            "warning": f"术语「{term}」在{source_chapter}章定义为「{committed_def}」，但当前内容重定义为「{new_def}」",
+        }
+    return None
+
+
+def _definition_similarity(def_a: str, def_b: str) -> float:
+    """简单相似度：基于公共字符比例。"""
+    a_chars = set(def_a.replace(" ", ""))
+    b_chars = set(def_b.replace(" ", ""))
+    if not a_chars or not b_chars:
+        return 0.0
+    intersection = a_chars & b_chars
+    return len(intersection) / max(len(a_chars), len(b_chars))
+
+
 def verify_commitments(
     content: str, memory: Dict[str, Any], current_chapter: str
 ) -> Dict[str, Any]:
-    """检查当前章节内容是否覆盖了前文的承诺项。"""
+    """检查当前章节内容是否覆盖了前文的承诺项。
+
+    承诺项分两级：
+    - hard: 数量/数据/术语/明确承诺的方法 → 缺失即未闭合
+    - soft: 仅在前文出现过的使用方法 → 缺失仅提示，不算未闭合
+    """
     commitments: List[Dict[str, Any]] = memory.get("commitments", [])
-    unresolved: List[Dict[str, Any]] = []
+    hard_unresolved: List[Dict[str, Any]] = []
+    soft_unresolved: List[Dict[str, Any]] = []
     resolved: List[str] = []
+
+    definition_drifts: List[Dict[str, Any]] = []
 
     for chapter_block in commitments:
         ch = chapter_block.get("chapter", "")
@@ -262,19 +413,38 @@ def verify_commitments(
             continue
         for item in chapter_block.get("items", []):
             identifier = ""
+            is_hard = True
             if item["type"] == "method":
                 identifier = item.get("method", "")
+                if item.get("source") != "promise":
+                    is_hard = False
             elif item["type"] == "quantity":
                 identifier = item.get("subject", "")
             elif item["type"] == "definition":
                 identifier = item.get("term", "")
+                # 术语不仅检查是否出现，还检查定义是否一致
+                if identifier and identifier in content:
+                    committed_def = item.get("definition", "")
+                    if committed_def:
+                        # 在内容中查找该术语被重新定义的情况
+                        drift = _check_definition_drift(
+                            content, identifier, committed_def, ch
+                        )
+                        if drift:
+                            definition_drifts.append(drift)
+                            hard_unresolved.append(item)
+                            continue
+                    resolved.append(identifier)
+                    continue
             elif item["type"] == "data":
                 identifier = item.get("subject", "")
 
             if identifier and identifier in content:
                 resolved.append(identifier)
+            elif is_hard:
+                hard_unresolved.append(item)
             else:
-                unresolved.append(item)
+                soft_unresolved.append(item)
 
     return {
         "total_commitments": sum(
@@ -282,8 +452,12 @@ def verify_commitments(
             if c.get("chapter") != current_chapter
         ),
         "resolved": len(resolved),
-        "unresolved": len(unresolved),
-        "unresolved_items": unresolved[:10],
+        "hard_unresolved": len(hard_unresolved),
+        "soft_unresolved": len(soft_unresolved),
+        "unresolved": len(hard_unresolved),
+        "unresolved_items": hard_unresolved[:10],
+        "soft_unresolved_items": soft_unresolved[:5],
+        "definition_drifts": definition_drifts,
     }
 
 
@@ -318,3 +492,80 @@ def build_unresolved_warning(memory: Dict[str, Any], current_chapter: str) -> st
     lines.extend(all_items[:15])
     lines.append("生成本章时请确保覆盖上述承诺。")
     return "\n".join(lines)
+
+
+# ==================== 引用校验 ====================
+
+_CITATION_MARKER_RE = re.compile(
+    r"\[(\d+(?:[,，\-—]\d+)*)\]", re.UNICODE
+)
+
+
+def verify_citations(
+    content: str,
+    expected_indices: List[int],
+    citation_pool: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """检查生成内容中的引用标记是否与要求的引用一致。
+
+    Args:
+        content: 生成的正文
+        expected_indices: 要求引用的文献序号列表（0-based）
+        citation_pool: 当前引用库
+    Returns:
+        {properly_cited, missing, unknown, fabricated_marks, total_expected}
+    """
+    if not expected_indices:
+        # 没有要求引用 → 检查是否误加了引用
+        found = set()
+        for m in _CITATION_MARKER_RE.finditer(content):
+            found.update(_parse_citation_indices(m.group(0)))
+        return {
+            "properly_cited": [],
+            "missing": [],
+            "unknown": list(found) if found else [],
+            "fabricated_indices": [],
+            "total_expected": 0,
+            "any_found": len(found) > 0,
+        }
+
+    # 从内容中提取实际引用的序号（转为 0-based）
+    cited: set = set()
+    for m in _CITATION_MARKER_RE.finditer(content):
+        cited.update(_parse_citation_indices(m.group(0)))
+
+    expected = set(expected_indices)
+    properly_cited = sorted(expected & cited)
+    missing = sorted(expected - cited)
+    unknown = sorted(cited - expected)
+
+    # 检查是否有超出引用库范围的序号
+    max_index = len(citation_pool) - 1
+    fabricated = [i for i in cited if i > max_index]
+
+    return {
+        "properly_cited": properly_cited,
+        "missing": missing,
+        "unknown": unknown,
+        "fabricated_indices": fabricated,
+        "total_expected": len(expected),
+    }
+
+
+def _parse_citation_indices(marker: str) -> List[int]:
+    """解析引用标记中的序号。支持 [1], [2,3], [1-3], [1—3] 等格式。返回 0-based 序号列表。"""
+    inner = marker.strip("[]")
+    indices: List[int] = []
+    for part in re.split(r"[,，]", inner):
+        part = part.strip()
+        range_match = re.match(r"(\d+)\s*[\-—]\s*(\d+)", part)
+        if range_match:
+            start = int(range_match.group(1))
+            end = int(range_match.group(2))
+            indices.extend(range(start, end + 1))
+        else:
+            try:
+                indices.append(int(part))
+            except ValueError:
+                pass
+    return [i - 1 for i in indices if i >= 1]

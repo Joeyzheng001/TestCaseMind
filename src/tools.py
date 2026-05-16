@@ -386,9 +386,9 @@ def _quality_management_outline(topic: str, depth: int) -> List[Dict[str, Any]]:
         (
             "绪论",
             [
-                {"title": "研究背景", "subsections": ["新能源汽车产业发展趋势", "车载系统研发质量管理挑战"]},
+                {"title": "研究背景", "subsections": [f"{topic}相关产业发展趋势", f"{topic}管理挑战"]},
                 {"title": "研究目的与意义", "subsections": ["理论意义", "实践意义"]},
-                {"title": "国内外研究现状", "subsections": ["质量管理研究现状", "车载系统研发管理研究现状"]},
+                {"title": "国内外研究现状", "subsections": ["质量管理研究现状", f"{topic}管理研究现状"]},
                 {"title": "研究内容与技术路线", "subsections": ["研究内容", "研究方法", "技术路线"]},
                 {"title": "研究创新点", "subsections": ["方法应用创新", "管理改进创新"]},
             ],
@@ -407,7 +407,7 @@ def _quality_management_outline(topic: str, depth: int) -> List[Dict[str, Any]]:
             if "车载" in topic or "新能源" in topic
             else f"{topic}现状与核心问题识别",
             [
-                {"title": "研究对象与业务流程", "subsections": ["车载系统研发流程", "质量管理边界界定"]},
+                {"title": "研究对象与业务流程", "subsections": [f"{topic}业务流程", "质量管理边界界定"]},
                 {"title": "质量管理现状调研", "subsections": ["流程制度现状", "质量数据统计", "访谈问卷结果"]},
                 {"title": "核心问题发现过程", "subsections": ["问题池构建", "问题归类", "关键问题筛选"]},
                 {"title": "问题成因分析", "subsections": ["人员因素", "流程因素", "工具与数据因素", "组织保障因素"]},
@@ -436,7 +436,7 @@ def _quality_management_outline(topic: str, depth: int) -> List[Dict[str, Any]]:
             "结论与展望",
             [
                 {"title": "研究结论", "subsections": ["核心问题结论", "优化方案结论", "验证结果结论"]},
-                {"title": "管理启示", "subsections": ["对研发质量管理的启示", "对车载系统项目管理的启示"]},
+                {"title": "管理启示", "subsections": ["对研发质量管理的启示", f"对{topic}项目管理的启示"]},
                 {"title": "研究不足与展望", "subsections": ["研究不足", "后续研究方向"]},
             ],
         ),

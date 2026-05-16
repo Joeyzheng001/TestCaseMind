@@ -2,13 +2,17 @@ const state = {
   config: null,
   methods: [],
   activeMethodPhase: "discover",
+  methodPools: {
+    discover: new Set(),
+    solve: new Set(),
+    validate: new Set(),
+  },
   methodAssignments: {
     discover: new Set(),
     solve: new Set(),
     validate: new Set(),
   },
   frameworkSvg: "",
-  frameworkMermaid: "",
   outline: null,
   markdown: "",
   citations: [],
@@ -384,6 +388,76 @@ function hideSerialProgress() {
   if (box) box.hidden = true;
 }
 
+function renderConsistencyFeedback(consistency, citationCheck, staleChapters) {
+  const container = $("#consistencyFeedback");
+  if (!container) return;
+  let html = "";
+
+  if (consistency) {
+    const total = consistency.total_commitments || 0;
+    const resolved = consistency.resolved || 0;
+    const hard = consistency.hard_unresolved || 0;
+    const soft = consistency.soft_unresolved || 0;
+    if (total > 0) {
+      html += `<div class="cf-item ${hard > 0 ? 'cf-warn' : 'cf-ok'}">`;
+      html += `一致性：前文 ${total} 项承诺，已闭合 ${resolved}，`;
+      if (hard > 0) html += `<strong>${hard} 项未闭合</strong>`;
+      else if (soft > 0) html += `${soft} 项可选未覆盖`;
+      else html += "全部闭合";
+      html += "</div>";
+      if (consistency.definition_drifts && consistency.definition_drifts.length > 0) {
+        html += '<div class="cf-item cf-warn">术语定义漂移：';
+        for (const d of consistency.definition_drifts) {
+          html += `<span class="cf-tag">${escHtml(d.term)}</span>`;
+        }
+        html += "</div>";
+      }
+    }
+  }
+
+  if (citationCheck) {
+    const missing = citationCheck.missing || [];
+    const unknown = citationCheck.unknown || [];
+    const fabricated = citationCheck.fabricated_indices || [];
+    const anyFound = citationCheck.any_found;
+    if (citationCheck.total_expected > 0) {
+      if (missing.length > 0) {
+        html += `<div class="cf-item cf-warn">引用缺失：要求引用 [${missing.map(i => i+1).join(', ')}] 但未找到</div>`;
+      } else if (unknown.length > 0) {
+        html += `<div class="cf-item cf-warn">意外引用：[${unknown.map(i => i+1).join(', ')}] 不在要求列表中</div>`;
+      } else {
+        html += `<div class="cf-item cf-ok">引用：全部 ${citationCheck.total_expected} 篇已正确引用</div>`;
+      }
+      if (fabricated.length > 0) {
+        html += `<div class="cf-item cf-warn">疑似虚构引用号：[${fabricated.map(i => i+1).join(', ')}] 超出引用库范围</div>`;
+      }
+    } else if (anyFound) {
+      html += '<div class="cf-item cf-warn">当前小节不要求引用，但生成了引用标记</div>';
+    }
+  }
+
+  if (staleChapters && staleChapters.length > 0) {
+    html += `<div class="cf-item cf-stale">下游章节可能过时：第 ${staleChapters.map(s => s.chapter).join('、')} 章需要重新生成</div>`;
+  }
+
+  container.innerHTML = html;
+  if (html) {
+    container.style.display = "block";
+    setTimeout(() => { container.style.display = "none"; }, 12000);
+  }
+}
+
+function renderStaleChapterWarnings(staleChapters) {
+  if (!staleChapters || !staleChapters.length) return;
+  for (const stale of staleChapters) {
+    const badge = $(`[data-stale-chapter="${CSS.escape(stale.chapter)}"]`);
+    if (badge) {
+      badge.hidden = false;
+      badge.title = stale.reason || "上游内容已变更";
+    }
+  }
+}
+
 function setCitationProgress(done, total, message = "") {
   const box = $("#citationProgress");
   if (!box) return;
@@ -454,6 +528,31 @@ async function saveMethodAssignments() {
   }).catch(() => {});
 }
 
+async function saveMethodPool(phase) {
+  const p = phase || state.activeMethodPhase;
+  await api("/api/method-pool/save", {
+    method: "POST",
+    body: JSON.stringify({ method_pool: Array.from(state.methodPools[p] || []), phase: p }),
+  }).catch(() => {});
+}
+
+async function saveAllMethodSelections() {
+  await saveMethodAssignments();
+  for (const phase of ["discover", "solve", "validate"]) {
+    await saveMethodPool(phase);
+  }
+  const el = $("#saveMethodSelections");
+  if (el) {
+    const orig = el.textContent;
+    el.textContent = "✅ 已保存";
+    el.classList.add("saved-flash");
+    setTimeout(() => {
+      el.textContent = orig;
+      el.classList.remove("saved-flash");
+    }, 1500);
+  }
+}
+
 function loadProjectContext() {
   const topicInput = $("#topicInput");
   if (topicInput) {
@@ -488,6 +587,9 @@ function resetWorkspaceView() {
   state.markdown = "";
   state.citations = [];
   state.drafts = {};
+  state.methodAssignments = { discover: new Set(), solve: new Set(), validate: new Set() };
+  state.sectionCitations = {};
+  state.paperCitations = [];
   $("#svgPreview").innerHTML = "";
   $("#outlinePreview").innerHTML = "";
   $("#outlineLog").innerHTML = "";
@@ -530,25 +632,24 @@ async function createNewProject() {
   const dirSelect = $("#newProjectDirection");
   if (dirSelect?.value) {
     state.currentDirection = { id: dirSelect.value, name: dirSelect.options[dirSelect.selectedIndex]?.textContent || "" };
-    // 持久化到 workspace 防止刷新后丢失
-    api("/api/workspace/save", {
-      method: "POST",
-      body: JSON.stringify({ key: "current_direction", value: state.currentDirection }),
-    }).catch(() => {});
   }
-  refreshDirectionDisplay();
   const data = await api("/api/projects/create", {
     method: "POST",
     body: JSON.stringify({ topic: topic || "未命名论文项目" }),
   });
   state.projects = data.projects || [];
   state.currentProjectId = data.project.id;
+  // 持久化方向到新项目 scope
+  if (state.currentDirection.id) {
+    api("/api/workspace/save", {
+      method: "POST",
+      body: JSON.stringify({ key: "current_direction", value: state.currentDirection }),
+    }).catch(() => {});
+  }
+  refreshDirectionDisplay();
   renderProjects();
   resetWorkspaceView();
-  const bg = $("#projectBgInput");
-  const appr = $("#projectApproachInput");
-  if (bg) bg.value = "";
-  if (appr) appr.value = "";
+  await loadWorkspace();
   $("#topicInput").value = topic || "";
   if ($("#continueLast")) $("#continueLast").disabled = true;
   $("#saveTip").textContent = "已新建论文项目，工作区已清空";
@@ -1231,15 +1332,29 @@ function htmlEscape(str) {
 
 async function loadMethods(force = false) {
   $("#methodCount").textContent = "正在扫描知识库，并调用大模型判断适用阶段...";
-  $("#refreshMethods").disabled = true;
   try {
     const data = await api(force ? "/api/methodologies?refresh=1" : "/api/methodologies");
     state.methods = data.items;
-    state.methodAssignments = { discover: new Set(), solve: new Set(), validate: new Set() };
+    const validIds = new Set(state.methods.map((m) => m.id));
+    if (!force) {
+      state.methodAssignments = { discover: new Set(), solve: new Set(), validate: new Set() };
+    } else {
+      // Clean up stale assignments that reference deleted cards
+      for (const phase of ["discover", "solve", "validate"]) {
+        state.methodAssignments[phase] = new Set(
+          [...state.methodAssignments[phase]].filter((id) => validIds.has(id))
+        );
+      }
+      for (const phase of ["discover", "solve", "validate"]) {
+        state.methodPools[phase] = new Set([...state.methodPools[phase]].filter((id) => validIds.has(id)));
+        saveMethodPool(phase);
+      }
+      saveMethodAssignments();
+    }
     syncPromptMethodsToOptions();
     renderMethods();
-  } finally {
-    $("#refreshMethods").disabled = false;
+  } catch (e) {
+    console.error("loadMethods failed", e);
   }
 }
 
@@ -1255,11 +1370,17 @@ function renderMethods() {
     return matchesPhase && matchesKeyword;
   });
 
-  // 按研究方向匹配度分区：推荐区（domain 匹配）→ 通用区
-  const recommended = filtered.filter((item) => (item.domains || []).includes(dirId));
-  const general = filtered.filter((item) => !(item.domains || []).includes(dirId));
-
+  // 按研究方向匹配度分区：推荐区（domain 匹配）→ 跨学科创新方法区 → 通用区
+  // 已在方法候选池中的方法不在下方区域重复显示
   const selectedCount = state.methodAssignments[phase].size;
+  const poolIds = state.methodPools[phase];
+  const poolItemsAll = state.methods.filter((m) => poolIds.has(m.id));
+  const poolItems = poolItemsAll.filter((item) => (item.phases || []).includes(phase));
+  const isCrossDiscipline = (item) => (item.source_type || "") === "cross_discipline";
+  const notInPool = (item) => !poolIds.has(item.id);
+  const recommended = filtered.filter((item) => notInPool(item) && !isCrossDiscipline(item) && (item.domains || []).includes(dirId));
+  const crossDiscipline = filtered.filter((item) => notInPool(item) && isCrossDiscipline(item));
+  const general = filtered.filter((item) => notInPool(item) && !isCrossDiscipline(item) && !(item.domains || []).includes(dirId));
 
   // 收集当前 tab 已选方法的互补/冲突关系
   const selectedIds = Array.from(state.methodAssignments[phase]);
@@ -1278,7 +1399,7 @@ function renderMethods() {
     // 将被选方法自身的推测 tag 加入 pairIds，确保双向匹配（如 PEST↔SWOT）
     guessMethodTags(sel.name).forEach((t) => pairIds.add(t));
   });
-  $("#methodCount").textContent = `${filtered.length} 个方法 · 已选 ${selectedCount} · 推荐 ${recommended.length}`;
+  $("#methodCount").textContent = `${filtered.length} 个方法 · 已选 ${selectedCount} · 推荐 ${recommended.length} · 跨学科 ${crossDiscipline.length}`;
 
   const diffLabel = { beginner: "入门", intermediate: "进阶", advanced: "高级" };
 
@@ -1326,13 +1447,35 @@ function renderMethods() {
         </div>
         ${dataStr ? `<div class="method-card-detail"><span class="method-icon">📋</span>${dataStr}</div>` : ""}
         ${checked && cardPairTags.length ? `<div class="method-card-detail method-card-hint">💡 可搭配：${cardPairTags.slice(0,3).map(p => p.replace("method_","")).join("、")}</div>` : ""}
-        ${item.custom ? `<div class="method-card-detail"><button class="ghost small supplement-btn" data-method-name="${escapeHtml(item.name)}" data-method-id="${item.id}">🔍 补充权威资料</button></div>` : ""}
-        ${summary ? `<div class="method-card-tooltip">${escapeHtml(summary)}</div>` : `<div class="method-card-tooltip empty-tip">暂无方法介绍，可在右下角论文助手中搜索了解</div>`}
+        ${summary
+          ? `<div class="method-card-tooltip">${escapeHtml(summary)}</div>`
+          : `<div class="method-card-tooltip empty-tip">暂无方法介绍。<br><button class="supplement-btn" data-method-name="${escapeHtml(item.name)}" data-method-id="${item.id}">🔍 补充权威材料</button></div>`}
       </div>
     </label>`;
   }
 
   let html = "";
+
+  const phaseLabelMap = { discover: "发现问题", solve: "解决问题", validate: "验证问题" };
+  // ── 方法候选池：用户主动选中的方法（仅显示当前阶段适用的） ──
+  html += `<div class="method-zone method-zone-pool">
+    <div class="method-zone-header">
+      <span class="zone-icon">📋</span>
+      <span>方法候选池 · ${phaseLabelMap[phase] || phase}</span>
+      <span class="zone-count">${poolItems.length}</span>
+      <span class="pool-hint">— 点击方法卡片加入池中，自动勾选并保存</span>
+    </div>`;
+  if (poolItems.length) {
+    html += `<div class="method-zone-cards">${poolItems.map((item) => {
+      const poolCard = renderCard(item);
+      return poolCard.replace('</label>',
+        '<button class="pool-remove-btn" data-pool-remove="' + item.id + '" title="从方法候选池移除">✕ 移除</button></label>');
+    }).join("")}</div>`;
+  } else {
+    html += `<p class="hint" style="margin:8px 0;color:var(--muted);font-size:0.82rem;">当前阶段方法候选池为空 — 点击下方方法卡片即可加入，自动按阶段归类</p>`;
+  }
+  html += `</div>`;
+
   if (recommended.length) {
     html += `<div class="method-zone method-zone-recommended">
       <div class="method-zone-header">
@@ -1341,6 +1484,16 @@ function renderMethods() {
         <span class="zone-count">${recommended.length}</span>
       </div>
       <div class="method-zone-cards">${recommended.map(renderCard).join("")}</div>
+    </div>`;
+  }
+  if (crossDiscipline.length) {
+    html += `<div class="method-zone method-zone-cross">
+      <div class="method-zone-header">
+        <span class="zone-icon">◇</span>
+        <span>非工程领域创新方法 — 跨学科可迁移研究方法</span>
+        <span class="zone-count">${crossDiscipline.length}</span>
+      </div>
+      <div class="method-zone-cards">${crossDiscipline.map(renderCard).join("")}</div>
     </div>`;
   }
   if (general.length) {
@@ -1363,6 +1516,8 @@ function renderMethods() {
     input.addEventListener("change", () => {
       if (input.checked) {
         state.methodAssignments[phase].add(input.value);
+        state.methodPools[phase].add(input.value);
+        saveMethodPool(phase);
       } else {
         state.methodAssignments[phase].delete(input.value);
       }
@@ -1375,6 +1530,32 @@ function renderMethods() {
     card.addEventListener("dragstart", (event) => {
       event.dataTransfer.setData("text/plain", card.dataset.methodId);
       event.dataTransfer.effectAllowed = "copyMove";
+    });
+    // 点击方法卡片 → 加入方法候选池并自动勾选当前阶段（排除 checkbox 和按钮点击）
+    card.addEventListener("click", (event) => {
+      if (event.target.tagName === "INPUT" || event.target.tagName === "BUTTON" || event.target.closest("button")) return;
+      const methodId = card.dataset.methodId;
+      if (methodId) {
+        state.methodPools[phase].add(methodId);
+        state.methodAssignments[phase].add(methodId);
+        saveMethodPool(phase);
+        saveMethodAssignments();
+        renderMethods();
+      }
+    });
+  });
+
+  // 方法候选池移除按钮
+  $$("#methodList .pool-remove-btn").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const methodId = btn.dataset.poolRemove;
+      if (methodId) {
+        state.methodPools[phase].delete(methodId);
+        saveMethodPool(phase);
+        renderMethods();
+      }
     });
   });
 
@@ -1432,27 +1613,51 @@ async function supplementMethod(methodName, methodId) {
   }
 }
 
-function addCustomMethod() {
+async function addCustomMethod() {
   const input = $("#customMethodInput");
   const name = input.value.trim();
   if (!name) {
     input.focus();
     return;
   }
-  const id = `custom_${methodIdFromName(name)}`;
-  if (!state.methods.some((item) => item.id === id)) {
-    state.methods.push({
-      id,
-      name,
-      source_count: 0,
-      sources: [`用户自定义：${phaseLabel(state.activeMethodPhase)}`],
-      phases: [state.activeMethodPhase],
-      custom: true,
+  const phase = state.activeMethodPhase;
+  const direction = (state.currentDirection || {}).id || "";
+
+  input.disabled = true;
+  const btn = $("#addCustomMethod");
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "正在创建方法卡...";
+
+  try {
+    const data = await api("/api/methods/create-card", {
+      method: "POST",
+      body: JSON.stringify({ name, phase, direction }),
     });
+    if (data.status === "ok") {
+      await loadMethods(true);
+      state.methodAssignments[phase].add(data.id);
+      state.methodPools[phase].add(data.id);
+      saveMethodPool(phase);
+      saveMethodAssignments();
+      renderMethods();
+      input.value = "";
+      btn.textContent = "✓ 已添加";
+      btn.classList.add("saved-flash");
+      setTimeout(() => {
+        btn.textContent = origText;
+        btn.classList.remove("saved-flash");
+      }, 1500);
+    } else {
+      alert("创建失败: " + (data.message || "未知错误"));
+    }
+  } catch (err) {
+    alert("创建方法卡失败: " + (err.message || err));
+  } finally {
+    input.disabled = false;
+    btn.disabled = false;
+    btn.textContent = origText;
   }
-  state.methodAssignments[state.activeMethodPhase].add(id);
-  input.value = "";
-  renderMethods();
 }
 
 async function generateFramework() {
@@ -1473,7 +1678,6 @@ async function generateFramework() {
     }),
   });
   state.frameworkSvg = data.svg;
-  state.frameworkMermaid = data.mermaid || "";
   renderSvgPreview();
   activeStep("framework");
 }
@@ -1492,15 +1696,6 @@ function downloadTextFile(filename, content, type) {
   URL.revokeObjectURL(url);
 }
 
-function downloadFrameworkMermaid() {
-  if (!state.frameworkMermaid) return;
-  downloadTextFile("research_framework.mmd", state.frameworkMermaid, "text/plain;charset=utf-8");
-}
-
-function downloadFrameworkSvg() {
-  if (!state.frameworkSvg) return;
-  downloadTextFile("research_framework.svg", state.frameworkSvg, "image/svg+xml;charset=utf-8");
-}
 
 function downloadFrameworkPng() {
   if (!state.frameworkSvg) return;
@@ -1532,94 +1727,36 @@ function downloadFrameworkPng() {
 // ── Framework Save ──────────────────────────────────────────
 
 async function saveFrameworkToWorkspace() {
+  const dir = selectedDirection();
+  if (!dir) { alert("请先选择研究方向"); return; }
+  const btn = $("#saveFrameworkBtn");
+  const orig = btn ? btn.textContent : "保存框架";
+  if (btn) { btn.textContent = "正在保存..."; btn.disabled = true; }
   try {
-    await api("/api/framework/save", {
+    const data = await api("/api/framework/save", {
       method: "POST",
       body: JSON.stringify({
         svg: state.frameworkSvg,
-        mermaid: state.frameworkMermaid,
         topic: $("#topicInput").value.trim(),
-        direction: selectedDirection().name,
+        direction: dir.name,
         phase_methods: phaseMethodsPayload(),
       }),
     });
     state.frameworkSaved = true;
-    const tip = $("#frameworkSaveTip");
-    if (tip) {
-      tip.textContent = "已保存 " + new Date().toLocaleTimeString();
-      setTimeout(() => { tip.textContent = ""; }, 3000);
+    if (data.stale_chapters && data.stale_chapters.length > 0) {
+      renderStaleChapterWarnings(data.stale_chapters);
     }
+    if (btn) { btn.textContent = "✓ 已保存"; btn.classList.add("saved-flash"); }
+    setTimeout(() => {
+      if (btn) { btn.textContent = orig; btn.disabled = false; btn.classList.remove("saved-flash"); }
+    }, 2000);
   } catch (err) {
     alert("保存失败: " + (err.message || err));
+    if (btn) { btn.textContent = orig; btn.disabled = false; }
   }
 }
 
-// ── Mermaid Editor ──────────────────────────────────────────
-
-function initMermaid() {
-  if (typeof mermaid !== "undefined") {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: "default",
-      securityLevel: "sandbox",
-      fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
-    });
-  }
-}
-
-async function renderMermaidLive(code) {
-  const preview = $("#mermaidLivePreview");
-  const errorEl = $("#mermaidError");
-  if (!preview) return;
-
-  if (!code.trim()) {
-    preview.innerHTML = '<p class="hint">在左侧输入 Mermaid 源码，此处实时预览</p>';
-    return;
-  }
-
-  if (typeof mermaid === "undefined") {
-    preview.innerHTML = '<p class="hint" style="color:#c44">Mermaid 库加载中，请稍候刷新重试...</p>';
-    return;
-  }
-
-  try {
-    const { svg } = await mermaid.render("mermaidLiveDiagram", code);
-    preview.innerHTML = svg;
-    if (errorEl) errorEl.hidden = true;
-  } catch (err) {
-    if (errorEl) {
-      errorEl.hidden = false;
-      errorEl.textContent = "Mermaid 语法错误: " + (err.message || err);
-    }
-  }
-}
-
-let mermaidDebounceTimer = null;
-function onMermaidEditorInput() {
-  clearTimeout(mermaidDebounceTimer);
-  mermaidDebounceTimer = setTimeout(() => {
-    renderMermaidLive($("#mermaidEditor").value);
-  }, 300);
-}
-
-async function applyMermaidAndSave() {
-  const code = $("#mermaidEditor").value;
-  if (!code.trim()) return;
-  if (typeof mermaid === "undefined") { alert("Mermaid 库加载中，请稍候刷新重试"); return; }
-  try {
-    const { svg } = await mermaid.render("mermaidApplyDiagram", code);
-    state.frameworkSvg = svg;
-    state.frameworkMermaid = code;
-    renderSvgPreview();
-    await saveFrameworkToWorkspace();
-    const tip = $("#frameworkSaveTip");
-    if (tip) { tip.textContent = "Mermaid 已应用并保存"; setTimeout(() => { tip.textContent = ""; }, 3000); }
-  } catch (err) {
-    alert("Mermaid 渲染失败: " + (err.message || err));
-  }
-}
-
-// ── Table Generator ─────────────────────────────────────────
+// ── Table Generator ──
 
 function showTableResult(markdown) {
   const container = $("#tableResultContent");
@@ -1835,6 +1972,9 @@ async function saveOutlineState(message = "大纲和字数已保存") {
     }),
   });
   state.markdown = data.markdown;
+  if (data.stale_chapters && data.stale_chapters.length > 0) {
+    renderStaleChapterWarnings(data.stale_chapters);
+  }
   $("#outlineStatus").textContent = message;
 }
 
@@ -2283,6 +2423,7 @@ function renderWritingList() {
           <div class="chapter-head writing-chapter-head">
             <div>
               <strong>${chapterDisplayTitle(chapter)}</strong>
+              <span class="stale-chapter-badge" data-stale-chapter="${chapter.number || chapterIndex + 1}" hidden>上游已变更</span>
               <small>一级目录 · 预计 ${chapter.estimated_words || 0} 字 · 实际 ${chapter.actual_words || 0} 字</small>
             </div>
           </div>
@@ -2506,7 +2647,8 @@ async function runWritingAction(button) {
     textarea.value = normalizeDraftContent(data.content, target);
     state.drafts[draftKey] = textarea.value;
     updateOutlineWordsFromDraft(draftKey, textarea.value);
-    await saveDraft(draftKey, textarea.value);
+    const saveResult = await saveDraft(draftKey, textarea.value);
+    renderConsistencyFeedback(data.consistency, data.citation_check, saveResult.stale_chapters);
   } catch (err) {
     textarea.value = `生成失败：${err.message || err}\n\n请稍后重试或检查 API 配置。`;
   } finally {
@@ -2517,13 +2659,17 @@ async function runWritingAction(button) {
 
 async function saveDraft(draftKey, content) {
   content = normalizeDraftContent(content);
-  await api("/api/drafts/save", {
+  const data = await api("/api/drafts/save", {
     method: "POST",
     body: JSON.stringify({ draft_key: draftKey, content }),
   });
   const stateLabel = $(`[data-draft-state="${CSS.escape(draftKey)}"]`);
   if (stateLabel) stateLabel.textContent = `已于 ${nowTime()} 保存`;
   setWritingStatus(`已于 ${nowTime()} 保存`);
+  if (data && data.stale_chapters && data.stale_chapters.length > 0) {
+    renderStaleChapterWarnings(data.stale_chapters);
+  }
+  return data || {};
 }
 
 async function saveDraftFromButton(button) {
@@ -2634,6 +2780,10 @@ async function loadWorkspace() {
     $("#downloadOutline").disabled = !state.markdown;
     renderOutline();
     renderWritingList();
+    const staleChapters = data.thesis_memory?.stale_chapters || [];
+    if (staleChapters.length > 0) {
+      renderStaleChapterWarnings(staleChapters);
+    }
     $("#outlineStatus").textContent = "已载入上次保存的大纲和草稿";
     if ($("#continueLast")) { $("#continueLast").disabled = false; $("#continueLast").textContent = "继续上次编写"; }
   }
@@ -2642,6 +2792,16 @@ async function loadWorkspace() {
       const ids = data.phase_methods[phase] || [];
       state.methodAssignments[phase] = new Set(ids);
     }
+  }
+  if (data.method_pools) {
+    for (const phase of ["discover", "solve", "validate"]) {
+      const pool = data.method_pools[phase];
+      if (pool && Array.isArray(pool)) {
+        state.methodPools[phase] = new Set(pool);
+      }
+    }
+  } else if (data.method_pool && Array.isArray(data.method_pool)) {
+    state.methodPool = new Set(data.method_pool);
   }
   if (data.proposal_content) {
     state._proposalContent = data.proposal_content;
@@ -2653,14 +2813,9 @@ async function loadWorkspace() {
     }
   }
   // Restore saved framework
-  if (data.framework_svg || data.framework_mermaid) {
-    if (data.framework_svg) state.frameworkSvg = data.framework_svg;
-    if (data.framework_mermaid) state.frameworkMermaid = data.framework_mermaid;
+  if (data.framework_svg) {
+    state.frameworkSvg = data.framework_svg;
     renderSvgPreview();
-    const editor = $("#mermaidEditor");
-    if (editor && state.frameworkMermaid) {
-      editor.value = state.frameworkMermaid;
-    }
     state.frameworkSaved = true;
   }
 }
@@ -3483,7 +3638,6 @@ function bindEvents() {
   if (bgInput) bgInput.addEventListener("blur", () => saveProjectContext());
   if (approachInput) approachInput.addEventListener("blur", () => saveProjectContext());
 
-  $("#refreshMethods").addEventListener("click", () => loadMethods(true));
   $("#methodSearch").addEventListener("input", renderMethods);
   $$(".method-tab").forEach((button) => {
     button.addEventListener("click", () => {
@@ -3513,6 +3667,7 @@ function bindEvents() {
       renderMethods();
     });
   });
+  $("#saveMethodSelections").addEventListener("click", saveAllMethodSelections);
   $("#addCustomMethod").addEventListener("click", addCustomMethod);
   $("#customMethodInput").addEventListener("keydown", (event) => {
     if (event.key === "Enter") addCustomMethod();
@@ -3721,40 +3876,12 @@ function bindEvents() {
   };
 
   $("#generateFramework").addEventListener("click", generateFramework);
-  $("#downloadFrameworkMermaid").addEventListener("click", downloadFrameworkMermaid);
-  $("#downloadFrameworkSvg").addEventListener("click", downloadFrameworkSvg);
+
   $("#downloadFrameworkPng").addEventListener("click", downloadFrameworkPng);
-  $("#saveFrameworkBtn")?.addEventListener("click", saveFrameworkToWorkspace);
+
   $("#viewSvgBtn")?.addEventListener("click", () => {
     $("#viewSvgBtn").classList.add("active");
-    $("#viewMermaidBtn").classList.remove("active");
-    $("#mermaidEditorSection").hidden = true;
-    $("#svgPreview").hidden = false;
   });
-  $("#viewMermaidBtn")?.addEventListener("click", async () => {
-    $("#viewSvgBtn").classList.remove("active");
-    $("#viewMermaidBtn").classList.add("active");
-    $("#mermaidEditorSection").hidden = false;
-    $("#svgPreview").hidden = true;
-    const editor = $("#mermaidEditor");
-    if (editor && !editor.value.trim()) {
-      editor.value = state.frameworkMermaid || "";
-    }
-    if (typeof mermaid === "undefined") {
-      $("#mermaidLivePreview").innerHTML = '<p class="hint">正在加载 Mermaid 编辑器...</p>';
-      await new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js";
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-      initMermaid();
-    }
-    renderMermaidLive(editor?.value || "");
-  });
-  $("#mermaidEditor")?.addEventListener("input", onMermaidEditorInput);
-  $("#applyMermaidBtn")?.addEventListener("click", applyMermaidAndSave);
   // Table generator
   $("#generateTableBtn")?.addEventListener("click", generateTableFromExcel);
   $("#copyTableBtn")?.addEventListener("click", copyTableToClipboard);
@@ -4604,7 +4731,7 @@ async function init() {
   await loadLicense();
   await loadMethods();
   await loadWorkspace();
-  initMermaid();
+  window._saveFramework = saveFrameworkToWorkspace;
   injectIdiotButtons();
 }
 

@@ -9,6 +9,7 @@ to a future FastAPI implementation.
 from __future__ import annotations
 
 import argparse
+import datetime
 import hashlib
 import html
 import io
@@ -52,6 +53,8 @@ from src.consistency_engine import (
     merge_commitments_to_memory,
     build_commitment_brief,
     build_unresolved_warning,
+    verify_commitments,
+    verify_citations,
 )
 from src.method_context import build_method_context
 from src.risk_checker import run_risk_scan, format_risk_report, run_method_risk_scan
@@ -267,6 +270,58 @@ def _unique_append(items: List[Any], value: Any, limit: int = 20) -> List[Any]:
     return items[-limit:]
 
 
+def _compute_downstream_stale(
+    memory: Dict[str, Any], chapter_key: str
+) -> List[Dict[str, Any]]:
+    """Find downstream chapters that have drafts and may be stale after an upstream edit."""
+    outline = load_workspace_value("outline")
+    if not outline:
+        return []
+    chapters = outline.get("chapters", [])
+    try:
+        current_idx = int(chapter_key) - 1
+    except (ValueError, TypeError):
+        return []
+    drafts = load_drafts()
+    stale: List[Dict[str, Any]] = []
+    for ch in chapters[current_idx + 1:]:
+        ch_num = str(ch.get("number", ""))
+        # Check if any section of this chapter has a saved draft
+        has_draft = any(
+            dk.startswith(ch_num + ".") for dk in drafts
+        )
+        if has_draft:
+            stale.append({
+                "chapter": ch_num,
+                "title": ch.get("title", ""),
+                "reason": f"第{chapter_key}章已修改，本章可能需要重新生成以保持一致性",
+            })
+    return stale
+
+
+def _mark_all_drafts_stale(reason: str) -> List[Dict[str, Any]]:
+    """当框架或大纲变更时，标记所有已有草稿的章节为可能过时。"""
+    drafts = load_drafts()
+    if not drafts:
+        return []
+    chapters_with_drafts: set = set()
+    for dk in drafts:
+        ch = dk.split(".", 1)[0]
+        chapters_with_drafts.add(ch)
+    stale: List[Dict[str, Any]] = []
+    for ch_num in sorted(chapters_with_drafts, key=lambda x: int(x) if x.isdigit() else 0):
+        stale.append({
+            "chapter": ch_num,
+            "title": "",
+            "reason": reason,
+        })
+    if stale:
+        memory = merge_memory_schema(load_workspace_value("thesis_memory", {}) or {})
+        memory["stale_chapters"] = stale
+        save_workspace_value("thesis_memory", memory)
+    return stale
+
+
 def update_memory_from_draft(
     memory: Dict[str, Any], draft_key: str, content: str
 ) -> Dict[str, Any]:
@@ -315,7 +370,7 @@ def update_memory_from_draft(
     return memory
 
 
-def save_draft(draft_key: str, content: str) -> None:
+def save_draft(draft_key: str, content: str) -> Dict[str, Any]:
     content = clean_generated_content(content)
     stored_key = f"{current_project_id()}:{draft_key}"
     with workspace_connection() as connection:
@@ -332,7 +387,12 @@ def save_draft(draft_key: str, content: str) -> None:
     memory = update_memory_from_draft(
         load_workspace_value("thesis_memory", {}) or {}, draft_key, content
     )
+    # Compute downstream stale chapters
+    chapter_key = draft_key.split(".", 1)[0]
+    stale_list = _compute_downstream_stale(memory, chapter_key)
+    memory["stale_chapters"] = stale_list
     save_workspace_value("thesis_memory", memory)
+    return {"status": "ok", "stale_chapters": stale_list}
 
 
 def load_drafts() -> Dict[str, str]:
@@ -413,169 +473,993 @@ DIRECTIONS = [
     {"id": "requirements_management", "name": "需求管理", "desc": "管理项目需求和范围，包括需求收集、需求分析、需求变更和范围控制"},
     {"id": "process_optimization", "name": "流程优化", "desc": "分析和改进项目流程，包括流程梳理、瓶颈分析、流程再造和持续优化"},
     {"id": "supply_chain_logistics", "name": "供应链与物流", "desc": "管理供应链和物流环节，包括供应商管理、库存优化、配送路径和物流成本"},
+    {"id": "resource_management", "name": "资源管理", "desc": "管理项目人力、设备和物资资源，包括资源规划、资源分配、资源平衡和团队建设"},
+    {"id": "communication_management", "name": "沟通管理", "desc": "管理项目信息传递和沟通机制，包括沟通规划、信息分发、绩效报告和相关方沟通"},
+    {"id": "stakeholder_management", "name": "相关方管理", "desc": "管理项目相关方期望和参与，包括相关方识别、参与规划、期望管理和冲突协调"},
 ]
+
 
 
 METHODOLOGY_ALIASES = {
     # 发现方法论
-    "5W1H": ["5W1H", "5W1H分析法"],
-    "标杆分析法": ["标杆分析法", "标杆分析", "标杆管理", "Benchmarking"],
-    "质量管理理论": ["质量管理理论", "TQM", "全面质量管理"],
-    "文献研究法": ["文献研究法", "文献研究", "文献综述", "文献分析"],
-    "访谈法": ["访谈法", "访谈", "深度访谈", "专家访谈"],
-    "问卷调查法": ["问卷调查法", "问卷调查", "问卷", "调查问卷"],
-    "德尔菲法": ["德尔菲法", "德尔菲", "Delphi"],
-    "案例研究法": ["案例研究法", "案例研究", "案例分析", "案例"],
-    "现场调查法": ["现场调查法", "现场调查", "实地调研", "现场观察"],
-    "鱼骨图法": ["鱼骨图法", "鱼骨图", "因果图"],
-    "5M1E分析法": ["5M1E分析法", "5M1E", "人机料法环测"],
-    "SWOT分析法": ["SWOT分析法", "SWOT", "swot"],
-    "WBS分解法": ["WBS分解法", "WBS", "工作分解结构"],
-    "RBS风险分解结构": ["RBS风险分解结构", "RBS", "风险分解"],
-    "检查表法": ["检查表法", "检查表"],
-    "帕累托分析法": ["帕累托分析法", "帕累托", "二八法则"],
-    "层次分析法AHP": ["层次分析法AHP", "层次分析法", "AHP", "ahp"],
-    "模糊综合评价法FCE": ["模糊综合评价法FCE", "模糊综合评价", "FCE"],
-    "因子分析法": ["因子分析法", "因子分析"],
-    "主成分分析法PCA": ["主成分分析法PCA", "主成分分析", "PCA"],
-    "结构方程模型SEM": ["结构方程模型SEM", "结构方程模型", "SEM"],
-    "根因分析RCA": ["根因分析RCA", "根因分析", "RCA", "根本原因"],
+    "5M1E分析法": ['5M1E分析法', '5M1E', '人机料法环测'],
+    "5W1H": ['5W1H', '5W1H分析法'],
+    "RBS风险分解结构": ['RBS风险分解结构', 'RBS', '风险分解'],
+    "SWOT分析法": ['SWOT分析法', 'SWOT', 'swot'],
+    "WBS分析法": ['WBS分析法'],
+    "专家访谈法": ['专家访谈法'],
+    "主成分分析法PCA": ['主成分分析法PCA', '主成分分析', 'PCA'],
+    "交付偏差分析法": ['交付偏差分析法'],
+    "会议纪要分析法": ['会议纪要分析法'],
+    "供应商评价法": ['供应商评价法'],
+    "偏差分析法": ['偏差分析法'],
+    "关键路径法": ['关键路径法', 'CPM', '关键路径', 'CPM关键路径法'],
+    "冲突分析法": ['冲突分析法'],
+    "利益相关方分析法": ['利益相关方分析法'],
+    "合同分析法": ['合同分析法'],
+    "因子分析法": ['因子分析法', '因子分析'],
+    "层次分析法AHP": ['层次分析法AHP', '层次分析法', 'AHP', 'ahp'],
+    "帕累托分析法": ['帕累托分析法', '帕累托', '二八法则'],
+    "德尔菲法": ['德尔菲法', '德尔菲', 'Delphi'],
+    "成本偏差分析法": ['成本偏差分析法'],
+    "技能矩阵分析法": ['技能矩阵分析法'],
+    "挣值管理法": ['挣值管理法', 'EVM', '挣值管理', 'EVM挣值管理', 'Earned Value'],
+    "文档分析法": ['文档分析法'],
+    "文献研究法": ['文献研究法', '文献研究', '文献综述', '文献分析'],
+    "权力—利益矩阵": ['权力—利益矩阵'],
+    "标杆分析法": ['标杆分析法', '标杆分析', '标杆管理', 'Benchmarking'],
+    "案例研究法": ['案例研究法', '案例', '案例分析', '案例研究'],
+    "检查表法": ['检查表法', '检查表'],
+    "沟通满意度问卷": ['沟通满意度问卷'],
+    "沟通路径分析法": ['沟通路径分析法'],
+    "满意度问卷": ['满意度问卷'],
+    "现场调查法": ['现场调查法', '现场调查', '实地调研', '现场观察'],
+    "甘特图分析法": ['甘特图分析法'],
+    "相关方识别分析": ['相关方识别分析'],
+    "结构方程模型SEM": ['结构方程模型SEM', '结构方程模型', 'SEM'],
+    "访谈法": ['访谈法', '访谈', '深度访谈', '专家访谈'],
+    "责任分配矩阵分析法": ['责任分配矩阵分析法'],
+    "质量数据统计分析": ['质量数据统计分析'],
+    "质量管理理论": ['质量管理理论', 'TQM', '全面质量管理'],
+    "资源负荷分析法": ['资源负荷分析法'],
+    "过程审计法": ['过程审计法'],
+    "进度偏差分析法": ['进度偏差分析法'],
+    "采购流程审计法": ['采购流程审计法'],
+    "问卷调查法": ['问卷调查法', '问卷', '调查问卷', '问卷调查'],
+    "需求访谈法": ['需求访谈法'],
+    "需求追踪矩阵分析法": ['需求追踪矩阵分析法'],
+    "风险清单法": ['风险清单法'],
+    "风险矩阵法": ['风险矩阵法'],
+    "鱼骨图分析法": ['鱼骨图分析法', '鱼骨图', '因果图', '鱼骨图法'],
     # 解决方法论
-    "PDCA循环": ["PDCA循环", "PDCA", "pdca"],
-    "DMAIC方法": ["DMAIC方法", "DMAIC", "dmaic"],
-    "六西格玛管理": ["六西格玛管理", "六西格玛", "Six Sigma"],
-    "精益管理": ["精益管理", "精益", "Lean"],
-    "敏捷管理": ["敏捷管理", "敏捷开发"],
-    "Scrum方法": ["Scrum方法", "Scrum", "scrum"],
-    "DevOps": ["DevOps", "devops"],
-    "CMMI": ["CMMI", "cmmi"],
-    "BIM方法": ["BIM方法", "BIM", "建筑信息模型"],
-    "EVM挣值管理": ["EVM挣值管理", "EVM", "挣值管理", "Earned Value"],
-    "CPM关键路径法": ["CPM关键路径法", "CPM", "关键路径"],
-    "PERT计划评审技术": ["PERT计划评审技术", "PERT", "计划评审"],
-    "资源平衡法": ["资源平衡法", "资源平衡", "资源优化"],
-    "流程再造BPR": ["流程再造BPR", "BPR", "流程再造"],
-    "标准化管理": ["标准化管理", "标准化", "规范管理"],
-    "风险应对策略": ["风险应对策略", "风险应对", "风险处理"],
-    "供应商评价与分级管理": ["供应商评价与分级管理", "供应商评价"],
-    "责任矩阵RACI": ["责任矩阵RACI", "RACI", "责任矩阵"],
-    "绩效考核体系": ["绩效考核体系", "绩效考核", "KPI"],
-    "平衡计分卡BSC": ["平衡计分卡BSC", "BSC", "平衡计分卡"],
-    "信息化管理平台": ["信息化管理平台", "信息化管理", "管理系统"],
+    "BIM方法": ['BIM方法', 'BIM', '建筑信息模型'],
+    "CMMI": ['CMMI', 'cmmi'],
+    "DevOps": ['DevOps', 'devops'],
+    "PDCA循环法": ['PDCA循环法', 'pdca', 'PDCA', 'PDCA循环'],
+    "PERT三点估算法": ['PERT三点估算法'],
+    "PERT计划评审技术": ['PERT计划评审技术', 'PERT', '计划评审'],
+    "PMO治理机制设计": ['PMO治理机制设计'],
+    "RACI责任矩阵法": ['RACI责任矩阵法', '责任矩阵', 'RACI', '责任矩阵RACI'],
+    "Scrum方法": ['Scrum方法', 'Scrum', 'scrum'],
+    "WBS优化法": ['WBS优化法'],
+    "WBS分解法": ['WBS分解法', 'WBS', '工作分解结构'],
+    "价值工程法": ['价值工程法'],
+    "会议机制优化法": ['会议机制优化法'],
+    "供应商分级管理法": ['供应商分级管理法', '供应商评价', '供应商评价与分级管理'],
+    "供应商绩效考核机制": ['供应商绩效考核机制'],
+    "信息化管理平台": ['信息化管理平台', '信息化管理', '管理系统'],
+    "信息看板法": ['信息看板法'],
+    "六西格玛DMAIC": ['六西格玛DMAIC', 'dmaic', 'DMAIC', 'DMAIC方法'],
+    "六西格玛管理": ['六西格玛管理', '六西格玛', 'Six Sigma'],
+    "关键路径优化法": ['关键路径优化法'],
+    "冲突协调机制": ['冲突协调机制'],
+    "参与度提升策略": ['参与度提升策略'],
+    "变更控制流程优化法": ['变更控制流程优化法', 'BPR', '流程再造', '流程再造BPR'],
+    "合同条款优化法": ['合同条款优化法'],
+    "团队激励机制设计": ['团队激励机制设计'],
+    "平衡计分卡BSC": ['平衡计分卡BSC', 'BSC', '平衡计分卡'],
+    "应急预案设计": ['应急预案设计'],
+    "成本基准管理法": ['成本基准管理法'],
+    "成本控制流程优化法": ['成本控制流程优化法'],
+    "挣值管理改进法": ['挣值管理改进法'],
+    "敏捷管理": ['敏捷管理', '敏捷开发'],
+    "期望管理法": ['期望管理法'],
+    "标准化流程建设": ['标准化流程建设'],
+    "标准化管理": ['标准化管理', '标准化', '规范管理'],
+    "根因分析法": ['根因分析法', 'RCA', '根本原因', '根因分析', '根因分析RCA'],
+    "沟通矩阵法": ['沟通矩阵法'],
+    "沟通管理计划法": ['沟通管理计划法'],
+    "滚动计划法": ['滚动计划法'],
+    "相关方参与计划": ['相关方参与计划'],
+    "精益管理": ['精益管理', '精益', 'Lean'],
+    "绩效考核体系": ['绩效考核体系', '绩效考核', 'KPI'],
+    "能力提升与培训计划": ['能力提升与培训计划'],
+    "范围变更控制法": ['范围变更控制法'],
+    "质量门禁机制": ['质量门禁机制'],
+    "资源优化配置法": ['资源优化配置法'],
+    "资源平衡法": ['资源平衡法', '资源平衡', '资源优化'],
+    "采购流程标准化": ['采购流程标准化'],
+    "采购计划优化法": ['采购计划优化法'],
+    "里程碑计划法": ['里程碑计划法'],
+    "问题闭环管理法": ['问题闭环管理法'],
+    "需求基线管理法": ['需求基线管理法'],
+    "需求追踪矩阵法": ['需求追踪矩阵法'],
+    "项目章程优化法": ['项目章程优化法'],
+    "项目管理计划集成法": ['项目管理计划集成法'],
+    "预算分解法": ['预算分解法'],
+    "风险应对策略法": ['风险应对策略法', '风险应对', '风险处理', '风险应对策略'],
+    "风险责任矩阵法": ['风险责任矩阵法'],
+    "风险闭环管理法": ['风险闭环管理法'],
+    "风险预警机制": ['风险预警机制'],
+    "验收标准细化法": ['验收标准细化法'],
     # 验证方法论
-    "前后对比法": ["前后对比法", "前后对比", "对比分析"],
-    "指标评价法": ["指标评价法", "指标评价", "效果评价"],
-    "问卷满意度评价": ["问卷满意度评价", "满意度评价", "满意度调查"],
-    "专家评价法": ["专家评价法", "专家评价", "专家打分"],
-    "AHP综合评价": ["AHP综合评价", "AHP评价", "层次分析评价"],
-    "灰色关联分析": ["灰色关联分析", "灰色关联"],
-    "TOPSIS法": ["TOPSIS法", "TOPSIS", "优劣解距离法"],
-    "熵权法": ["熵权法", "熵权", "信息熵"],
-    "DEA数据包络分析": ["DEA数据包络分析", "DEA", "数据包络"],
-        "控制图": ["控制图", "控制图法", "SPC"],
-    "缺陷率返工率分析": ["缺陷率返工率分析", "缺陷率分析", "返工率"],
-    "工期偏差分析": ["工期偏差分析", "进度偏差", "工期对比"],
-    "成本偏差分析": ["成本偏差分析", "成本对比", "CV"],
-    "风险等级变化分析": ["风险等级变化分析", "风险变化", "风险评估对比"],
-    "回归分析": ["回归分析", "多元回归", "线性回归"],
-    "DID双重差分法": ["DID双重差分法", "DID", "双重差分"],
-    "Gompertz增长模型": ["Gompertz增长模型", "Gompertz", "增长模型"],
-    "准实验研究设计": ["准实验研究设计", "准实验", "准实验研究"],
-    "时间序列分析": ["时间序列分析", "时间序列", "趋势分析"],
+    "AHP综合评价": ['AHP综合评价', 'AHP评价', '层次分析评价'],
+    "DEA数据包络分析": ['DEA数据包络分析', 'DEA', '数据包络'],
+    "DID双重差分法": ['DID双重差分法', 'DID', '双重差分'],
+    "Gompertz增长模型": ['Gompertz增长模型', 'Gompertz', '增长模型'],
+    "TOPSIS法": ['TOPSIS法', 'TOPSIS', '优劣解距离法'],
+    "专家评价法": ['专家评价法', '专家评价', '专家打分'],
+    "任务完成效率分析": ['任务完成效率分析'],
+    "会议效率评价": ['会议效率评价'],
+    "供应商绩效评分": ['供应商绩效评分'],
+    "信息透明度评价": ['信息透明度评价'],
+    "关键路径变化分析": ['关键路径变化分析'],
+    "冲突事件数量对比": ['冲突事件数量对比'],
+    "准实验研究设计": ['准实验研究设计', '准实验', '准实验研究'],
+    "准时交付率分析": ['准时交付率分析'],
+    "前后对比分析法": ['前后对比分析法', '对比分析', '前后对比', '前后对比法'],
+    "参与度指标分析": ['参与度指标分析'],
+    "变更次数与变更周期对比": ['变更次数与变更周期对比'],
+    "合同履约率分析": ['合同履约率分析'],
+    "回归分析": ['回归分析', '多元回归', '线性回归'],
+    "团队满意度调查": ['团队满意度调查'],
+    "客户满意度评价": ['客户满意度评价'],
+    "工期偏差分析": ['工期偏差分析', '进度偏差', '工期对比'],
+    "成本偏差分析": ['成本偏差分析', '成本对比', 'CV'],
+    "成本偏差率分析": ['成本偏差率分析'],
+    "成本绩效指数CPI分析": ['成本绩效指数CPI分析'],
+    "成熟度评价法": ['成熟度评价法'],
+    "技能达标率分析": ['技能达标率分析'],
+    "投入产出分析法": ['投入产出分析法'],
+    "指标评价法": ['指标评价法', '指标评价', '效果评价'],
+    "控制图分析法": ['控制图分析法', 'SPC', '控制图', '控制图法'],
+    "时间序列分析": ['时间序列分析', '时间序列', '趋势分析'],
+    "模糊综合评价法": ['模糊综合评价法', 'FCE', '模糊综合评价', '模糊综合评价法FCE'],
+    "沟通响应时间分析": ['沟通响应时间分析'],
+    "满意度前后对比": ['满意度前后对比'],
+    "灰色关联分析": ['灰色关联分析', '灰色关联'],
+    "熵权法": ['熵权法', '熵权', '信息熵'],
+    "用户验收通过率分析": ['用户验收通过率分析'],
+    "相关方满意度对比": ['相关方满意度对比'],
+    "缺陷率对比分析": ['缺陷率对比分析', '返工率', '缺陷率分析', '缺陷率返工率分析'],
+    "范围偏差率分析": ['范围偏差率分析'],
+    "计划完成率分析": ['计划完成率分析'],
+    "资源利用率分析": ['资源利用率分析'],
+    "趋势分析法": ['趋势分析法'],
+    "过程合规率分析": ['过程合规率分析'],
+    "进度绩效指数SPI分析": ['进度绩效指数SPI分析'],
+    "采购周期对比分析": ['采购周期对比分析'],
+    "采购成本节约率分析": ['采购成本节约率分析'],
+    "问卷满意度评价": ['问卷满意度评价', '满意度评价', '满意度调查'],
+    "问题关闭率分析": ['问题关闭率分析'],
+    "需求确认及时率分析": ['需求确认及时率分析'],
+    "需求覆盖率分析": ['需求覆盖率分析'],
+    "预算执行率分析": ['预算执行率分析'],
+    "预警准确率分析": ['预警准确率分析'],
+    "风险发生率对比": ['风险发生率对比'],
+    "风险损失程度分析": ['风险损失程度分析'],
+    "风险等级变化分析": ['风险等级变化分析', '风险变化', '风险评估对比'],
+    "验收通过率分析": ['验收通过率分析'],
+    "扎根理论法": ['扎根理论法'],  # discover
+
+    "内容分析法": ['内容分析法'],  # discover
+
+    "焦点小组法": ['焦点小组法'],  # discover
+
+    "现场观察法": ['现场观察法'],  # discover
+
+    "流程挖掘法": ['流程挖掘法'],  # discover
+
+    "SIPOC分析法": ['SIPOC分析法'],  # discover
+
+    "价值流图分析法": ['价值流图分析法'],  # discover
+
+    "BPMN流程建模法": ['BPMN流程建模法'],  # discover
+
+    "故障树分析法": ['故障树分析法'],  # discover
+
+    "FMEA失效模式与影响分析": ['FMEA失效模式与影响分析'],  # discover
+
+    "服务蓝图法": ['服务蓝图法'],  # discover
+
+    "数据剖析法": ['数据剖析法'],  # discover
+
+    "组织网络分析法": ['组织网络分析法'],  # discover
+
+    "用户旅程地图法": ['用户旅程地图法'],  # discover
+
+    "制度差距分析法": ['制度差距分析法'],  # discover
+
+    "TOC约束理论": ['TOC约束理论'],  # solve
+
+    "关键链项目管理法": ['关键链项目管理法'],  # solve
+
+    "看板方法": ['看板方法'],  # solve
+
+    "Scrum敏捷迭代法": ['Scrum敏捷迭代法'],  # solve
+
+    "Stage-Gate阶段门法": ['Stage-Gate阶段门法'],  # solve
+
+    "QFD质量功能展开": ['QFD质量功能展开'],  # solve
+
+    "TRIZ创新问题解决法": ['TRIZ创新问题解决法'],  # solve
+
+    "系统动力学建模法": ['系统动力学建模法'],  # solve
+
+    "精益项目管理法": ['精益项目管理法'],  # solve
+
+    "敏捷—瀑布混合管理法": ['敏捷—瀑布混合管理法'],  # solve
+
+    "OKR目标管理法": ['OKR目标管理法'],  # solve
+
+    "BPR业务流程再造法": ['BPR业务流程再造法'],  # solve
+
+    "知识管理机制设计": ['知识管理机制设计'],  # solve
+
+    "激励相容机制设计": ['激励相容机制设计'],  # solve
+
+    "数字化仪表盘建设": ['数字化仪表盘建设'],  # solve
+
+    "时间序列分析法": ['时间序列分析法'],  # validate
+
+    "回归分析法": ['回归分析法'],  # validate
+
+    "双重差分法": ['双重差分法'],  # validate
+
+    "合成控制法": ['合成控制法'],  # validate
+
+    "中断时间序列法": ['中断时间序列法'],  # validate
+
+    "结构方程模型": ['结构方程模型'],  # validate
+
+    "偏最小二乘结构方程模型": ['偏最小二乘结构方程模型'],  # validate
+
+    "熵权法": ['熵权法'],  # validate
+
+    "灰色关联分析法": ['灰色关联分析法'],  # validate
+
+    "TOPSIS综合评价法": ['TOPSIS综合评价法'],  # validate
+
+    "数据包络分析法": ['数据包络分析法'],  # validate
+
+    "蒙特卡洛模拟法": ['蒙特卡洛模拟法'],  # validate
+
+    "敏感性分析法": ['敏感性分析法'],  # validate
+
+    "稳健性检验法": ['稳健性检验法'],  # validate
+
+    "案例复盘验证法": ['案例复盘验证法'],  # validate
+    "扎根理论法": "discover",
+
+    "内容分析法": "discover",
+
+    "焦点小组法": "discover",
+
+    "现场观察法": "discover",
+
+    "流程挖掘法": "discover",
+
+    "SIPOC分析法": "discover",
+
+    "价值流图分析法": "discover",
+
+    "BPMN流程建模法": "discover",
+
+    "故障树分析法": "discover",
+
+    "FMEA失效模式与影响分析": "discover",
+
+    "服务蓝图法": "discover",
+
+    "数据剖析法": "discover",
+
+    "组织网络分析法": "discover",
+
+    "用户旅程地图法": "discover",
+
+    "制度差距分析法": "discover",
+
+    "TOC约束理论": "solve",
+
+    "关键链项目管理法": "solve",
+
+    "看板方法": "solve",
+
+    "Scrum敏捷迭代法": "solve",
+
+    "Stage-Gate阶段门法": "solve",
+
+    "QFD质量功能展开": "solve",
+
+    "TRIZ创新问题解决法": "solve",
+
+    "系统动力学建模法": "solve",
+
+    "精益项目管理法": "solve",
+
+    "敏捷—瀑布混合管理法": "solve",
+
+    "OKR目标管理法": "solve",
+
+    "BPR业务流程再造法": "solve",
+
+    "知识管理机制设计": "solve",
+
+    "激励相容机制设计": "solve",
+
+    "数字化仪表盘建设": "solve",
+
+    "时间序列分析法": "validate",
+
+    "回归分析法": "validate",
+
+    "双重差分法": "validate",
+
+    "合成控制法": "validate",
+
+    "中断时间序列法": "validate",
+
+    "结构方程模型": "validate",
+
+    "偏最小二乘结构方程模型": "validate",
+
+    "熵权法": "validate",
+
+    "灰色关联分析法": "validate",
+
+    "TOPSIS综合评价法": "validate",
+
+    "数据包络分析法": "validate",
+
+    "蒙特卡洛模拟法": "validate",
+
+    "敏感性分析法": "validate",
+
+    "稳健性检验法": "validate",
+
+    "案例复盘验证法": "validate",
+    "民族志研究法": ["民族志研究法"],  # discover
+
+    "叙事分析法": ["叙事分析法"],  # discover
+
+    "Q方法论": ["Q方法论"],  # discover
+
+    "经验取样法": ["经验取样法"],  # discover
+
+    "工作日记研究法": ["工作日记研究法"],  # discover
+
+    "认知任务分析法": ["认知任务分析法"],  # discover
+
+    "心智模型分析法": ["心智模型分析法"],  # discover
+
+    "隐性知识萃取法": ["隐性知识萃取法"],  # discover
+
+    "文化探针法": ["文化探针法"],  # discover
+
+    "归因风格分析法": ["归因风格分析法"],  # discover
+
+    "框架分析法": ["框架分析法"],  # discover
+
+    "关键决策追踪法": ["关键决策追踪法"],  # discover
+
+    "组织沉默诊断法": ["组织沉默诊断法"],  # discover
+
+    "边界对象分析法": ["边界对象分析法"],  # discover
+
+    "感知公平诊断法": ["感知公平诊断法"],  # discover
+
+    "机制设计法": ["机制设计法"],  # solve
+
+    "选择架构设计法": ["选择架构设计法"],  # solve
+
+    "承诺装置法": ["承诺装置法"],  # solve
+
+    "社会规范反馈法": ["社会规范反馈法"],  # solve
+
+    "游戏化激励设计法": ["游戏化激励设计法"],  # solve
+
+    "认知作业辅助设计法": ["认知作业辅助设计法"],  # solve
+
+    "情景脚本设计法": ["情景脚本设计法"],  # solve
+
+    "原型迭代法": ["原型迭代法"],  # solve
+
+    "实践共同体构建法": ["实践共同体构建法"],  # solve
+
+    "行动学习法": ["行动学习法"],  # solve
+
+    "双环学习法": ["双环学习法"],  # solve
+
+    "工作重塑法": ["工作重塑法"],  # solve
+
+    "心理安全建设法": ["心理安全建设法"],  # solve
+
+    "冲突转化法": ["冲突转化法"],  # solve
+
+    "制度嵌入式干预法": ["制度嵌入式干预法"],  # solve
+
+    "随机对照试验法": ["随机对照试验法"],  # validate
+
+    "A/B测试法": ["A/B测试法"],  # validate
+
+    "断点回归法": ["断点回归法"],  # validate
+
+    "倾向得分匹配法": ["倾向得分匹配法"],  # validate
+
+    "中介效应检验法": ["中介效应检验法"],  # validate
+
+    "调节效应检验法": ["调节效应检验法"],  # validate
+
+    "多层线性模型法": ["多层线性模型法"],  # validate
+
+    "生存分析法": ["生存分析法"],  # validate
+
+    "贝叶斯更新法": ["贝叶斯更新法"],  # validate
+
+    "模糊集定性比较分析法": ["模糊集定性比较分析法"],  # validate
+
+    "交叉滞后分析法": ["交叉滞后分析法"],  # validate
+
+    "安慰剂检验法": ["安慰剂检验法"],  # validate
+
+    "留一法交叉验证": ["留一法交叉验证"],  # validate
+
+    "反事实情景评估法": ["反事实情景评估法"],  # validate
+
+    "过程追踪法": ["过程追踪法"],  # validate
 }
+
 
 # 方法论所属阶段
 METHODOLOGY_PHASES = {
     # 发现阶段
-    "5W1H": "discover",
-    "标杆分析法": "discover",
-    "质量管理理论": "discover",
-    "文献研究法": "discover",
-    "访谈法": "discover",
-    "问卷调查法": "discover",
-    "德尔菲法": "discover",
-    "案例研究法": "discover",
-    "现场调查法": "discover",
-    "鱼骨图法": "discover",
     "5M1E分析法": "discover",
-    "SWOT分析法": "discover",
-    "WBS分解法": "discover",
+    "5W1H": "discover",
     "RBS风险分解结构": "discover",
-    "检查表法": "discover",
-    "帕累托分析法": "discover",
-    "层次分析法AHP": "discover",
-    "模糊综合评价法FCE": "discover",
-    "因子分析法": "discover",
+    "SWOT分析法": "discover",
+    "WBS分析法": "discover",
+    "专家访谈法": "discover",
     "主成分分析法PCA": "discover",
+    "交付偏差分析法": "discover",
+    "会议纪要分析法": "discover",
+    "供应商评价法": "discover",
+    "偏差分析法": "discover",
+    "关键路径法": "discover",
+    "冲突分析法": "discover",
+    "利益相关方分析法": "discover",
+    "合同分析法": "discover",
+    "因子分析法": "discover",
+    "层次分析法AHP": "discover",
+    "帕累托分析法": "discover",
+    "德尔菲法": "discover",
+    "成本偏差分析法": "discover",
+    "技能矩阵分析法": "discover",
+    "挣值管理法": "discover",
+    "文档分析法": "discover",
+    "文献研究法": "discover",
+    "权力—利益矩阵": "discover",
+    "标杆分析法": "discover",
+    "案例研究法": "discover",
+    "检查表法": "discover",
+    "沟通满意度问卷": "discover",
+    "沟通路径分析法": "discover",
+    "满意度问卷": "discover",
+    "现场调查法": "discover",
+    "甘特图分析法": "discover",
+    "相关方识别分析": "discover",
     "结构方程模型SEM": "discover",
-    "根因分析RCA": "discover",
+    "访谈法": "discover",
+    "责任分配矩阵分析法": "discover",
+    "质量数据统计分析": "discover",
+    "质量管理理论": "discover",
+    "资源负荷分析法": "discover",
+    "过程审计法": "discover",
+    "进度偏差分析法": "discover",
+    "采购流程审计法": "discover",
+    "问卷调查法": "discover",
+    "需求访谈法": "discover",
+    "需求追踪矩阵分析法": "discover",
+    "风险清单法": "discover",
+    "风险矩阵法": "discover",
+    "鱼骨图分析法": "discover",
     # 解决阶段
-    "PDCA循环": "solve",
-    "DMAIC方法": "solve",
-    "六西格玛管理": "solve",
-    "精益管理": "solve",
-    "敏捷管理": "solve",
-    "Scrum方法": "solve",
-    "DevOps": "solve",
     "BIM方法": "solve",
-    "EVM挣值管理": "solve",
-    "CPM关键路径法": "solve",
+    "CMMI": "solve",
+    "DevOps": "solve",
+    "PDCA循环法": "solve",
+    "PERT三点估算法": "solve",
     "PERT计划评审技术": "solve",
-    "资源平衡法": "solve",
-    "流程再造BPR": "solve",
-    "标准化管理": "solve",
-    "风险应对策略": "solve",
-    "供应商评价与分级管理": "solve",
-    "责任矩阵RACI": "solve",
-    "绩效考核体系": "solve",
-    "平衡计分卡BSC": "solve",
+    "PMO治理机制设计": "solve",
+    "RACI责任矩阵法": "solve",
+    "Scrum方法": "solve",
+    "WBS优化法": "solve",
+    "WBS分解法": "solve",
+    "价值工程法": "solve",
+    "会议机制优化法": "solve",
+    "供应商分级管理法": "solve",
+    "供应商绩效考核机制": "solve",
     "信息化管理平台": "solve",
+    "信息看板法": "solve",
+    "六西格玛DMAIC": "solve",
+    "六西格玛管理": "solve",
+    "关键路径优化法": "solve",
+    "冲突协调机制": "solve",
+    "参与度提升策略": "solve",
+    "变更控制流程优化法": "solve",
+    "合同条款优化法": "solve",
+    "团队激励机制设计": "solve",
+    "平衡计分卡BSC": "solve",
+    "应急预案设计": "solve",
+    "成本基准管理法": "solve",
+    "成本控制流程优化法": "solve",
+    "挣值管理改进法": "solve",
+    "敏捷管理": "solve",
+    "期望管理法": "solve",
+    "标准化流程建设": "solve",
+    "标准化管理": "solve",
+    "根因分析法": "solve",
+    "沟通矩阵法": "solve",
+    "沟通管理计划法": "solve",
+    "滚动计划法": "solve",
+    "相关方参与计划": "solve",
+    "精益管理": "solve",
+    "绩效考核体系": "solve",
+    "能力提升与培训计划": "solve",
+    "范围变更控制法": "solve",
+    "质量门禁机制": "solve",
+    "资源优化配置法": "solve",
+    "资源平衡法": "solve",
+    "采购流程标准化": "solve",
+    "采购计划优化法": "solve",
+    "里程碑计划法": "solve",
+    "问题闭环管理法": "solve",
+    "需求基线管理法": "solve",
+    "需求追踪矩阵法": "solve",
+    "项目章程优化法": "solve",
+    "项目管理计划集成法": "solve",
+    "预算分解法": "solve",
+    "风险应对策略法": "solve",
+    "风险责任矩阵法": "solve",
+    "风险闭环管理法": "solve",
+    "风险预警机制": "solve",
+    "验收标准细化法": "solve",
     # 验证阶段
-    "前后对比法": "validate",
-    "指标评价法": "validate",
-    "问卷满意度评价": "validate",
-    "专家评价法": "validate",
     "AHP综合评价": "validate",
-    "灰色关联分析": "validate",
-    "TOPSIS法": "validate",
-    "熵权法": "validate",
     "DEA数据包络分析": "validate",
-    "控制图": "validate",
-    "缺陷率返工率分析": "validate",
-    "工期偏差分析": "validate",
-    "成本偏差分析": "validate",
-    "风险等级变化分析": "validate",
-    "回归分析": "validate",
     "DID双重差分法": "validate",
     "Gompertz增长模型": "validate",
+    "TOPSIS法": "validate",
+    "专家评价法": "validate",
+    "任务完成效率分析": "validate",
+    "会议效率评价": "validate",
+    "供应商绩效评分": "validate",
+    "信息透明度评价": "validate",
+    "关键路径变化分析": "validate",
+    "冲突事件数量对比": "validate",
     "准实验研究设计": "validate",
+    "准时交付率分析": "validate",
+    "前后对比分析法": "validate",
+    "参与度指标分析": "validate",
+    "变更次数与变更周期对比": "validate",
+    "合同履约率分析": "validate",
+    "回归分析": "validate",
+    "团队满意度调查": "validate",
+    "客户满意度评价": "validate",
+    "工期偏差分析": "validate",
+    "成本偏差分析": "validate",
+    "成本偏差率分析": "validate",
+    "成本绩效指数CPI分析": "validate",
+    "成熟度评价法": "validate",
+    "技能达标率分析": "validate",
+    "投入产出分析法": "validate",
+    "指标评价法": "validate",
+    "控制图分析法": "validate",
     "时间序列分析": "validate",
+    "模糊综合评价法": "validate",
+    "沟通响应时间分析": "validate",
+    "满意度前后对比": "validate",
+    "灰色关联分析": "validate",
+    "熵权法": "validate",
+    "用户验收通过率分析": "validate",
+    "相关方满意度对比": "validate",
+    "缺陷率对比分析": "validate",
+    "范围偏差率分析": "validate",
+    "计划完成率分析": "validate",
+    "资源利用率分析": "validate",
+    "趋势分析法": "validate",
+    "过程合规率分析": "validate",
+    "进度绩效指数SPI分析": "validate",
+    "采购周期对比分析": "validate",
+    "采购成本节约率分析": "validate",
+    "问卷满意度评价": "validate",
+    "问题关闭率分析": "validate",
+    "需求确认及时率分析": "validate",
+    "需求覆盖率分析": "validate",
+    "预算执行率分析": "validate",
+    "预警准确率分析": "validate",
+    "风险发生率对比": "validate",
+    "风险损失程度分析": "validate",
+    "风险等级变化分析": "validate",
+    "验收通过率分析": "validate",
+    "民族志研究法": "discover",
+
+    "叙事分析法": "discover",
+
+    "Q方法论": "discover",
+
+    "经验取样法": "discover",
+
+    "工作日记研究法": "discover",
+
+    "认知任务分析法": "discover",
+
+    "心智模型分析法": "discover",
+
+    "隐性知识萃取法": "discover",
+
+    "文化探针法": "discover",
+
+    "归因风格分析法": "discover",
+
+    "框架分析法": "discover",
+
+    "关键决策追踪法": "discover",
+
+    "组织沉默诊断法": "discover",
+
+    "边界对象分析法": "discover",
+
+    "感知公平诊断法": "discover",
+
+    "机制设计法": "solve",
+
+    "选择架构设计法": "solve",
+
+    "承诺装置法": "solve",
+
+    "社会规范反馈法": "solve",
+
+    "游戏化激励设计法": "solve",
+
+    "认知作业辅助设计法": "solve",
+
+    "情景脚本设计法": "solve",
+
+    "原型迭代法": "solve",
+
+    "实践共同体构建法": "solve",
+
+    "行动学习法": "solve",
+
+    "双环学习法": "solve",
+
+    "工作重塑法": "solve",
+
+    "心理安全建设法": "solve",
+
+    "冲突转化法": "solve",
+
+    "制度嵌入式干预法": "solve",
+
+    "随机对照试验法": "validate",
+
+    "A/B测试法": "validate",
+
+    "断点回归法": "validate",
+
+    "倾向得分匹配法": "validate",
+
+    "中介效应检验法": "validate",
+
+    "调节效应检验法": "validate",
+
+    "多层线性模型法": "validate",
+
+    "生存分析法": "validate",
+
+    "贝叶斯更新法": "validate",
+
+    "模糊集定性比较分析法": "validate",
+
+    "交叉滞后分析法": "validate",
+
+    "安慰剂检验法": "validate",
+
+    "留一法交叉验证": "validate",
+
+    "反事实情景评估法": "validate",
+
+    "过程追踪法": "validate",
 }
+
 
 # 兼容性别名
 METHODOLOGY_ALIASES_REVERSE = {
-    "PDCA": "PDCA循环",
-    "DMAIC": "DMAIC方法",
-    "六西格玛": "六西格玛管理",
+    "5M1E": "5M1E分析法",
+    "5W1H分析法": "5W1H",
     "AHP": "层次分析法AHP",
-    "FCE": "模糊综合评价法FCE",
-    "PCA": "主成分分析法PCA",
-    "SEM": "结构方程模型SEM",
-    "RCA": "根因分析RCA",
-    "Scrum": "Scrum方法",
-    "BPR": "流程再造BPR",
+    "AHP评价": "AHP综合评价",
+    "BIM": "BIM方法",
+    "BPR": "变更控制流程优化法",
     "BSC": "平衡计分卡BSC",
-    "RACI": "责任矩阵RACI",
-    "EVM": "EVM挣值管理",
-    "CPM": "CPM关键路径法",
-    "PERT": "PERT计划评审技术",
-    "TOPSIS": "TOPSIS法",
+    "Benchmarking": "标杆分析法",
+    "CPM": "关键路径法",
+    "CPM关键路径法": "关键路径法",
+    "CV": "成本偏差分析",
+    "DEA": "DEA数据包络分析",
     "DID": "DID双重差分法",
-    "WBS": "WBS分解法",
-    "RBS": "RBS风险分解结构",
-    "TQM": "质量管理理论",
+    "DMAIC": "六西格玛DMAIC",
+    "DMAIC方法": "六西格玛DMAIC",
+    "Delphi": "德尔菲法",
+    "EVM": "挣值管理法",
+    "EVM挣值管理": "挣值管理法",
+    "Earned Value": "挣值管理法",
+    "FCE": "模糊综合评价法",
     "Gompertz": "Gompertz增长模型",
+    "KPI": "绩效考核体系",
+    "Lean": "精益管理",
+    "PCA": "主成分分析法PCA",
+    "PDCA": "PDCA循环法",
+    "PDCA循环": "PDCA循环法",
+    "PERT": "PERT计划评审技术",
+    "RACI": "RACI责任矩阵法",
+    "RBS": "RBS风险分解结构",
+    "RCA": "根因分析法",
+    "SEM": "结构方程模型SEM",
+    "SPC": "控制图分析法",
+    "SWOT": "SWOT分析法",
+    "Scrum": "Scrum方法",
+    "Six Sigma": "六西格玛管理",
+    "TOPSIS": "TOPSIS法",
+    "TQM": "质量管理理论",
+    "WBS": "WBS分解法",
+    "ahp": "层次分析法AHP",
+    "cmmi": "CMMI",
+    "devops": "DevOps",
+    "dmaic": "六西格玛DMAIC",
+    "pdca": "PDCA循环法",
+    "scrum": "Scrum方法",
+    "swot": "SWOT分析法",
+    "专家打分": "专家评价法",
+    "专家访谈": "访谈法",
+    "专家评价": "专家评价法",
+    "主成分分析": "主成分分析法PCA",
+    "二八法则": "帕累托分析法",
+    "人机料法环测": "5M1E分析法",
+    "优劣解距离法": "TOPSIS法",
+    "供应商评价": "供应商分级管理法",
+    "供应商评价与分级管理": "供应商分级管理法",
+    "信息化管理": "信息化管理平台",
+    "信息熵": "熵权法",
+    "全面质量管理": "质量管理理论",
+    "六西格玛": "六西格玛管理",
+    "关键路径": "关键路径法",
+    "准实验": "准实验研究设计",
+    "准实验研究": "准实验研究设计",
+    "前后对比": "前后对比分析法",
+    "前后对比法": "前后对比分析法",
+    "双重差分": "DID双重差分法",
+    "因子分析": "因子分析法",
+    "因果图": "鱼骨图分析法",
+    "增长模型": "Gompertz增长模型",
+    "多元回归": "回归分析",
+    "实地调研": "现场调查法",
+    "对比分析": "前后对比分析法",
+    "层次分析法": "层次分析法AHP",
+    "层次分析评价": "AHP综合评价",
+    "工作分解结构": "WBS分解法",
+    "工期对比": "工期偏差分析",
+    "帕累托": "帕累托分析法",
+    "平衡计分卡": "平衡计分卡BSC",
+    "建筑信息模型": "BIM方法",
+    "德尔菲": "德尔菲法",
+    "成本对比": "成本偏差分析",
+    "指标评价": "指标评价法",
+    "挣值管理": "挣值管理法",
+    "控制图": "控制图分析法",
+    "控制图法": "控制图分析法",
+    "效果评价": "指标评价法",
+    "敏捷开发": "敏捷管理",
+    "数据包络": "DEA数据包络分析",
+    "文献分析": "文献研究法",
+    "文献研究": "文献研究法",
+    "文献综述": "文献研究法",
+    "时间序列": "时间序列分析",
+    "标准化": "标准化管理",
+    "标杆分析": "标杆分析法",
+    "标杆管理": "标杆分析法",
+    "根因分析": "根因分析法",
+    "根因分析RCA": "根因分析法",
+    "根本原因": "根因分析法",
+    "案例": "案例研究法",
+    "案例分析": "案例研究法",
+    "案例研究": "案例研究法",
+    "检查表": "检查表法",
+    "模糊综合评价": "模糊综合评价法",
+    "模糊综合评价法FCE": "模糊综合评价法",
+    "流程再造": "变更控制流程优化法",
+    "流程再造BPR": "变更控制流程优化法",
+    "深度访谈": "访谈法",
+    "满意度评价": "问卷满意度评价",
+    "满意度调查": "问卷满意度评价",
+    "灰色关联": "灰色关联分析",
+    "熵权": "熵权法",
+    "现场观察": "现场调查法",
+    "现场调查": "现场调查法",
+    "管理系统": "信息化管理平台",
+    "精益": "精益管理",
+    "线性回归": "回归分析",
+    "结构方程模型": "结构方程模型SEM",
+    "绩效考核": "绩效考核体系",
+    "缺陷率分析": "缺陷率对比分析",
+    "缺陷率返工率分析": "缺陷率对比分析",
+    "规范管理": "标准化管理",
+    "计划评审": "PERT计划评审技术",
+    "访谈": "访谈法",
+    "调查问卷": "问卷调查法",
+    "责任矩阵": "RACI责任矩阵法",
+    "责任矩阵RACI": "RACI责任矩阵法",
+    "资源优化": "资源平衡法",
+    "资源平衡": "资源平衡法",
+    "趋势分析": "时间序列分析",
+    "返工率": "缺陷率对比分析",
+    "进度偏差": "工期偏差分析",
+    "问卷": "问卷调查法",
+    "问卷调查": "问卷调查法",
+    "风险分解": "RBS风险分解结构",
+    "风险变化": "风险等级变化分析",
+    "风险处理": "风险应对策略法",
+    "风险应对": "风险应对策略法",
+    "风险应对策略": "风险应对策略法",
+    "风险评估对比": "风险等级变化分析",
+    "鱼骨图": "鱼骨图分析法",
+    "鱼骨图法": "鱼骨图分析法",
+    "BPMN": "BPMN流程建模法",
+
+    "BPR": "BPR业务流程再造法",
+
+    "DEA": "数据包络分析法",
+
+    "FMEA": "FMEA失效模式与影响分析",
+
+    "OKR": "OKR目标管理法",
+
+    "PLSSEM": "偏最小二乘结构方程模型",
+
+    "QFD": "QFD质量功能展开",
+
+    "SIPOC": "SIPOC分析法",
+
+    "Scrum敏捷迭代": "Scrum敏捷迭代法",
+
+    "StageGate": "Stage-Gate阶段门法",
+
+    "TOC": "TOC约束理论",
+
+    "TOPSIS": "TOPSIS综合评价法",
+
+    "TRIZ": "TRIZ创新问题解决法",
+
+    "价值流图": "价值流图分析法",
+
+    "关键链": "关键链项目管理法",
+
+    "故障树": "故障树分析法",
+
+    "服务蓝图": "服务蓝图法",
+
+    "用户旅程": "用户旅程地图法",
+
+    "看板": "看板方法",
+
+    "组织网络": "组织网络分析法",
+
+    "结构方程": "结构方程模型",
+
+    "蒙特卡洛": "蒙特卡洛模拟法",
+    "AB测试": "A/B测试法",
+
+    "Q方法": "Q方法论",
+
+    "Q方法论": "Q方法论",
+
+    "fsQCA": "模糊集定性比较分析法",
+
+    "中介效应": "中介效应检验法",
+
+    "交叉滞后": "交叉滞后分析法",
+
+    "倾向得分": "倾向得分匹配法",
+
+    "关键决策": "关键决策追踪法",
+
+    "冲突转化": "冲突转化法",
+
+    "制度嵌入": "制度嵌入式干预法",
+
+    "原型迭代": "原型迭代法",
+
+    "双环学习": "双环学习法",
+
+    "反事实情景": "反事实情景评估法",
+
+    "叙事分析": "叙事分析法",
+
+    "多层线性": "多层线性模型法",
+
+    "安慰剂检验": "安慰剂检验法",
+
+    "实践共同体": "实践共同体构建法",
+
+    "工作日记": "工作日记研究法",
+
+    "工作重塑": "工作重塑法",
+
+    "归因风格": "归因风格分析法",
+
+    "心智模型": "心智模型分析法",
+
+    "心理安全": "心理安全建设法",
+
+    "情景脚本": "情景脚本设计法",
+
+    "感知公平": "感知公平诊断法",
+
+    "承诺装置": "承诺装置法",
+
+    "文化探针": "文化探针法",
+
+    "断点回归": "断点回归法",
+
+    "机制设计": "机制设计法",
+
+    "框架分析": "框架分析法",
+
+    "民族志": "民族志研究法",
+
+    "游戏化": "游戏化激励设计法",
+
+    "生存分析": "生存分析法",
+
+    "留一法": "留一法交叉验证",
+
+    "社会规范": "社会规范反馈法",
+
+    "组织沉默": "组织沉默诊断法",
+
+    "经验取样": "经验取样法",
+
+    "行动学习": "行动学习法",
+
+    "认知任务": "认知任务分析法",
+
+    "认知作业": "认知作业辅助设计法",
+
+    "调节效应": "调节效应检验法",
+
+    "贝叶斯更新": "贝叶斯更新法",
+
+    "边界对象": "边界对象分析法",
+
+    "过程追踪": "过程追踪法",
+
+    "选择架构": "选择架构设计法",
+
+    "随机对照": "随机对照试验法",
+
+    "隐性知识": "隐性知识萃取法",
 }
+
 
 THEORY_ALIASES = {
     "CMMI 2.0": ["CMMI", "CMMI 2.0", "CMMI DEV"],
@@ -597,9 +1481,6 @@ THEORY_ALIASES = {
     "平衡计分卡理论": ["平衡计分卡"],
     "演化博弈理论": ["演化博弈"],
 }
-
-# 已废弃，改用 METHODOLOGY_PHASES（见下方）
-
 
 WORD_WEIGHTS = {
     "绪论": 0.14,
@@ -730,6 +1611,9 @@ CITATION_DIRECTIONS = {
     ],
     "cost_management": ["成本", "投资", "库存"],
     "supply_chain_logistics": ["供应链", "物流", "配送", "库存"],
+    "resource_management": ["资源", "人力", "团队", "技能", "培训"],
+    "communication_management": ["沟通", "会议", "信息传递", "报告"],
+    "stakeholder_management": ["相关方", "利益相关", "冲突", "期望"],
 }
 
 CITATION_METHOD_KEYWORDS = {
@@ -1118,14 +2002,14 @@ def _enrich_items_from_cards(items: List[Dict[str, Any]]) -> List[Dict[str, Any]
             conn = sqlite3.connect(str(cards_db))
             conn.row_factory = sqlite3.Row
             rows = conn.execute(
-                "SELECT name, short_name, category, phase, difficulty, data_type, "
-                "outputs, pairs_with, conflicts_with, domains, body_summary FROM cards "
+                "SELECT id, name, short_name, aliases, category, phase, difficulty, data_type, "
+                "outputs, pairs_with, conflicts_with, domains, source_type, body_summary FROM cards "
                 "WHERE type='method_card' AND scope='platform'"
             ).fetchall()
             conn.close()
             for r in rows:
                 card = dict(r)
-                for field in ["domains", "data_type", "outputs", "pairs_with", "conflicts_with", "phase"]:
+                for field in ["domains", "data_type", "outputs", "pairs_with", "conflicts_with", "phase", "aliases"]:
                     val = card.get(field)
                     if isinstance(val, str):
                         try:
@@ -1275,23 +2159,34 @@ def _enrich_items_from_cards(items: List[Dict[str, Any]]) -> List[Dict[str, Any]
         names = [card["name"]]
         if card.get("short_name"):
             names.append(card["short_name"])
+        # 也把别名纳入匹配，解决 "变更控制流程优化法" → "流程再造BPR" 这类映射
+        for alias in card.get("aliases", []) or []:
+            if alias and alias not in names:
+                names.append(alias)
         for n in names:
             norm = _normalize(n)
             if norm:
                 card_norms[norm] = ci
 
     def _apply_card(item: Dict[str, Any], card: Dict[str, Any]) -> None:
+        # 用卡片 DB 中的规范 ID 和名称覆盖别名单生成的合成 ID/名称
+        card_db_id = card.get("id", "")
+        if card_db_id:
+            item["id"] = card_db_id
+        card_name = card.get("name", "")
+        if card_name:
+            item["name"] = card_name
         item["domains"] = card.get("domains", [])
         item["difficulty"] = card.get("difficulty", "")
         item["data_type"] = card.get("data_type", [])
         item["outputs"] = card.get("outputs", [])
         item["pairs_with"] = card.get("pairs_with", [])
         item["conflicts_with"] = card.get("conflicts_with", [])
+        item["source_type"] = card.get("source_type", "builtin")
         summary = (card.get("body_summary") or "").strip()
         if not summary:
             summary = _load_method_summaries().get(item.get("name", ""), "")
         item["summary"] = summary
-        item["_card_name"] = card["name"]
         # 用卡片的 phase 覆盖扫描结果（卡片更权威）
         card_phases = card.get("phase", [])
         if card_phases:
@@ -1328,8 +2223,9 @@ def _enrich_items_from_cards(items: List[Dict[str, Any]]) -> List[Dict[str, Any]
         # 用 phase 映射到 API phase（card 用 verify，API 用 validate）
         card_phases = card.get("phase", [])
         api_phases = ["validate" if p == "verify" else p for p in card_phases]
+        card_db_id = card.get("id", "")
         new_item: Dict[str, Any] = {
-            "id": re.sub(r"[^a-zA-Z0-9一-鿿]+", "_", card["name"]).strip("_").lower(),
+            "id": card_db_id if card_db_id else re.sub(r"[^a-zA-Z0-9一-鿿]+", "_", card["name"]).strip("_").lower(),
             "name": card["name"],
             "type": "method",
             "source_count": 0,
@@ -1342,10 +2238,22 @@ def _enrich_items_from_cards(items: List[Dict[str, Any]]) -> List[Dict[str, Any]
             "outputs": card.get("outputs", []),
             "pairs_with": card.get("pairs_with", []),
             "conflicts_with": card.get("conflicts_with", []),
+            "source_type": card.get("source_type", "builtin"),
             "summary": (card.get("body_summary") or "").strip(),
-            "_card_name": card["name"],
         }
         items.append(new_item)
+
+    # 过滤掉没有匹配卡片的条目（别名单中有但卡片已删除的）
+    items = [it for it in items if it.get("id", "").startswith("method_")]
+    # 按 ID 去重，保留第一个（通常是名字更规范的条目）
+    seen_ids: set = set()
+    deduped: List[Dict[str, Any]] = []
+    for it in items:
+        cid = it.get("id", "")
+        if cid not in seen_ids:
+            seen_ids.add(cid)
+            deduped.append(it)
+    items = deduped
 
     return items
 
@@ -2520,22 +3428,178 @@ def start_citation_generate_task(payload: Dict[str, Any]) -> str:
     return task_id
 
 
-def _svg_method_lines(methods: List[str], x: int, start_y: int) -> str:
+def _load_valid_method_map() -> Dict[str, str]:
+    """Build a map of every known identifier (id, name, short_name) → canonical card id.
+
+    This lets us normalize mixed-format phase_methods data back to clean IDs.
+    """
+    import src.card_builder as card_builder
+    mapping: Dict[str, str] = {}
+    db_path = card_builder.CARDS_DB
+    if not db_path.exists():
+        return mapping
+    conn = None
+    try:
+        conn = sqlite3.connect(str(db_path))
+        rows = conn.execute(
+            "SELECT id, name, short_name FROM cards WHERE type='method_card' AND scope='platform'"
+        ).fetchall()
+        for card_id, name, short_name in rows:
+            canonical = str(card_id).strip()
+            if not canonical:
+                continue
+            mapping[canonical] = canonical
+            for v in (name, short_name):
+                if v:
+                    key = str(v).strip()
+                    if key:
+                        mapping[key] = canonical
+            # Also map lowercase variants for case-insensitive matching
+            for v in (card_id, name, short_name):
+                if v:
+                    key_l = str(v).strip().lower()
+                    if key_l and key_l not in mapping:
+                        mapping[key_l] = canonical
+    except Exception:
+        pass
+    finally:
+        if conn:
+            conn.close()
+    return mapping
+
+
+def _normalize_method_identifier(value: str, mapping: Dict[str, str]) -> Optional[str]:
+    """Convert a single method identifier (could be an ID, name, short_name, or mismatch) to a canonical card ID.
+
+    Returns None if no matching card is found.
+    """
+    if not value or not isinstance(value, str):
+        return None
+    v = value.strip()
+    if not v:
+        return None
+    # Direct match (exact string match on ID, name, or short_name)
+    if v in mapping:
+        return mapping[v]
+    # Case-insensitive match
+    v_lower = v.lower()
+    if v_lower in mapping:
+        return mapping[v_lower]
+    # Strip "prompt_" prefix and try matching
+    if v.startswith("prompt_"):
+        base = v[len("prompt_"):]
+        if base in mapping:
+            return mapping[base]
+        base_lower = base.lower()
+        if base_lower in mapping:
+            return mapping[base_lower]
+    # Separator-normalized match: normalize non-alphanumeric chars to single space.
+    # Catches e.g. "层次分析法_ahp" vs "层次分析法 ahp" but NOT "method_wbs" vs
+    # "method_wbs_analysis" (different words → different IDs).
+    import re
+    v_norm = re.sub(r'[^a-z0-9一-鿿]+', ' ', v_lower).strip()
+    for key, canonical in mapping.items():
+        key_norm = re.sub(r'[^a-z0-9一-鿿]+', ' ', key.lower()).strip()
+        if v_norm == key_norm:
+            return canonical
+    return None
+
+
+def _normalize_phase_methods(phase_methods: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    """Convert all values in phase_methods to canonical card IDs, dropping stale entries."""
+    mapping = _load_valid_method_map()
+    if not mapping:
+        return phase_methods  # DB not available, pass through
+    result: Dict[str, List[str]] = {}
+    seen: Set[str] = set()
+    for phase, methods in phase_methods.items():
+        normalized: List[str] = []
+        for m in methods:
+            cid = _normalize_method_identifier(m, mapping)
+            if cid and cid not in seen:
+                normalized.append(cid)
+                seen.add(cid)
+        result[phase] = normalized
+    return result
+
+
+def _normalize_method_pool(method_pool: List[str]) -> List[str]:
+    """Convert all values in method_pool to canonical card IDs, dropping stale entries."""
+    mapping = _load_valid_method_map()
+    if not mapping:
+        return method_pool
+    result: List[str] = []
+    for m in method_pool:
+        cid = _normalize_method_identifier(m, mapping)
+        if cid and cid not in result:
+            result.append(cid)
+    return result
+
+
+def _load_valid_method_names() -> Set[str]:
+    """Build a set of valid method names from the cards DB (respects patched path)."""
+    mapping = _load_valid_method_map()
+    return set(mapping.keys())
+
+
+def _filter_stale_methods(phase_methods: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    """Remove method names from phase_methods that no longer exist in the cards DB."""
+    return _normalize_phase_methods(phase_methods)
+
+
+def _svg_method_boxes(methods: List[str], col_x: int, col_w: int, start_y: int, box_color: str) -> Tuple[str, int]:
+    """Render each method as a vertical-text box, arranged horizontally in rows.
+
+    Returns (svg_string, total_height_including_rows).
+    """
     if not methods:
         methods = ["待配置方法"]
-    display = methods[:4]
+
+    BOX_W = 30
+    BOX_GAP = 6
+    ROW_GAP = 10
+    CHAR_H = 22
+    PAD_TOP = 12
+    PAD_BOTTOM = 10
+    CORNER = 6
+
+    # Max name length determines box height (uniform per phase)
+    max_chars = max(len(m) for m in methods)
+    BOX_H = max_chars * CHAR_H + PAD_TOP + PAD_BOTTOM
+
+    # How many boxes fit per row
+    per_row = max(1, (col_w + BOX_GAP) // (BOX_W + BOX_GAP))
+
     lines = []
-    for index, method in enumerate(display):
+    for idx, method in enumerate(methods):
+        row = idx // per_row
+        col = idx % per_row
+        # Center the row of boxes within the column width
+        row_count = min(per_row, len(methods) - row * per_row)
+        row_w = row_count * BOX_W + (row_count - 1) * BOX_GAP
+        offset_x = (col_w - row_w) / 2
+        bx = col_x + offset_x + col * (BOX_W + BOX_GAP)
+        by = start_y + row * (BOX_H + ROW_GAP)
+
+        safe = html.escape(method)
+        # Box rect
         lines.append(
-            f'<text x="{x}" y="{start_y + index * 24}" text-anchor="middle" '
-            f'font-size="16" fill="#26384d">{html.escape(method)}</text>'
+            f'<rect x="{bx}" y="{by}" width="{BOX_W}" height="{BOX_H}" '
+            f'rx="{CORNER}" fill="#ffffff" stroke="{box_color}" stroke-width="1.5"/>'
         )
-    if len(methods) > len(display):
-        lines.append(
-            f'<text x="{x}" y="{start_y + len(display) * 24}" text-anchor="middle" '
-            f'font-size="14" fill="#6b8198">另有 {len(methods) - len(display)} 项</text>'
-        )
-    return "\n  ".join(lines)
+        # Vertical text: one char per line, centered in box
+        chars = list(method)
+        text_x = bx + BOX_W // 2
+        for ci, ch in enumerate(chars):
+            ty = by + PAD_TOP + ci * CHAR_H + CHAR_H // 2 + 4
+            lines.append(
+                f'<text x="{text_x}" y="{ty}" text-anchor="middle" '
+                f'font-size="14" fill="#26384d">{html.escape(ch)}</text>'
+            )
+
+    total_rows = (len(methods) + per_row - 1) // per_row
+    total_h = total_rows * BOX_H + max(0, total_rows - 1) * ROW_GAP
+    return "\n  ".join(lines), total_h
 
 
 def make_framework_svg(
@@ -2543,10 +3607,72 @@ def make_framework_svg(
 ) -> str:
     safe_topic = html.escape(topic or "未命名论文主题")
     safe_direction = html.escape(direction or "工程管理")
-    discover_methods = _svg_method_lines(phase_methods.get("discover", []), 350, 694)
-    solve_methods = _svg_method_lines(phase_methods.get("solve", []), 740, 694)
-    validate_methods = _svg_method_lines(phase_methods.get("validate", []), 1130, 694)
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960">
+    discover = phase_methods.get("discover", []) or ["待配置方法"]
+    solve = phase_methods.get("solve", []) or ["待配置方法"]
+    validate = phase_methods.get("validate", []) or ["待配置方法"]
+
+    # ── layout constants ──
+    COL_X: Dict[str, int] = {"discover": 350, "solve": 740, "validate": 1130}
+    COL_COLOR: Dict[str, str] = {"discover": "#6f9ed8", "solve": "#6fb889", "validate": "#9d7ce2"}
+    RECT_X: Dict[str, int] = {"discover": 185, "solve": 575, "validate": 965}
+    RECT_W = 330
+
+    PHASE_HEADERS_Y = 140
+    PHASE_HEADER_H = 78
+
+    CONTENT_Y = 280
+    CONTENT_H = 300
+
+    # Method area — vertical boxes, horizontal layout, wrapping rows
+    METHOD_COL_LABEL_Y = 636
+    METHOD_FIRST_BOX_Y = 662
+    BOX_W = 30
+    BOX_GAP = 6
+    ROW_GAP = 10
+    CHAR_H = 22
+    PAD_TOP = 12
+    PAD_BOTTOM = 10
+    PER_ROW = max(1, (RECT_W + BOX_GAP) // (BOX_W + BOX_GAP))  # ≈9 per row
+
+    def _box_h(methods_list):
+        max_chars = max((len(m) for m in methods_list), default=4)
+        return max_chars * CHAR_H + PAD_TOP + PAD_BOTTOM
+
+    disc_box_h = _box_h(discover)
+    solve_box_h = _box_h(solve)
+    valid_box_h = _box_h(validate)
+
+    def _rows(methods_list):
+        return (len(methods_list) + PER_ROW - 1) // PER_ROW
+
+    disc_rows = _rows(discover)
+    solve_rows = _rows(solve)
+    valid_rows = _rows(validate)
+
+    disc_methods_h = disc_rows * disc_box_h + max(0, disc_rows - 1) * ROW_GAP
+    solve_methods_h = solve_rows * solve_box_h + max(0, solve_rows - 1) * ROW_GAP
+    valid_methods_h = valid_rows * valid_box_h + max(0, valid_rows - 1) * ROW_GAP
+
+    max_methods_h = max(disc_methods_h, solve_methods_h, valid_methods_h, 60)
+
+    BIG_BOX_Y = 624
+    BIG_BOX_X = 120
+    BIG_BOX_W = 1200
+    BIG_BOX_PAD = 24
+    BIG_BOX_H = max_methods_h + (METHOD_COL_LABEL_Y - BIG_BOX_Y) + BIG_BOX_PAD
+
+    OUTPUTS_Y = BIG_BOX_Y + BIG_BOX_H + 20
+    OUTPUT_H = 42
+    TOTAL_H = OUTPUTS_Y + OUTPUT_H + 40
+    ARROW_Y = 430
+    CONTENT_BOTTOM_Y = CONTENT_Y + CONTENT_H
+
+    # ── build method boxes ──
+    discover_boxes, _ = _svg_method_boxes(discover, RECT_X["discover"], RECT_W, METHOD_FIRST_BOX_Y, COL_COLOR["discover"])
+    solve_boxes, _ = _svg_method_boxes(solve, RECT_X["solve"], RECT_W, METHOD_FIRST_BOX_Y, COL_COLOR["solve"])
+    validate_boxes, _ = _svg_method_boxes(validate, RECT_X["validate"], RECT_W, METHOD_FIRST_BOX_Y, COL_COLOR["validate"])
+
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="{TOTAL_H}" viewBox="0 0 1440 {TOTAL_H}">
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto">
       <path d="M0,0 L12,5 L0,10 z" fill="#617083"/>
@@ -2555,117 +3681,80 @@ def make_framework_svg(
       <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#c6d7ea" flood-opacity="0.45"/>
     </filter>
   </defs>
-  <rect width="1440" height="960" fill="#edf7ff"/>
-  <rect x="38" y="34" width="1364" height="892" rx="24" fill="#fafdff" stroke="#cfe0f2"/>
+  <rect width="1440" height="{TOTAL_H}" fill="#edf7ff"/>
+  <rect x="38" y="34" width="1364" height="{TOTAL_H - 68}" rx="24" fill="#fafdff" stroke="#cfe0f2"/>
   <text x="740" y="88" text-anchor="middle" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" font-size="30" font-weight="700" fill="#17324d">{safe_topic}研究框架</text>
+
+  <!-- 研究思路 -->
   <text x="92" y="183" text-anchor="middle" font-size="18" font-weight="700" fill="#4a6178">研究思路</text>
-  <rect x="185" y="140" width="330" height="78" rx="14" fill="#e8f2ff" stroke="#6f9ed8"/>
-  <rect x="575" y="140" width="330" height="78" rx="14" fill="#eaf8f0" stroke="#6fb889"/>
-  <rect x="965" y="140" width="330" height="78" rx="14" fill="#f2ecff" stroke="#9d7ce2"/>
-  <text x="350" y="188" text-anchor="middle" font-size="22" font-weight="700" fill="#18324d">发现问题</text>
-  <text x="740" y="188" text-anchor="middle" font-size="22" font-weight="700" fill="#18324d">解决问题</text>
-  <text x="1130" y="188" text-anchor="middle" font-size="22" font-weight="700" fill="#18324d">验证问题</text>
+  <rect x="{RECT_X["discover"]}" y="{PHASE_HEADERS_Y}" width="{RECT_W}" height="{PHASE_HEADER_H}" rx="14" fill="#e8f2ff" stroke="#6f9ed8"/>
+  <rect x="{RECT_X["solve"]}" y="{PHASE_HEADERS_Y}" width="{RECT_W}" height="{PHASE_HEADER_H}" rx="14" fill="#eaf8f0" stroke="#6fb889"/>
+  <rect x="{RECT_X["validate"]}" y="{PHASE_HEADERS_Y}" width="{RECT_W}" height="{PHASE_HEADER_H}" rx="14" fill="#f2ecff" stroke="#9d7ce2"/>
+  <text x="{COL_X["discover"]}" y="188" text-anchor="middle" font-size="22" font-weight="700" fill="#18324d">发现问题</text>
+  <text x="{COL_X["solve"]}" y="188" text-anchor="middle" font-size="22" font-weight="700" fill="#18324d">解决问题</text>
+  <text x="{COL_X["validate"]}" y="188" text-anchor="middle" font-size="22" font-weight="700" fill="#18324d">验证问题</text>
+
+  <!-- 研究内容 -->
   <text x="92" y="470" text-anchor="middle" font-size="18" font-weight="700" fill="#4a6178">研究内容</text>
   <g filter="url(#shadow)">
-    <rect x="185" y="280" width="330" height="300" rx="16" fill="#ffffff" stroke="#6f9ed8"/>
-    <rect x="575" y="280" width="330" height="300" rx="16" fill="#ffffff" stroke="#6fb889"/>
-    <rect x="965" y="280" width="330" height="300" rx="16" fill="#ffffff" stroke="#9d7ce2"/>
+    <rect x="{RECT_X["discover"]}" y="{CONTENT_Y}" width="{RECT_W}" height="{CONTENT_H}" rx="16" fill="#ffffff" stroke="#6f9ed8"/>
+    <rect x="{RECT_X["solve"]}" y="{CONTENT_Y}" width="{RECT_W}" height="{CONTENT_H}" rx="16" fill="#ffffff" stroke="#6fb889"/>
+    <rect x="{RECT_X["validate"]}" y="{CONTENT_Y}" width="{RECT_W}" height="{CONTENT_H}" rx="16" fill="#ffffff" stroke="#9d7ce2"/>
   </g>
-  <text x="350" y="340" text-anchor="middle" font-size="21" font-weight="700" fill="#1f3650">现状诊断与问题识别</text>
-  <text x="350" y="390" text-anchor="middle" font-size="18" fill="#26384d">研究对象界定</text>
-  <text x="350" y="430" text-anchor="middle" font-size="18" fill="#26384d">流程与质量数据分析</text>
-  <text x="350" y="470" text-anchor="middle" font-size="18" fill="#26384d">核心问题归类与排序</text>
-  <text x="740" y="340" text-anchor="middle" font-size="21" font-weight="700" fill="#1f3650">优化方案构建</text>
-  <text x="740" y="390" text-anchor="middle" font-size="18" fill="#26384d">{html.escape(safe_direction)}理论适配</text>
-  <text x="740" y="430" text-anchor="middle" font-size="18" fill="#26384d">过程改进与闭环机制</text>
-  <text x="740" y="470" text-anchor="middle" font-size="18" fill="#26384d">实施保障与工具支撑</text>
-  <text x="1130" y="340" text-anchor="middle" font-size="21" font-weight="700" fill="#1f3650">效果评价与趋势判断</text>
-  <text x="1130" y="390" text-anchor="middle" font-size="18" fill="#26384d">实施前后对比</text>
-  <text x="1130" y="430" text-anchor="middle" font-size="18" fill="#26384d">关键指标跟踪</text>
-  <text x="1130" y="470" text-anchor="middle" font-size="18" fill="#26384d">改进结论输出</text>
-  <line x1="515" y1="430" x2="575" y2="430" stroke="#617083" stroke-width="4" marker-end="url(#arrow)"/>
-  <line x1="905" y1="430" x2="965" y2="430" stroke="#617083" stroke-width="4" marker-end="url(#arrow)"/>
-  <text x="92" y="710" text-anchor="middle" font-size="18" font-weight="700" fill="#4a6178">研究方法</text>
-  <rect x="185" y="640" width="330" height="154" rx="16" fill="#f6fbff" stroke="#6f9ed8"/>
-  <rect x="575" y="640" width="330" height="154" rx="16" fill="#f6fbff" stroke="#6fb889"/>
-  <rect x="965" y="640" width="330" height="154" rx="16" fill="#f6fbff" stroke="#9d7ce2"/>
-  <text x="350" y="670" text-anchor="middle" font-size="16" font-weight="700" fill="#31526f">发现问题方法</text>
-  <text x="740" y="670" text-anchor="middle" font-size="16" font-weight="700" fill="#31526f">解决问题方法</text>
-  <text x="1130" y="670" text-anchor="middle" font-size="16" font-weight="700" fill="#31526f">验证问题方法</text>
-  {discover_methods}
-  {solve_methods}
-  {validate_methods}
-  <line x1="350" y1="650" x2="350" y2="590" stroke="#91a3b8" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#arrow)"/>
-  <line x1="740" y1="650" x2="740" y2="590" stroke="#91a3b8" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#arrow)"/>
-  <line x1="1130" y1="650" x2="1130" y2="590" stroke="#91a3b8" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#arrow)"/>
-  <rect x="185" y="840" width="330" height="42" rx="12" fill="#e8f2ff" stroke="#6f9ed8"/>
-  <rect x="575" y="840" width="330" height="42" rx="12" fill="#eaf8f0" stroke="#6fb889"/>
-  <rect x="965" y="840" width="330" height="42" rx="12" fill="#f2ecff" stroke="#9d7ce2"/>
-  <text x="350" y="867" text-anchor="middle" font-size="16" font-weight="700" fill="#24384f">输出：问题清单与诊断依据</text>
-  <text x="740" y="867" text-anchor="middle" font-size="16" font-weight="700" fill="#24384f">输出：管理优化方案</text>
-  <text x="1130" y="867" text-anchor="middle" font-size="16" font-weight="700" fill="#24384f">输出：效果评价与改进结论</text>
+  <text x="{COL_X["discover"]}" y="340" text-anchor="middle" font-size="21" font-weight="700" fill="#1f3650">现状诊断与问题识别</text>
+  <text x="{COL_X["discover"]}" y="390" text-anchor="middle" font-size="18" fill="#26384d">研究对象界定</text>
+  <text x="{COL_X["discover"]}" y="430" text-anchor="middle" font-size="18" fill="#26384d">流程与质量数据分析</text>
+  <text x="{COL_X["discover"]}" y="470" text-anchor="middle" font-size="18" fill="#26384d">核心问题归类与排序</text>
+  <text x="{COL_X["solve"]}" y="340" text-anchor="middle" font-size="21" font-weight="700" fill="#1f3650">优化方案构建</text>
+  <text x="{COL_X["solve"]}" y="390" text-anchor="middle" font-size="18" fill="#26384d">{safe_direction}理论适配</text>
+  <text x="{COL_X["solve"]}" y="430" text-anchor="middle" font-size="18" fill="#26384d">过程改进与闭环机制</text>
+  <text x="{COL_X["solve"]}" y="470" text-anchor="middle" font-size="18" fill="#26384d">实施保障与工具支撑</text>
+  <text x="{COL_X["validate"]}" y="340" text-anchor="middle" font-size="21" font-weight="700" fill="#1f3650">效果评价与趋势判断</text>
+  <text x="{COL_X["validate"]}" y="390" text-anchor="middle" font-size="18" fill="#26384d">实施前后对比</text>
+  <text x="{COL_X["validate"]}" y="430" text-anchor="middle" font-size="18" fill="#26384d">关键指标跟踪</text>
+  <text x="{COL_X["validate"]}" y="470" text-anchor="middle" font-size="18" fill="#26384d">改进结论输出</text>
+  <line x1="515" y1="{ARROW_Y}" x2="575" y2="{ARROW_Y}" stroke="#617083" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="905" y1="{ARROW_Y}" x2="965" y2="{ARROW_Y}" stroke="#617083" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <!-- 研究方法：大框包含所有方法 -->
+  <text x="92" y="{BIG_BOX_Y + 28}" text-anchor="middle" font-size="18" font-weight="700" fill="#4a6178">研究方法</text>
+  <rect x="{BIG_BOX_X}" y="{BIG_BOX_Y}" width="{BIG_BOX_W}" height="{BIG_BOX_H}" rx="20" fill="#f8fcff" stroke="#8199b3" stroke-width="2.5"/>
+  <!-- 列标题 -->
+  <text x="{COL_X["discover"]}" y="{METHOD_COL_LABEL_Y}" text-anchor="middle" font-size="15" font-weight="700" fill="#31526f">发现问题方法</text>
+  <text x="{COL_X["solve"]}" y="{METHOD_COL_LABEL_Y}" text-anchor="middle" font-size="15" font-weight="700" fill="#31526f">解决问题方法</text>
+  <text x="{COL_X["validate"]}" y="{METHOD_COL_LABEL_Y}" text-anchor="middle" font-size="15" font-weight="700" fill="#31526f">验证问题方法</text>
+  {discover_boxes}
+  {solve_boxes}
+  {validate_boxes}
+
+  <!-- 研究方法 → 研究内容箭头 -->
+  <line x1="{COL_X["discover"]}" y1="{BIG_BOX_Y}" x2="{COL_X["discover"]}" y2="{CONTENT_BOTTOM_Y}" stroke="#617083" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+  <line x1="{COL_X["solve"]}" y1="{BIG_BOX_Y}" x2="{COL_X["solve"]}" y2="{CONTENT_BOTTOM_Y}" stroke="#617083" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+  <line x1="{COL_X["validate"]}" y1="{BIG_BOX_Y}" x2="{COL_X["validate"]}" y2="{CONTENT_BOTTOM_Y}" stroke="#617083" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+
+  <!-- 输出 -->
+  <rect x="{RECT_X["discover"]}" y="{OUTPUTS_Y}" width="{RECT_W}" height="{OUTPUT_H}" rx="12" fill="#e8f2ff" stroke="#6f9ed8"/>
+  <rect x="{RECT_X["solve"]}" y="{OUTPUTS_Y}" width="{RECT_W}" height="{OUTPUT_H}" rx="12" fill="#eaf8f0" stroke="#6fb889"/>
+  <rect x="{RECT_X["validate"]}" y="{OUTPUTS_Y}" width="{RECT_W}" height="{OUTPUT_H}" rx="12" fill="#f2ecff" stroke="#9d7ce2"/>
+  <text x="{COL_X["discover"]}" y="{OUTPUTS_Y + 28}" text-anchor="middle" font-size="16" font-weight="700" fill="#24384f">输出：问题清单与诊断依据</text>
+  <text x="{COL_X["solve"]}" y="{OUTPUTS_Y + 28}" text-anchor="middle" font-size="16" font-weight="700" fill="#24384f">输出：管理优化方案</text>
+  <text x="{COL_X["validate"]}" y="{OUTPUTS_Y + 28}" text-anchor="middle" font-size="16" font-weight="700" fill="#24384f">输出：效果评价与改进结论</text>
 </svg>"""
 
 
-def make_framework_mermaid(
-    topic: str, direction: str, phase_methods: Dict[str, List[str]]
-) -> str:
-    """生成研究框架的 Mermaid flowchart 源码。"""
-    safe_topic = (topic or "未命名论文主题").replace('"', "'")
-    discover = phase_methods.get("discover", [])
-    solve = phase_methods.get("solve", [])
-    validate = phase_methods.get("validate", [])
-
-    lines = ["graph TD"]
-    lines.append(f'  T["{safe_topic}研究框架"]')
-    lines.append("  T --> A[发现问题]")
-    lines.append("  T --> B[解决问题]")
-    lines.append("  T --> C[验证问题]")
-
-    # 研究内容
-    lines.append("  A --> A1[现状诊断与问题识别]")
-    lines.append("  A1 --> A2[研究对象界定]")
-    lines.append("  A2 --> A3[流程与质量数据分析]")
-    lines.append("  A3 --> A4[核心问题归类与排序]")
-
-    lines.append("  B --> B1[优化方案构建]")
-    lines.append(f'  B1 --> B2["{direction}理论适配"]')
-    lines.append("  B2 --> B3[过程改进与闭环机制]")
-    lines.append("  B3 --> B4[实施保障与工具支撑]")
-
-    lines.append("  C --> C1[效果评价与趋势判断]")
-    lines.append("  C1 --> C2[实施前后对比]")
-    lines.append("  C2 --> C3[关键指标跟踪]")
-    lines.append("  C3 --> C4[改进结论输出]")
-
-    # 研究方法
-    for i, m in enumerate(discover[:5]):
-        lines.append(f'  A4 --> AD{i}[{m}]')
-    for i, m in enumerate(solve[:5]):
-        lines.append(f'  B4 --> BS{i}[{m}]')
-    for i, m in enumerate(validate[:5]):
-        lines.append(f'  C4 --> CV{i}[{m}]')
-
-    # 输出
-    lines.append("  A4 --> OA[输出：问题清单与诊断依据]")
-    lines.append("  B4 --> OB[输出：管理优化方案]")
-    lines.append("  C4 --> OC[输出：效果评价与改进结论]")
-
-    # 阶段箭头
-    lines.append("  A -->|阶段一| B")
-    lines.append("  B -->|阶段二| C")
-
-    return "\n".join(lines)
-
-
-# 汽车/新能源等行业关键词 — 如果用户选题不含这些词，过滤掉含这些词的知识库资料
-_INDUSTRY_FILTER_KEYWORDS = [
-    "新能源", "汽车", "电动车", "纯电动", "混合动力", "整车", "车载",
-    "电池", "充电", "驾驶", "动力总成", "车联网", "ADAS",
-    "半导体", "芯片", "晶圆", "光刻",
-    "医药", "制药", "药物", "临床", "疫苗",
-    "船舶", "港口", "航运", "海上风电",
-    "房地产", "楼盘", "物业",
+_INDUSTRY_FILTER_KEYWORDS: List[str] = [
+    "新能源", "新能源汽车", "光伏", "风电", "储能",
+    "半导体", "芯片", "集成电路",
+    "电池", "锂电池", "动力电池",
+    "汽车", "车载", "自动驾驶", "智能驾驶",
+    "建筑", "房地产", "桥梁", "隧道",
+    "钢铁", "冶金", "化工",
+    "医药", "制药", "医疗器械", "医疗设备",
+    "通信", "5G", "互联网", "软件开发",
+    "金融", "保险", "银行",
+    "物流", "供应链",
+    "食品", "纺织", "石油",
+    "人工智能", "大数据", "物联网",
 ]
 
 
@@ -3177,7 +4266,7 @@ CHAT_SYSTEM_PROMPT = """你是 ThesisMind 论文辅助工作台的智能引导�
 01 基本配置 — 配置大模型连接（provider / model / base_url / api_key）
 02 论文信息 — 设置论文主题、研究方向、项目背景，初始化知识库
 03 方法论选择 — 从知识库扫描可用研究方法，分配到"发现问题/解决问题/验证问题"三个阶段
-04 研究框架 — 生成研究框架 Mermaid 图（方法论与论文主题的映射关系）
+04 研究框架 — 生成研究框架 SVG 图（方法论与论文主题的映射关系）
 05 章节大纲 — 生成三级目录结构，分配字数，支持后续手动编辑
 06 引用生成 — 从本地知识库匹配真实文献，生成 GB/T 7714 格式引用
 07 章节写作 — 按小节扩写/重写，支持一键串行完成所有小节
@@ -3687,6 +4776,117 @@ def _generate_ppt(ppt_type: str, payload: Dict[str, Any]) -> bytes:
     return buf.read()
 
 
+def _create_method_card(
+    name: str, phase: str, direction: str
+) -> Dict[str, Any]:
+    """将用户自定义方法写入方法卡片库（cards/methods/ + cards.sqlite3）。"""
+    import yaml
+    safe_id = re.sub(r"[^a-zA-Z0-9_一-鿿]", "", name.lower().replace(" ", "_"))[:40] or "custom"
+    card_id = f"method_custom_{safe_id}"
+    now = datetime.date.today().isoformat()
+    slug = card_id
+
+    frontmatter = {
+        "id": slug,
+        "type": "method_card",
+        "name": name,
+        "short_name": name[:12],
+        "aliases": [name],
+        "category": "hybrid",
+        "phase": [phase],
+        "disciplines": ["mem"],
+        "domains": [direction] if direction else [],
+        "applicable_sections": [],
+        "pairs_with": [],
+        "requires": [],
+        "conflicts_with": [],
+        "difficulty": "intermediate",
+        "data_type": [],
+        "outputs": [],
+        "risk_tags": [],
+        "inject_policy": "auto",
+        "embedding_fields": ["name", "body"],
+        "source_type": "user_created",
+        "scope": "platform",
+        "status": "draft",
+        "version": "1.0.0",
+        "created_at": now,
+        "updated_at": now,
+    }
+    body = f"## 方法定位\n{name}是用户自定义的研究方法，适用于{phase}阶段。\n\n## 定义\n待补充。\n\n## 适用场景\n待补充。\n"
+
+    yaml_block = yaml.dump(frontmatter, allow_unicode=True, default_flow_style=False, sort_keys=False)
+    md_content = f"---\n{yaml_block}---\n{body}"
+
+    methods_dir = PROJECT_ROOT / "cards" / "methods"
+    methods_dir.mkdir(parents=True, exist_ok=True)
+    card_path = methods_dir / f"{slug}.md"
+    card_path.write_text(md_content, encoding="utf-8")
+
+    # Insert into SQLite — try build_cards first, fall back to direct insert
+    rebuild_ok = False
+    try:
+        from src.card_builder import build_cards
+        result = build_cards()
+        rebuild_ok = result.get("status") == "ok"
+    except Exception as exc:
+        print(f"[_create_method_card] build_cards failed: {exc}", file=sys.stderr)
+
+    if not rebuild_ok:
+        # Direct insert fallback
+        try:
+            import json as _json_mod
+            db_path = PROJECT_ROOT / "knowledge_base" / "cards.sqlite3"
+            conn = sqlite3.connect(str(db_path))
+            conn.execute(
+                "INSERT OR REPLACE INTO cards (id, type, name, short_name, category, phase, disciplines, domains, applicable_sections, aliases, pairs_with, requires, conflicts_with, difficulty, data_type, outputs, risk_tags, source_type, scope, status, version, frontmatter_json, body_markdown, body_summary) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    frontmatter["id"], frontmatter["type"], frontmatter["name"], frontmatter["short_name"],
+                    frontmatter["category"], _json_mod.dumps(frontmatter["phase"], ensure_ascii=False),
+                    _json_mod.dumps(frontmatter["disciplines"], ensure_ascii=False),
+                    _json_mod.dumps(frontmatter["domains"], ensure_ascii=False),
+                    _json_mod.dumps(frontmatter["applicable_sections"], ensure_ascii=False),
+                    _json_mod.dumps(frontmatter["aliases"], ensure_ascii=False),
+                    _json_mod.dumps(frontmatter["pairs_with"], ensure_ascii=False),
+                    _json_mod.dumps(frontmatter["requires"], ensure_ascii=False),
+                    _json_mod.dumps(frontmatter["conflicts_with"], ensure_ascii=False),
+                    frontmatter["difficulty"],
+                    _json_mod.dumps(frontmatter["data_type"], ensure_ascii=False),
+                    _json_mod.dumps(frontmatter["outputs"], ensure_ascii=False),
+                    _json_mod.dumps(frontmatter["risk_tags"], ensure_ascii=False),
+                    frontmatter["source_type"], frontmatter["scope"], frontmatter["status"], frontmatter["version"],
+                    _json_mod.dumps(frontmatter, ensure_ascii=False, sort_keys=True),
+                    body, ""
+                )
+            )
+            conn.commit()
+            conn.close()
+            rebuild_ok = True
+        except Exception as exc2:
+            print(f"[_create_method_card] direct insert also failed: {exc2}", file=sys.stderr)
+
+    if rebuild_ok:
+        # Invalidate consistency engine cache
+        try:
+            from src.consistency_engine import _invalidate_methods_pattern_cache
+            _invalidate_methods_pattern_cache()
+        except Exception:
+            pass
+        # Clear methodology catalog cache
+        catalog_path = PROJECT_ROOT / "knowledge_base" / "templates" / "methodology_catalog.json"
+        if catalog_path.exists():
+            catalog_path.unlink()
+
+    return {
+        "status": "ok",
+        "id": slug,
+        "name": name,
+        "phase": [phase],
+        "source_type": "user_created",
+        "card_path": str(card_path),
+    }
+
+
 def _supplement_method(payload: Dict[str, Any]) -> Dict[str, Any]:
     """为自定义方法论爬取权威资料并生成方法卡。"""
     config = load_llm_config()
@@ -4055,9 +5255,20 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1800,
         )
+        content = clean_generated_content(_llm_response_text(response, provider), section)
+        consistency = verify_commitments(
+            content, memory, str(chapter.get("number", ""))
+        )
+        citation_check = verify_citations(
+            content,
+            citation_indices if citation_indices is not None else [],
+            citations if citations else [],
+        )
         return {
             "status": "ok",
-            "content": clean_generated_content(_llm_response_text(response, provider), section),
+            "content": content,
+            "consistency": consistency,
+            "citation_check": citation_check,
             "references": [
                 {
                     "title": item.get("title"),
@@ -4069,6 +5280,122 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
         }
     except Exception as exc:
         return {"status": "error", "content": f"大模型调用失败：{exc}"}
+
+
+def compile_thesis() -> Dict[str, Any]:
+    """编译全部草稿为完整论文，并运行跨章节一致性校验。"""
+    drafts = load_drafts()
+    outline = load_workspace_value("outline")
+    memory = merge_memory_schema(load_workspace_value("thesis_memory", {}) or {})
+
+    if not outline:
+        return {"status": "error", "message": "未找到大纲，请先生成章节大纲。"}
+
+    # 按章节/小节顺序组装全文
+    chapters_output: List[Dict[str, Any]] = []
+    full_text_parts: List[str] = []
+    total_words = 0
+    word_count_by_chapter: Dict[str, int] = {}
+
+    for ch in outline.get("chapters", []):
+        ch_num = str(ch.get("number", ""))
+        ch_title = ch.get("title", "")
+        ch_text_parts = [f"第{ch_num}章 {ch_title}", ""]
+        ch_word_count = 0
+
+        for sec in ch.get("sections", []):
+            sec_num = sec.get("number", "")
+            sec_title = sec.get("title", "")
+            draft_key = f"{ch_num}.{sec_num}"
+            content = drafts.get(draft_key, "").strip()
+
+            if content:
+                ch_text_parts.append(f"{sec_num} {sec_title}")
+                ch_text_parts.append(content)
+                ch_text_parts.append("")
+                ch_word_count += len(content)
+
+            # Subsections
+            for sub_idx, sub in enumerate(sec.get("subsections", []) or []):
+                sub_draft_key = f"{ch_num}.{sec_num}.{sub_idx}"
+                sub_content = drafts.get(sub_draft_key, "").strip()
+                if sub_content:
+                    sub_title = sub.get("title", "")
+                    ch_text_parts.append(f"{sub_title}")
+                    ch_text_parts.append(sub_content)
+                    ch_text_parts.append("")
+                    ch_word_count += len(sub_content)
+
+        ch_text = "\n".join(ch_text_parts).strip()
+        full_text_parts.append(ch_text)
+        chapters_output.append({
+            "chapter": ch_num,
+            "title": ch_title,
+            "word_count": ch_word_count,
+            "has_content": ch_word_count > 0,
+        })
+        word_count_by_chapter[ch_num] = ch_word_count
+        total_words += ch_word_count
+
+    full_text = "\n\n".join(full_text_parts)
+
+    # 跨章节一致性校验：每章验证前文章节的承诺
+    chapter_consistency: Dict[str, Any] = {}
+    total_hard_unresolved = 0
+    for ch in outline.get("chapters", []):
+        ch_num = str(ch.get("number", ""))
+        # 收集该章全部内容
+        ch_content_parts = []
+        for sec in ch.get("sections", []):
+            dk = f"{ch_num}.{sec.get('number', '')}"
+            c = drafts.get(dk, "")
+            if c:
+                ch_content_parts.append(c)
+            for sub_idx in range(len(sec.get("subsections", []) or [])):
+                sc = drafts.get(f"{ch_num}.{sec.get('number', '')}.{sub_idx}", "")
+                if sc:
+                    ch_content_parts.append(sc)
+        ch_content = "\n".join(ch_content_parts)
+        result = verify_commitments(ch_content, memory, ch_num)
+        chapter_consistency[ch_num] = result
+        total_hard_unresolved += result.get("hard_unresolved", 0)
+
+    # 检查大纲覆盖度（哪些章节/小节还没有草稿）
+    missing_sections: List[Dict[str, str]] = []
+    for ch in outline.get("chapters", []):
+        ch_num = str(ch.get("number", ""))
+        for sec in ch.get("sections", []):
+            sec_num = sec.get("number", "")
+            dk = f"{ch_num}.{sec_num}"
+            if not drafts.get(dk, "").strip():
+                missing_sections.append({
+                    "chapter": ch_num,
+                    "section": sec_num,
+                    "title": sec.get("title", ""),
+                })
+
+    result = {
+        "status": "ok",
+        "total_words": total_words,
+        "word_count_by_chapter": word_count_by_chapter,
+        "chapters": chapters_output,
+        "missing_sections": missing_sections,
+        "missing_count": len(missing_sections),
+        "chapter_consistency": chapter_consistency,
+        "total_hard_unresolved": total_hard_unresolved,
+        "full_text_preview": full_text[:2000],
+    }
+
+    # 缓存编译结果
+    save_workspace_value("thesis_compiled", {
+        "full_text": full_text,
+        "compiled_at": time.time(),
+        "total_words": total_words,
+    })
+    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    (OUTPUT_ROOT / "thesis_compiled.md").write_text(full_text, encoding="utf-8")
+
+    return result
 
 
 def check_blind_review_risks(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -4714,10 +6041,14 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                         "section_citations": load_workspace_value("section_citations", {}),
                         "drafts": load_drafts(),
                         "thesis_memory": load_workspace_value("thesis_memory", {}),
-                        "phase_methods": load_workspace_value("phase_methods", {"discover": [], "solve": [], "validate": []}),
+                        "phase_methods": _normalize_phase_methods(load_workspace_value("phase_methods", {"discover": [], "solve": [], "validate": []})),
+                        "method_pools": {
+                            "discover": _normalize_method_pool(load_workspace_value("method_pool:discover", [])),
+                            "solve": _normalize_method_pool(load_workspace_value("method_pool:solve", [])),
+                            "validate": _normalize_method_pool(load_workspace_value("method_pool:validate", [])),
+                        },
                         "proposal_content": load_workspace_value("proposal_content", ""),
                         "framework_svg": load_workspace_value("framework_svg", ""),
-                        "framework_mermaid": load_workspace_value("framework_mermaid", ""),
                         "framework_topic": load_workspace_value("framework_topic", ""),
                         "framework_direction": load_workspace_value("framework_direction", ""),
                         "framework_phase_methods": load_workspace_value("framework_phase_methods", {}),
@@ -5026,23 +6357,20 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 touch_current_project(payload.get("topic", ""))
                 topic = payload.get("topic", "")
                 direction = payload.get("direction_name", "")
-                phase_methods = payload.get("phase_methods") or {
+                raw_phase_methods = payload.get("phase_methods") or {
                     "discover": payload.get("methods", []),
                     "solve": [],
                     "validate": [],
                 }
-                svg = make_framework_svg(topic, direction, phase_methods)
-                mermaid = make_framework_mermaid(topic, direction, phase_methods)
+                # Normalize to canonical IDs for storage; keep raw names for SVG display
+                phase_methods = _filter_stale_methods(raw_phase_methods)
+                svg = make_framework_svg(topic, direction, raw_phase_methods)
                 OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
                 (OUTPUT_ROOT / "web_research_framework.svg").write_text(
                     svg, encoding="utf-8"
                 )
-                (OUTPUT_ROOT / "web_research_framework.mmd").write_text(
-                    mermaid, encoding="utf-8"
-                )
                 # Auto-persist to workspace for revisit auto-fill
                 save_workspace_value("framework_svg", svg)
-                save_workspace_value("framework_mermaid", mermaid)
                 save_workspace_value("framework_topic", topic)
                 save_workspace_value("framework_direction", direction)
                 save_workspace_value("framework_phase_methods", phase_methods)
@@ -5050,20 +6378,31 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                     self,
                     {
                         "svg": svg,
-                        "mermaid": mermaid,
                         "output_path": "output/web_research_framework.svg",
-                        "mermaid_path": "output/web_research_framework.mmd",
                     },
                 )
                 return
 
             if path == "/api/framework/save":
+                phase_methods = _filter_stale_methods(payload.get("phase_methods", {}) or {})
                 save_workspace_value("framework_svg", payload.get("svg", ""))
-                save_workspace_value("framework_mermaid", payload.get("mermaid", ""))
+
                 save_workspace_value("framework_topic", payload.get("topic", ""))
                 save_workspace_value("framework_direction", payload.get("direction", ""))
-                save_workspace_value("framework_phase_methods", payload.get("phase_methods", {}))
-                _json_response(self, {"status": "ok"})
+                save_workspace_value("framework_phase_methods", phase_methods)
+                # Merge framework into thesis_memory for consistency tracking
+                flat_methods: list = []
+                for phase_list in phase_methods.values():
+                    if isinstance(phase_list, list):
+                        flat_methods.extend(phase_list)
+                build_thesis_memory({
+                    "topic": payload.get("topic", ""),
+                    "direction": payload.get("direction", ""),
+                    "methods": flat_methods,
+                    "phase_methods": phase_methods,
+                })
+                stale = _mark_all_drafts_stale("研究框架已更新，本章可能需要重新生成以保持一致性")
+                _json_response(self, {"status": "ok", "stale_chapters": stale})
                 return
 
             if path == "/api/table/generate":
@@ -5182,7 +6521,10 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 markdown = outline_to_markdown(outline) if outline else ""
                 save_workspace_value("outline", outline)
                 save_workspace_value("markdown", markdown)
-                _json_response(self, {"status": "ok", "markdown": markdown})
+                if outline:
+                    build_thesis_memory(payload, outline)
+                stale = _mark_all_drafts_stale("章节大纲已更新，本章可能需要重新生成以保持一致性")
+                _json_response(self, {"status": "ok", "markdown": markdown, "stale_chapters": stale})
                 return
 
             if path == "/api/subsections":
@@ -5200,10 +6542,10 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/drafts/save":
-                save_draft(
+                result = save_draft(
                     str(payload.get("draft_key", "")), str(payload.get("content", ""))
                 )
-                _json_response(self, {"status": "ok"})
+                _json_response(self, result)
                 return
 
             if path == "/api/chat/test":
@@ -5214,18 +6556,61 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _json_response(self, _chat_with_llm(payload))
                 return
 
+            if path == "/api/consistency/validate":
+                memory = merge_memory_schema(load_workspace_value("thesis_memory", {}) or {})
+                drafts = load_drafts()
+                results = {}
+                total_unresolved = 0
+                for draft_key, draft_content in drafts.items():
+                    chapter_key = draft_key.split(".", 1)[0]
+                    ch_result = verify_commitments(draft_content, memory, chapter_key)
+                    results[draft_key] = ch_result
+                    total_unresolved += ch_result.get("unresolved", 0)
+                _json_response(self, {
+                    "status": "ok",
+                    "total_unresolved": total_unresolved,
+                    "by_section": results,
+                })
+                return
+
+            if path == "/api/thesis/compile":
+                _json_response(self, compile_thesis())
+                return
+
             if path == "/api/method-supplement":
                 _json_response(self, _supplement_method(payload))
                 return
 
             if path == "/api/method-assignments/save":
                 phase_methods = payload.get("phase_methods") or {}
-                save_workspace_value("phase_methods", {
+                save_workspace_value("phase_methods", _normalize_phase_methods({
                     "discover": phase_methods.get("discover", []),
                     "solve": phase_methods.get("solve", []),
                     "validate": phase_methods.get("validate", []),
-                })
+                }))
                 _json_response(self, {"status": "ok"})
+                return
+
+            if path == "/api/method-pool/save":
+                method_pool = payload.get("method_pool") or []
+                phase = str(payload.get("phase", "")).strip()
+                if phase in ("discover", "solve", "validate"):
+                    save_workspace_value(f"method_pool:{phase}", _normalize_method_pool(method_pool))
+                else:
+                    # 兼容旧版：无 phase 时保存到全局
+                    save_workspace_value("method_pool", _normalize_method_pool(method_pool))
+                _json_response(self, {"status": "ok"})
+                return
+
+            if path == "/api/methods/create-card":
+                name = str(payload.get("name", "")).strip()
+                phase = str(payload.get("phase", "discover")).strip()
+                direction = str(payload.get("direction", "")).strip()
+                if not name:
+                    _json_response(self, {"status": "error", "message": "方法名不能为空"}, status=400)
+                    return
+                result = _create_method_card(name, phase, direction)
+                _json_response(self, result)
                 return
 
             if path == "/api/methods/save":
@@ -5234,11 +6619,11 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                     save_workspace_value("selected_methods", methods)
                 phase_methods = payload.get("phase_methods") or {}
                 if isinstance(phase_methods, dict):
-                    save_workspace_value("phase_methods", {
+                    save_workspace_value("phase_methods", _normalize_phase_methods({
                         "discover": phase_methods.get("discover", []),
                         "solve": phase_methods.get("solve", []),
                         "validate": phase_methods.get("validate", []),
-                    })
+                    }))
                 _json_response(self, {"status": "ok"})
                 return
 
@@ -5478,6 +6863,26 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
         return
 
 
+def _rebuild_cards_from_source() -> None:
+    """Rebuild cards.sqlite3 from the permanent cards/methods/ directory.
+
+    The encrypted assets contain a pre-built cards.sqlite3 snapshot, but
+    user additions/deletions to cards/methods/*.md are the source of truth.
+    This function runs build_cards() against the permanent directory and
+    writes the result to wherever CARDS_DB currently points (temp dir).
+    """
+    import src.card_builder as card_builder
+    saved_methods_root = card_builder.METHODS_ROOT
+    try:
+        card_builder.METHODS_ROOT = PROJECT_ROOT / "cards" / "methods"
+        result = card_builder.build_cards()
+        print(f"  卡片库重建: {result.get('cards_processed', 0)} 张卡片")
+    except Exception as exc:
+        print(f"  卡片库重建失败: {exc}")
+    finally:
+        card_builder.METHODS_ROOT = saved_methods_root
+
+
 def _patch_asset_paths(assets_root: Path) -> None:
     """将各模块的资产路径重定向到解密后的临时目录。"""
     import src.kb_manager as kb_manager
@@ -5546,8 +6951,11 @@ def main() -> None:
         assets_root = asset_store.setup()
         _patch_asset_paths(assets_root)
         print(f"  资产就绪: {assets_root}")
+        # 用永久 cards/methods/ 目录重建卡片库，确保用户增删的卡片生效
+        _rebuild_cards_from_source()
     except FileNotFoundError:
         print("  未找到加密资产包 (assets_enc/)，使用明文资产")
+        _rebuild_cards_from_source()
     except Exception as e:
         print(f"  资产解密失败: {e}")
         print("  将以受限模式启动")

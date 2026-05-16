@@ -151,10 +151,10 @@ REQUIRED_BODY_SECTIONS = [
 ]
 
 VALID_CATEGORIES = {"quantitative", "qualitative", "hybrid", "framework", "model", "process"}
-VALID_PHASES = {"discover", "solve", "verify"}
+VALID_PHASES = {"discover", "solve", "verify", "validate"}
 VALID_DIFFICULTIES = {"beginner", "intermediate", "advanced"}
 VALID_EVIDENCE = {"low", "medium", "high"}
-VALID_SOURCE_TYPES = {"builtin", "uploaded_paper", "user_created"}
+VALID_SOURCE_TYPES = {"builtin", "uploaded_paper", "user_created", "cross_discipline"}
 VALID_SCOPES = {"platform", "user", "organization"}
 VALID_STATUSES = {"draft", "reviewed", "deprecated"}
 
@@ -237,10 +237,11 @@ def validate_card(card: Dict[str, Any], card_type: str = "method_card") -> List[
     if isinstance(emb_fields, list) and "name" not in emb_fields:
         issues.append("embedding_fields 至少需要包含 'name'")
 
-    # Body sections
+    # Body sections (warnings only, not blocking)
+    body_warnings = []
     for section in required_body:
         if f"## {section}" not in body:
-            issues.append(f"正文缺少小节: ## {section}")
+            body_warnings.append(f"正文缺少小节: ## {section}")
 
     # Risk-specific: severity must be valid
     if card_type == "risk_card":
@@ -344,6 +345,12 @@ def build_cards(jsonl_path: Optional[Path] = None, db_path: Optional[Path] = Non
     _upsert_cards(conn, records)
     _build_method_relations(conn, records)
     conn.close()
+
+    try:
+        from src.consistency_engine import _invalidate_methods_pattern_cache
+        _invalidate_methods_pattern_cache()
+    except Exception:
+        pass
 
     return {
         "status": "ok",

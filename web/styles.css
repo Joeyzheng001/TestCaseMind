@@ -579,7 +579,8 @@ textarea:focus {
 }
 
 .method-tabs {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   margin-top: 16px;
   padding: 5px;
@@ -596,6 +597,7 @@ textarea:focus {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
+  text-align: center;
 }
 .method-tab:hover {
   color: #1e4663;
@@ -615,7 +617,6 @@ textarea:focus {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
-  max-width: 680px;
   margin-top: 14px;
 }
 
@@ -650,10 +651,67 @@ textarea:focus {
   background: #eef1f5;
   color: #5b6875;
 }
+.method-zone-cross .method-zone-header {
+  background: linear-gradient(135deg, #e8eaf6 0%, #d1d9ff 100%);
+  color: #1a237e;
+}
+
+.method-zone-pool {
+  margin-bottom: 16px;
+  padding: 4px;
+  border: 2px dashed #bbdefb;
+  border-radius: 14px;
+  background: #fafcff;
+}
+
+.method-zone-pool .method-zone-header {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  color: #0d47a1;
+  border: none;
+  border-radius: 10px 10px 0 0;
+}
+
+.pool-hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 4px;
+}
+
+.pool-remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 8px;
+  border: 1px solid #ef9a9a;
+  border-radius: 6px;
+  background: #fff;
+  color: #c62828;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  z-index: 2;
+}
+
+.pool-remove-btn:hover {
+  background: #ffebee;
+  border-color: #e53935;
+}
+
+.method-zone-pool .method-card {
+  border-color: #90caf9;
+  background: #fafcff;
+}
+
+.saved-flash {
+  background: #e8f5e9 !important;
+  border-color: #66bb6a !important;
+  color: #2e7d32 !important;
+}
 
 .method-zone-cards {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -703,9 +761,12 @@ textarea:focus {
   gap: 8px;
 }
 .method-card-name {
-  font-size: 0.92rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .method-card-tooltip {
   display: none;
@@ -781,6 +842,9 @@ textarea:focus {
 
 .method-zone-recommended .method-card {
   border-left: 4px solid #5bb974;
+}
+.method-zone-cross .method-card {
+  border-left: 4px solid #5c6bc0;
 }
 .method-zone-general .method-card {
   border-left: 4px solid #c0c7cf;
@@ -1476,6 +1540,57 @@ textarea:focus {
   border-color: #c7ddf1;
   background: #f6fbff;
   font-size: 13px;
+}
+
+.consistency-feedback {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #dde7f0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.cf-item {
+  padding: 4px 0;
+}
+
+.cf-item.cf-ok {
+  color: #2e7d32;
+}
+
+.cf-item.cf-warn {
+  color: #c62828;
+  font-weight: 500;
+}
+
+.cf-item.cf-stale {
+  color: #e65100;
+  font-weight: 500;
+}
+
+.cf-tag {
+  display: inline-block;
+  margin: 0 3px;
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: #ffebee;
+  color: #b71c1c;
+  font-size: 0.78rem;
+}
+
+.stale-chapter-badge {
+  display: none;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: #fff3e0;
+  color: #e65100;
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: middle;
+  cursor: help;
 }
 
 .serial-progress {
@@ -2334,16 +2449,40 @@ textarea:focus {
 
 /* Supplement button in method cards */
 .supplement-btn {
-  font-size: 12px;
-  padding: 3px 10px;
-  margin-top: 4px;
-  color: var(--primary);
-  border-color: var(--primary);
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  margin-top: 8px;
+  min-width: auto !important;
+  width: auto;
+  height: auto !important;
+  color: #e65100;
+  border: 1.5px solid #ff9800;
+  border-radius: 8px;
+  background: #fff8e1;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.supplement-btn:hover {
+  background: #ffecd2;
+  border-color: #e65100;
+  color: #bf360c;
 }
 .supplement-btn.supplemented {
   color: #1a7a1a;
-  border-color: #1a7a1a;
+  border-color: #66bb6a;
+  background: #e8f5e9;
   cursor: default;
+}
+
+/* 方法候选池中的卡片始终勾选（视觉反馈） */
+.method-zone-pool .method-card .method-check {
+  accent-color: var(--primary);
 }
 
 /* ============ 我是白痴模态框 ============ */

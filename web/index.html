@@ -181,10 +181,10 @@
             <p class="eyebrow">方法论选择</p>
             <h2>从知识库扫描可用研究方法</h2>
           </div>
-          <button class="ghost" id="refreshMethods">重新扫描</button>
         </div>
         <div class="method-toolbar">
           <input id="methodSearch" placeholder="搜索方法论，比如 CMMI、PDCA、AHP" />
+          <button class="ghost" id="saveMethodSelections">保存方法选择</button>
           <span id="methodCount">0 个方法</span>
         </div>
         <div class="method-tabs" aria-label="方法论阶段">
@@ -211,30 +211,15 @@
             <h2>预览、编辑研究框架并生成数据表格</h2>
           </div>
           <div class="head-actions">
-            <button class="ghost" id="saveFrameworkBtn">保存框架</button>
-            <button class="ghost" id="downloadFrameworkMermaid">下载 Mermaid</button>
+            <button class="ghost" id="saveFrameworkBtn" onclick="window._saveFramework?.()">保存框架</button>
             <button class="ghost" id="downloadFrameworkPng">下载 PNG</button>
-            <button class="ghost" id="downloadFrameworkSvg">下载 SVG 模板</button>
           </div>
         </div>
 
         <!-- SVG Preview -->
         <div class="svg-preview" id="svgPreview"></div>
 
-        <!-- Mermaid Editor Toggle -->
-        <div class="mermaid-toggle-bar">
-          <button class="ghost active" id="viewSvgBtn">查看 SVG 图</button>
-          <button class="ghost" id="viewMermaidBtn">编辑 Mermaid 源码</button>
-          <span class="save-tip" id="frameworkSaveTip"></span>
-        </div>
-
-        <!-- Mermaid Editor (hidden by default) -->
-        <div class="mermaid-editor-section" id="mermaidEditorSection" hidden>
-          <textarea class="mermaid-editor" id="mermaidEditor" placeholder="在此编辑 Mermaid 源码..." spellcheck="false"></textarea>
-          <div class="mermaid-preview" id="mermaidLivePreview"></div>
-          <div class="mermaid-error" id="mermaidError" hidden></div>
-          <button class="primary" id="applyMermaidBtn" style="grid-column:1/-1;margin-top:8px;">应用并保存</button>
-        </div>
+        <span class="save-tip" id="frameworkSaveTip"></span>
 
         <div class="actions split">
           <button class="ghost" data-next="methods">上一步</button>
@@ -423,6 +408,7 @@
             <span class="save-tip" id="writingStatus"></span>
           </div>
         </div>
+        <div id="consistencyFeedback" class="consistency-feedback" style="display:none"></div>
         <div id="writingList" class="writing-list"></div>
         <div id="serialProgress" class="serial-progress" hidden>
           <div class="snail-track">

@@ -20,36 +20,46 @@ VECTOR_DB = PROJECT_ROOT / "knowledge_base" / "vector_store.sqlite3"
 TEMPLATE_DIR = PROJECT_ROOT / "knowledge_base" / "templates" / "domain_templates"
 
 
-DOMAIN_RULES = {
-    "quality_management": {
-        "name": "质量管理",
-        "keywords": ["质量", "质量管理", "质量改进", "质量改善", "CMMI", "PDCA", "六西格玛", "DMAIC"],
-    },
-    "risk_management": {
-        "name": "风险管理",
-        "keywords": ["风险", "风险管理", "风险评估", "安全风险", "反欺诈"],
-    },
-    "schedule_management": {
-        "name": "进度管理",
-        "keywords": ["进度", "工期", "排产", "计划管理", "延误"],
-    },
-    "requirements_management": {
-        "name": "需求管理",
-        "keywords": ["需求管理", "需求分析", "产品需求", "需求变更"],
-    },
-    "process_optimization": {
-        "name": "流程优化",
-        "keywords": ["流程优化", "流程改善", "流程改进", "ESIA", "开发流程"],
-    },
-    "cost_management": {
-        "name": "成本管理",
-        "keywords": ["成本", "成本管理", "成本控制", "成本优化", "预算", "挣值", "作业成本"],
-    },
-    "supply_chain_logistics": {
-        "name": "供应链与物流",
-        "keywords": ["供应链", "物流", "配送", "库存", "采购", "供应商"],
-    },
+# 领域概念关键词（纯学科术语，方法名从注册中心动态补充）
+_DOMAIN_CONCEPT_KEYWORDS: Dict[str, List[str]] = {
+    "quality_management": ["质量", "质量管理", "质量改进", "质量改善"],
+    "risk_management": ["风险", "风险管理", "风险评估", "安全风险", "反欺诈"],
+    "schedule_management": ["进度", "工期", "排产", "计划管理", "延误"],
+    "requirements_management": ["需求管理", "需求分析", "产品需求", "需求变更"],
+    "process_optimization": ["流程优化", "流程改善", "流程改进", "开发流程"],
+    "cost_management": ["成本", "成本管理", "成本控制", "成本优化", "预算"],
+    "supply_chain_logistics": ["供应链", "物流", "配送", "库存", "采购", "供应商"],
 }
+
+_DOMAIN_NAMES: Dict[str, str] = {
+    "quality_management": "质量管理",
+    "risk_management": "风险管理",
+    "schedule_management": "进度管理",
+    "requirements_management": "需求管理",
+    "process_optimization": "流程优化",
+    "cost_management": "成本管理",
+    "supply_chain_logistics": "供应链与物流",
+}
+
+def _build_domain_rules() -> Dict[str, Dict[str, Any]]:
+    """从注册中心动态构建 DOMAIN_RULES（领域概念 + 方法名/别名）。"""
+    from src.method_registry import get_registry as _dr_reg
+    _reg = _dr_reg()
+    _domains_map = _reg.get_domain_to_names()
+    _aliases_map = _reg.get_aliases()
+    _rules: Dict[str, Dict[str, Any]] = {}
+    for _domain_id, _name in _DOMAIN_NAMES.items():
+        _kws = list(_DOMAIN_CONCEPT_KEYWORDS.get(_domain_id, []))
+        for _method_name in _domains_map.get(_domain_id, []):
+            if _method_name not in _kws:
+                _kws.append(_method_name)
+            for _alias in _aliases_map.get(_method_name, []):
+                if _alias not in _kws:
+                    _kws.append(_alias)
+        _rules[_domain_id] = {"name": _name, "keywords": _kws}
+    return _rules
+
+DOMAIN_RULES: Dict[str, Dict[str, Any]] = _build_domain_rules()
 
 def _get_method_keywords_list() -> List[str]:
     """从注册中心动态加载全部方法名作为关键词列表。"""

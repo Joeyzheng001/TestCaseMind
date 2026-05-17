@@ -19,11 +19,11 @@ except ImportError:
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# 研究方向关键词（强匹配：必须出现在标题或摘要中才算归属）
-DIRECTION_STRONG_KEYWORDS: Dict[str, List[str]] = {
+# 领域概念强匹配关键词（纯学科术语，方法名从注册中心动态补充）
+_DIRECTION_DOMAIN_CONCEPTS: Dict[str, List[str]] = {
     "quality_management": [
         "质量管理", "质量改进", "质量改善", "质量控制", "质量保证", "质量优化",
-        "质量体系", "质量标准", "CMMI", "六西格玛", "PDCA",
+        "质量体系", "质量标准",
     ],
     "risk_management": [
         "风险管理", "风险评估", "风险控制", "风险分析", "风险应对", "安全隐患",
@@ -31,25 +31,43 @@ DIRECTION_STRONG_KEYWORDS: Dict[str, List[str]] = {
     ],
     "schedule_management": [
         "进度管理", "工期优化", "进度控制", "进度计划", "排产", "交付周期",
-        "工期延误", "关键路径",
+        "工期延误",
     ],
     "requirements_management": [
-        "需求管理", "需求分析", "需求变更", "需求工程", "产品需求", "Kano",
-        "QFD", "需求优先级",
+        "需求管理", "需求分析", "需求变更", "需求工程", "产品需求", "需求优先级",
     ],
     "process_optimization": [
         "流程优化", "流程改善", "流程改进", "流程再造", "过程改进", "开发流程",
-        "业务流程", "ESIA", "BPR",
+        "业务流程",
     ],
     "cost_management": [
         "成本管理", "成本控制", "成本优化", "投资管理", "降本增效", "成本分析",
-        "挣值管理", "EVM",
     ],
     "supply_chain_logistics": [
         "供应链", "物流管理", "配送优化", "库存管理", "采购管理", "供应商管理",
         "仓储", "运输优化",
     ],
 }
+
+def _build_direction_strong_keywords() -> Dict[str, List[str]]:
+    """从注册中心动态构建方向强匹配关键词（领域概念 + 方法名/别名）。"""
+    from src.method_registry import get_registry as _dsk_reg
+    _reg = _dsk_reg()
+    _domains_map = _reg.get_domain_to_names()
+    _aliases_map = _reg.get_aliases()
+    _result: Dict[str, List[str]] = {}
+    for _dir_id, _concepts in _DIRECTION_DOMAIN_CONCEPTS.items():
+        _kws = list(_concepts)
+        for _method_name in _domains_map.get(_dir_id, []):
+            if _method_name not in _kws:
+                _kws.append(_method_name)
+            for _alias in _aliases_map.get(_method_name, []):
+                if _alias not in _kws:
+                    _kws.append(_alias)
+        _result[_dir_id] = _kws
+    return _result
+
+DIRECTION_STRONG_KEYWORDS: Dict[str, List[str]] = _build_direction_strong_keywords()
 
 def _get_method_keywords() -> Dict[str, List[str]]:
     """从方法注册中心动态加载方法名→关键词映射。"""

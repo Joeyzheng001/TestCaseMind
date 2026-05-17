@@ -41,7 +41,7 @@ from src.domain_templates import build_domain_templates, load_domain_template
 from src.exporter import export_docx, export_pdf
 from src.document_converter import extract_text
 from src.vector_store import build_index
-from src.asset_crypto import store as asset_store
+# asset_crypto removed — all assets use permanent paths directly
 from src.license_manager import LicenseManager, TrialLicense
 from src.api_registry import (
     CITATION_GENERATE_TASK_KIND,
@@ -5924,57 +5924,6 @@ def _rebuild_cards_from_source() -> None:
         card_builder.METHODS_ROOT = saved_methods_root
 
 
-def _patch_asset_paths(assets_root: Path) -> None:
-    """将各模块的资产路径重定向到解密后的临时目录。"""
-    import src.kb_manager as kb_manager
-    import src.paper_store as paper_store
-    import src.domain_templates as domain_templates
-    import src.method_context as method_context
-    import src.risk_checker as risk_checker
-    import src.card_builder as card_builder
-    import src.md_cleaner as md_cleaner
-    import src.exporter as exporter
-
-    # kb_manager
-    kb_manager.KB_ROOT = assets_root / "knowledge_base" / "references"
-    kb_manager.KB_CONVERTED_ROOT = kb_manager.KB_ROOT / "converted"
-    kb_manager.KB_OUTLINES_ROOT = assets_root / "knowledge_base" / "outlines"
-    kb_manager.CATALOG_PATH = assets_root / "knowledge_base" / "catalog.json"
-
-    # paper_store
-    paper_store.PAPER_DB_PATH = assets_root / "knowledge_base" / "papers.sqlite3"
-
-    # domain_templates
-    domain_templates.VECTOR_DB = assets_root / "knowledge_base" / "vector_store.sqlite3"
-    domain_templates.TEMPLATE_DIR = assets_root / "knowledge_base" / "templates" / "domain_templates"
-
-    # method_context & risk_checker
-    method_context.CARDS_DB = assets_root / "knowledge_base" / "cards.sqlite3"
-    risk_checker.CARDS_DB = assets_root / "knowledge_base" / "cards.sqlite3"
-
-    # card_builder
-    card_builder.CARDS_ROOT = assets_root / "cards"
-    card_builder.CARDS_JSONL = assets_root / "cards" / "cards.jsonl"
-    card_builder.CARDS_DB = assets_root / "knowledge_base" / "cards.sqlite3"
-
-    # md_cleaner
-    md_cleaner.KB_ROOT = assets_root / "knowledge_base" / "references"
-    md_cleaner.KB_CLEANED_ROOT = md_cleaner.KB_ROOT / "cleaned"
-
-    # exporter: update template paths
-    exporter.TEMPLATE_CANDIDATES = [
-        assets_root / "knowledge_base" / "references" / "3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
-        assets_root / "knowledge_base" / "references" / "3.0 论文格式docx.docx",
-    ]
-
-    # web_server module globals
-    global KB_ROOT, KB_CONVERTED_ROOT, CARDS_DIR, BP_PATH
-    KB_ROOT = assets_root / "knowledge_base" / "references"
-    KB_CONVERTED_ROOT = KB_ROOT / "converted"
-    CARDS_DIR = assets_root / "cards" / "methods"
-    BP_PATH = assets_root / "knowledge_base" / "best_practices.json"
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run ThesisMind local web app")
     parser.add_argument("--host", default="127.0.0.1")
@@ -5986,33 +5935,17 @@ def main() -> None:
     if ENV_PATH.exists():
         load_dotenv(ENV_PATH)
 
-    # 解密资产
-    print("正在解密知识库资产...")
-    try:
-        assets_root = asset_store.setup()
-        _patch_asset_paths(assets_root)
-        print(f"  资产就绪: {assets_root}")
-        # 用永久 cards/methods/ 目录重建卡片库，确保用户增删的卡片生效
-        _rebuild_cards_from_source()
-    except FileNotFoundError:
-        print("  未找到加密资产包 (assets_enc/)，使用明文资产")
-        _rebuild_cards_from_source()
-    except Exception as e:
-        print(f"  资产解密失败: {e}")
-        print("  将以受限模式启动")
+    # 从永久 cards/methods/ 目录重建卡片库
+    _rebuild_cards_from_source()
 
     ThreadingHTTPServer.allow_reuse_address = True
     server = ThreadingHTTPServer((args.host, args.port), ThesisMindHandler)
     print(f"ThesisMind web app: http://{args.host}:{args.port}")
 
-    import atexit
-    atexit.register(asset_store.cleanup)
-
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n正在清理...")
-        asset_store.cleanup()
+        print("\n关闭服务...")
 
 
 if __name__ == "__main__":

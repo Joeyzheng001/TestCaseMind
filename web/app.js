@@ -31,23 +31,23 @@ const state = {
 
 const DEFAULT_PROJECT_CONTEXT = `论文题目、研究方向、项目背景和论文思路请在「论文信息」页面自行填写。填写后生成的大纲和内容将更贴合你的实际研究。`;
 
-const PROMPT_METHOD_CATALOG = [
-  { name: "CMMI 2.0", phases: ["discover", "solve"], type: "theory", aliases: ["CMMI", "CMMI 2.0", "CMMI DEV"] },
-  { name: "PDCA循环", phases: ["solve", "validate"], type: "method", aliases: ["PDCA"] },
-  { name: "文献研究法", phases: ["discover"], type: "method", aliases: ["文献研究法"] },
-  { name: "问卷调查法", phases: ["discover"], type: "method", aliases: ["问卷调查法", "问卷"] },
-  { name: "德尔菲法", phases: ["discover", "validate"], type: "method", aliases: ["德尔菲"] },
-  { name: "层次分析法 AHP", phases: ["discover", "validate"], type: "method", aliases: ["AHP", "层次分析"] },
-  { name: "模糊综合评价 FCE", phases: ["validate"], type: "method", aliases: ["模糊综合评价", "FCE"] },
-  { name: "准实验研究设计", phases: ["validate"], type: "method", aliases: ["准实验"] },
-  { name: "双重差分 DID", phases: ["validate"], type: "method", aliases: ["双重差分", "DID"] },
-  { name: "Gompertz增长模型", phases: ["validate"], type: "theory", aliases: ["Gompertz"] },
-  { name: "鱼骨图", phases: ["discover"], type: "method", aliases: ["鱼骨图"] },
-  { name: "5W1H", phases: ["discover"], type: "method", aliases: ["5W1H", "5Why"] },
-  { name: "根因分析法", phases: ["discover"], type: "method", aliases: ["根因分析"] },
-  { name: "流程优化法", phases: ["solve"], type: "method", aliases: ["流程优化", "流程改善"] },
-  { name: "质量管理理论", phases: ["discover", "solve", "validate"], type: "theory", aliases: ["质量管理理论", "项目质量管理"] },
-];
+let _methodCatalogCache = null;
+
+async function getMethodCatalog() {
+  if (_methodCatalogCache) return _methodCatalogCache;
+  try {
+    const data = await api("/api/method-catalog");
+    _methodCatalogCache = (data.catalog || []).map((item) => ({
+      name: item.name,
+      phases: item.phases || [],
+      type: item.category || "method",
+      aliases: [item.name, ...(item.aliases || [])],
+    }));
+    return _methodCatalogCache;
+  } catch (e) {
+    return [];
+  }
+}
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -154,11 +154,13 @@ function ensureMethodOption(name, phases, type = "method", source = "从项目�
   return id;
 }
 
-function syncPromptMethodsToOptions() {
+async function syncPromptMethodsToOptions() {
   const text = projectContextPayload();
-  if (!text || !state.methods.length) return;
+  if (!text) return;
+  const catalog = await getMethodCatalog();
+  if (!catalog.length) return;
   let changed = false;
-  PROMPT_METHOD_CATALOG.forEach((item) => {
+  catalog.forEach((item) => {
     if (item.aliases.some((alias) => text.toLowerCase().includes(alias.toLowerCase()))) {
       ensureMethodOption(item.name, item.phases, item.type);
       changed = true;
@@ -1980,6 +1982,8 @@ async function saveOutlineState(message = "大纲和字数已保存") {
 
 async function generateCitations() {
   const direction = selectedDirection();
+  const btn = $("#generateCitationsBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "生成中..."; }
   $("#citationStatus").textContent = "正在创建引用生成任务...";
   const logEl = $("#citationLog");
   if (logEl) logEl.innerHTML = "";
@@ -2003,6 +2007,7 @@ async function generateCitations() {
     pollCitationTask(data.task_id, 0);
   } catch (error) {
     $("#citationStatus").textContent = `引用生成失败：${error.message}`;
+    if (btn) { btn.disabled = false; btn.textContent = "生成引用"; }
   }
 }
 
@@ -2025,16 +2030,42 @@ async function pollCitationTask(taskId, count) {
     $("#citationStatus").textContent = `${result.message || "引用已生成"} · 方向 ${result.direction_count || 0} 条 + 方法 ${result.local_count - (result.direction_count || 0)} 条 + LLM ${result.llm_count || 0} 条`;
     setCitationProgress(100, 100, "引用生成完成");
     setTimeout(hideCitationProgress, 4000);
+    const genBtn = $("#generateCitationsBtn");
+    if (genBtn) { genBtn.disabled = false; genBtn.textContent = "重新生成"; }
     return;
   }
 
   if (data.status === "error") {
     $("#citationStatus").textContent = `引用生成失败：${data.message || "未知错误"}`;
     hideCitationProgress();
+    const failBtn = $("#generateCitationsBtn");
+    if (failBtn) { failBtn.disabled = false; failBtn.textContent = "重试"; }
     return;
   }
 
   setTimeout(() => pollCitationTask(taskId, count + 1), 1500);
+}
+
+async function pollClassifyTask(taskId, count, btn) {
+  const data = await api(`/api/tasks/${taskId}`);
+  setCitationProgress(data.progress || 0, 100, data.message || "正在LLM分类...");
+
+  if (data.status === "done") {
+    const r = data.result || {};
+    $("#citationStatus").textContent = `LLM分类完成：${r.updated || 0} 条已标注，${r.remaining || 0} 条无明确方法`;
+    setCitationProgress(100, 100, "LLM分类完成");
+    setTimeout(hideCitationProgress, 5000);
+    if (btn) { btn.disabled = false; btn.textContent = "LLM分类"; }
+    loadLibrary();
+    return;
+  }
+  if (data.status === "error") {
+    $("#citationStatus").textContent = `LLM分类失败：${data.message || "未知错误"}`;
+    hideCitationProgress();
+    if (btn) { btn.disabled = false; btn.textContent = "LLM分类"; }
+    return;
+  }
+  setTimeout(() => pollClassifyTask(taskId, count + 1, btn), 2000);
 }
 
 function renderCitations() {
@@ -4621,6 +4652,24 @@ function openLibraryEdit(cardId) {
 // --- Event bindings ---
 
 function bindLibraryEvents() {
+  // Generate citations
+  $("#generateCitationsBtn")?.addEventListener("click", () => generateCitations());
+
+  // LLM classify
+  $("#classifyCitationsBtn")?.addEventListener("click", async () => {
+    const btn = $("#classifyCitationsBtn");
+    btn.disabled = true;
+    btn.textContent = "分类中...";
+    try {
+      const data = await api("/api/citation-cards/classify", { method: "POST", body: "{}" });
+      pollClassifyTask(data.task_id, 0, btn);
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = "LLM分类";
+      alert("分类任务创建失败：" + e.message);
+    }
+  });
+
   // Checklist: clear all
   $("#checklistClearAll").addEventListener("click", () => {
     if (!libState.checklist.length) return;

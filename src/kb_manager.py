@@ -141,27 +141,8 @@ def detect_methodologies_in_text(text: str) -> List[str]:
         if raw_name.lower() in text_lower or clean_name.lower() in text_lower:
             found.add(clean_name)
 
-    keywords_map = {
-        "PDCA": ["pdca", "plan-do-check", "质量改进循环"],
-        "CMMI": ["cmmi", "能力成熟度模型"],
-        "鱼骨图": ["鱼骨图", "因果图", "ishikawa", "石川图"],
-        "层次分析法": ["层次分析法", "ahp", "analytic hierarchy"],
-        "德尔菲": ["德尔菲", "delphi"],
-        "六西格玛": ["六西格玛", "six sigma", "6 sigma", "dmaic"],
-        "WBS": ["工作分解结构", "wbs", "work breakdown"],
-        "5W1H": ["5w1h", "5w 1h"],
-        "标杆分析法": ["标杆分析", "benchmark"],
-        "文献研究法": ["文献研究法", "文献综述", "literature review"],
-        "案例研究法": ["案例研究法", "case study"],
-        "SPEM": ["spem", "软件过程工程元模型"],
-        "FURPS": ["furps"],
-        "MDA": ["模型驱动架构", "mda"],
-        "Scrum": ["scrum", "敏捷"],
-        "QFD": ["qfd", "质量功能展开"],
-        "APQP": ["apqp", "产品质量先期策划"],
-        "DMAIC": ["dmaic"],
-        "ISO": ["iso 900", "iso15939", "iec 17025"],
-    }
+    from src.method_registry import get_method_keywords
+    keywords_map = get_method_keywords()
 
     for method_name, patterns in keywords_map.items():
         for pattern in patterns:

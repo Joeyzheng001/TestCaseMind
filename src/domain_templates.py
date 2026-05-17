@@ -51,34 +51,10 @@ DOMAIN_RULES = {
     },
 }
 
-METHOD_KEYWORDS = [
-    "CMMI",
-    "PDCA",
-    "六西格玛",
-    "DMAIC",
-    "鱼骨图",
-    "5W1H",
-    "5Why",
-    "WBS",
-    "AHP",
-    "层次分析",
-    "德尔菲",
-    "标杆分析",
-    "模糊综合评价",
-    "模糊认知图",
-    "Scrum",
-    "DevOps",
-    "FURPS",
-    "SPEM",
-    "MDA",
-    "QFD",
-    "ESIA",
-    "IPD",
-    "平衡计分卡",
-    "演化博弈",
-    "风险矩阵",
-    "数据驱动",
-]
+def _get_method_keywords_list() -> List[str]:
+    """从注册中心动态加载全部方法名作为关键词列表。"""
+    from src.method_registry import get_all_method_names
+    return get_all_method_names()
 
 
 def _clean_title(title: str) -> str:
@@ -119,7 +95,8 @@ def _domains_for(text: str) -> List[str]:
 def _extract_methods(text: str) -> List[str]:
     methods = []
     lowered = text.lower()
-    for method in METHOD_KEYWORDS:
+    _method_keywords = _get_method_keywords_list()
+    for method in _method_keywords:
         if method.lower() in lowered:
             methods.append(method)
     return methods

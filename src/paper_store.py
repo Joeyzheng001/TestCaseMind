@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import re
+import sqlite3
 import time
 import uuid
 from pathlib import Path
@@ -23,14 +24,6 @@ DIRECTION_MAP: Dict[str, str] = {
     "process_optimization": "流程优化",
     "cost_management": "成本管理",
     "supply_chain_logistics": "供应链与物流",
-}
-
-METHOD_CATEGORIES: Dict[str, List[str]] = {
-    "质量管理": ["CMMI", "PDCA", "六西格玛", "DMAIC", "FURPS+", "鱼骨图", "5Why", "5M1E", "QFD", "FMEA", "SPC", "8D", "帕累托分析"],
-    "系统分析": ["层次分析法", "AHP", "模糊综合评价", "德尔菲法", "SWOT", "PEST", "标杆分析法", "平衡计分卡", "KPI"],
-    "项目管理": ["WBS", "关键路径法", "CPM", "挣值管理", "EVM", "Scrum", "DevOps", "敏捷", "看板"],
-    "数据分析": ["SPSS", "问卷调查", "案例研究", "文献研究", "访谈法", "扎根理论", "内容分析", "回归分析"],
-    "流程优化": ["ESIA", "BPR", "价值流图", "VSM", "精益", "看板管理"],
 }
 
 THEORY_FRAMEWORKS: Dict[str, List[str]] = {
@@ -220,8 +213,35 @@ def get_papers_by_direction(direction_id: str, limit: int = 20,
     return [_paper_row_to_dict(r) for r in rows]
 
 
+_METHOD_ALIAS_CACHE: Optional[Dict[str, List[str]]] = None
+
+
+def _load_method_alias_map() -> Dict[str, List[str]]:
+    """Load method name → aliases from cards DB, caching in module state."""
+    global _METHOD_ALIAS_CACHE
+    if _METHOD_ALIAS_CACHE is not None:
+        return _METHOD_ALIAS_CACHE
+    try:
+        from pathlib import Path as _Path
+        cards_db = _Path(__file__).resolve().parent.parent / "knowledge_base" / "cards.sqlite3"
+        if not cards_db.exists():
+            return {}
+        import sqlite3 as _sqlite3, json as _json
+        conn = _sqlite3.connect(str(cards_db))
+        rows = conn.execute("SELECT name, aliases FROM cards WHERE type='method_card'").fetchall()
+        result = {}
+        for name, aliases_json in rows:
+            if name:
+                aliases = _json.loads(aliases_json) if aliases_json else []
+                result[name] = aliases
+        conn.close()
+        _METHOD_ALIAS_CACHE = result
+        return result
+    except Exception:
+        return {}
+
 def _expand_method_terms(method: str) -> List[str]:
-    """将前端方法名展开为多个搜索词，覆盖数据库中可能存储的短名。"""
+    """将前端方法名展开为多个搜索词，覆盖数据库中可能存储的短名和别名。"""
     terms = {method}
     # 去掉常见后缀，生成短名搜索词
     for suffix in ["循环", "管理", "方法", "法", "分析", "模型", "体系", "理论",
@@ -233,6 +253,13 @@ def _expand_method_terms(method: str) -> List[str]:
     simple = _re.sub(r"[（(][^)）]*[)）]", "", method).strip()
     if simple and simple != method:
         terms.add(simple)
+    # 从卡片别名库中补充同义词
+    alias_map = _load_method_alias_map()
+    for card_aliases in alias_map.values():
+        if method in card_aliases:
+            terms.update(card_aliases)
+    if method in alias_map:
+        terms.update(alias_map[method])
     return list(terms)
 
 
@@ -475,3 +502,58 @@ def _card_row_to_dict(row: Any) -> Dict[str, Any]:
         d[field.replace("_json", "")] = json.loads(val) if isinstance(val, str) else (val or [])
         del d[field]
     return d
+
+
+def update_card_methods(
+    card_id: str,
+    methods: List[str],
+    theories: Optional[List[str]] = None,
+    db_path: Optional[Path] = None,
+) -> None:
+    """Update a citation card's methods_json and theory_tags_json."""
+    path = db_path or PAPER_DB_PATH
+    if not path.exists():
+        return
+    conn = sqlite3.connect(str(path))
+    conn.execute(
+        "UPDATE citation_cards SET methods_json = ?, theory_tags_json = ? WHERE card_id = ?",
+        (json.dumps(methods, ensure_ascii=False),
+         json.dumps(theories or [], ensure_ascii=False),
+         card_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+def count_citations_without_methods(db_path: Optional[Path] = None) -> int:
+    """Count citation cards that have empty methods_json."""
+    path = db_path or PAPER_DB_PATH
+    if not path.exists():
+        return 0
+    conn = sqlite3.connect(str(path))
+    cur = conn.execute(
+        "SELECT COUNT(*) FROM citation_cards WHERE methods_json = '[]' OR methods_json IS NULL"
+    )
+    count = cur.fetchone()[0]
+    conn.close()
+    return count
+
+
+def get_citations_without_methods(
+    limit: int = 500, offset: int = 0, db_path: Optional[Path] = None
+) -> List[Dict[str, Any]]:
+    """Get citation cards with empty methods_json for batch classification."""
+    path = db_path or PAPER_DB_PATH
+    if not path.exists():
+        return []
+    conn = sqlite3.connect(str(path))
+    conn.row_factory = sqlite3.Row
+    cur = conn.execute(
+        "SELECT card_id, title, formatted FROM citation_cards "
+        "WHERE methods_json = '[]' OR methods_json IS NULL "
+        "LIMIT ? OFFSET ?",
+        (limit, offset),
+    )
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return rows

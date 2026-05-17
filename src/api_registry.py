@@ -88,6 +88,7 @@ API_MENU_MAP: Dict[str, str] = {
     "/api/method-pool/save": "methods",
     "/api/methods/save": "methods",
     "/api/methods/create-card": "methods",
+    "/api/method-catalog": "methods",
     "/api/workspace": "writing",
     "/api/workspace/value": "writing",
     "/api/workspace/save": "writing",

@@ -35,6 +35,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.llm_config import load_llm_config
+from src.method_registry import get_method_aliases, get_method_phases, get_method_alias_map, get_method_domains, get_method_keywords, get_research_tool_methods, get_registry
 from src.tools import generate_outline, search_knowledge_base
 from src.domain_templates import build_domain_templates, load_domain_template
 from src.exporter import export_docx, export_pdf
@@ -348,21 +349,18 @@ def update_memory_from_draft(
         ):
             _unique_append(memory["evaluation_indicators"], compact[:120])
 
-    for term in [
-        "CMMI",
-        "PDCA",
-        "FURPS",
-        "AHP",
-        "鱼骨图",
-        "5W1H",
-        "六西格玛",
-        "DMAIC",
-        "Scrum",
-        "DevOps",
-    ]:
-        if term.lower() in content.lower():
+    # 从注册中心动态获取 distinctive 方法名作为术语检测词
+    from src.method_registry import get_registry as _term_registry
+    _reg = _term_registry()
+    _term_set: Set[str] = set()
+    for _name in _reg.get_all_names():
+        # 缩略词（全大写+数字，2-6字符）或短中文名（≤6字）作为术语标志
+        if re.match(r'^[A-Z0-9]{2,6}$', _name) or (len(_name) <= 6 and any('一' <= c <= '鿿' for c in _name)):
+            _term_set.add(_name)
+    for _term in sorted(_term_set, key=len, reverse=True):
+        if _term.lower() in content.lower():
             memory["terminology"].setdefault(
-                term, f"{term}：本文采用的关键理论或方法。"
+                _term, f"{_term}：本文采用的关键理论或方法。"
             )
 
     memory = merge_commitments_to_memory(memory, chapter_key, draft_key, content)
@@ -478,1010 +476,6 @@ DIRECTIONS = [
     {"id": "stakeholder_management", "name": "相关方管理", "desc": "管理项目相关方期望和参与，包括相关方识别、参与规划、期望管理和冲突协调"},
 ]
 
-
-
-METHODOLOGY_ALIASES = {
-    # 发现方法论
-    "5M1E分析法": ['5M1E分析法', '5M1E', '人机料法环测'],
-    "5W1H": ['5W1H', '5W1H分析法'],
-    "RBS风险分解结构": ['RBS风险分解结构', 'RBS', '风险分解'],
-    "SWOT分析法": ['SWOT分析法', 'SWOT', 'swot'],
-    "WBS分析法": ['WBS分析法'],
-    "专家访谈法": ['专家访谈法'],
-    "主成分分析法PCA": ['主成分分析法PCA', '主成分分析', 'PCA'],
-    "交付偏差分析法": ['交付偏差分析法'],
-    "会议纪要分析法": ['会议纪要分析法'],
-    "供应商评价法": ['供应商评价法'],
-    "偏差分析法": ['偏差分析法'],
-    "关键路径法": ['关键路径法', 'CPM', '关键路径', 'CPM关键路径法'],
-    "冲突分析法": ['冲突分析法'],
-    "利益相关方分析法": ['利益相关方分析法'],
-    "合同分析法": ['合同分析法'],
-    "因子分析法": ['因子分析法', '因子分析'],
-    "层次分析法AHP": ['层次分析法AHP', '层次分析法', 'AHP', 'ahp'],
-    "帕累托分析法": ['帕累托分析法', '帕累托', '二八法则'],
-    "德尔菲法": ['德尔菲法', '德尔菲', 'Delphi'],
-    "成本偏差分析法": ['成本偏差分析法'],
-    "技能矩阵分析法": ['技能矩阵分析法'],
-    "挣值管理法": ['挣值管理法', 'EVM', '挣值管理', 'EVM挣值管理', 'Earned Value'],
-    "文档分析法": ['文档分析法'],
-    "文献研究法": ['文献研究法', '文献研究', '文献综述', '文献分析'],
-    "权力—利益矩阵": ['权力—利益矩阵'],
-    "标杆分析法": ['标杆分析法', '标杆分析', '标杆管理', 'Benchmarking'],
-    "案例研究法": ['案例研究法', '案例', '案例分析', '案例研究'],
-    "检查表法": ['检查表法', '检查表'],
-    "沟通满意度问卷": ['沟通满意度问卷'],
-    "沟通路径分析法": ['沟通路径分析法'],
-    "满意度问卷": ['满意度问卷'],
-    "现场调查法": ['现场调查法', '现场调查', '实地调研', '现场观察'],
-    "甘特图分析法": ['甘特图分析法'],
-    "相关方识别分析": ['相关方识别分析'],
-    "结构方程模型SEM": ['结构方程模型SEM', '结构方程模型', 'SEM'],
-    "访谈法": ['访谈法', '访谈', '深度访谈', '专家访谈'],
-    "责任分配矩阵分析法": ['责任分配矩阵分析法'],
-    "质量数据统计分析": ['质量数据统计分析'],
-    "质量管理理论": ['质量管理理论', 'TQM', '全面质量管理'],
-    "资源负荷分析法": ['资源负荷分析法'],
-    "过程审计法": ['过程审计法'],
-    "进度偏差分析法": ['进度偏差分析法'],
-    "采购流程审计法": ['采购流程审计法'],
-    "问卷调查法": ['问卷调查法', '问卷', '调查问卷', '问卷调查'],
-    "需求访谈法": ['需求访谈法'],
-    "需求追踪矩阵分析法": ['需求追踪矩阵分析法'],
-    "风险清单法": ['风险清单法'],
-    "风险矩阵法": ['风险矩阵法'],
-    "鱼骨图分析法": ['鱼骨图分析法', '鱼骨图', '因果图', '鱼骨图法'],
-    # 解决方法论
-    "BIM方法": ['BIM方法', 'BIM', '建筑信息模型'],
-    "CMMI": ['CMMI', 'cmmi'],
-    "DevOps": ['DevOps', 'devops'],
-    "PDCA循环法": ['PDCA循环法', 'pdca', 'PDCA', 'PDCA循环'],
-    "PERT三点估算法": ['PERT三点估算法'],
-    "PERT计划评审技术": ['PERT计划评审技术', 'PERT', '计划评审'],
-    "PMO治理机制设计": ['PMO治理机制设计'],
-    "RACI责任矩阵法": ['RACI责任矩阵法', '责任矩阵', 'RACI', '责任矩阵RACI'],
-    "Scrum方法": ['Scrum方法', 'Scrum', 'scrum'],
-    "WBS优化法": ['WBS优化法'],
-    "WBS分解法": ['WBS分解法', 'WBS', '工作分解结构'],
-    "价值工程法": ['价值工程法'],
-    "会议机制优化法": ['会议机制优化法'],
-    "供应商分级管理法": ['供应商分级管理法', '供应商评价', '供应商评价与分级管理'],
-    "供应商绩效考核机制": ['供应商绩效考核机制'],
-    "信息化管理平台": ['信息化管理平台', '信息化管理', '管理系统'],
-    "信息看板法": ['信息看板法'],
-    "六西格玛DMAIC": ['六西格玛DMAIC', 'dmaic', 'DMAIC', 'DMAIC方法'],
-    "六西格玛管理": ['六西格玛管理', '六西格玛', 'Six Sigma'],
-    "关键路径优化法": ['关键路径优化法'],
-    "冲突协调机制": ['冲突协调机制'],
-    "参与度提升策略": ['参与度提升策略'],
-    "变更控制流程优化法": ['变更控制流程优化法', 'BPR', '流程再造', '流程再造BPR'],
-    "合同条款优化法": ['合同条款优化法'],
-    "团队激励机制设计": ['团队激励机制设计'],
-    "平衡计分卡BSC": ['平衡计分卡BSC', 'BSC', '平衡计分卡'],
-    "应急预案设计": ['应急预案设计'],
-    "成本基准管理法": ['成本基准管理法'],
-    "成本控制流程优化法": ['成本控制流程优化法'],
-    "挣值管理改进法": ['挣值管理改进法'],
-    "敏捷管理": ['敏捷管理', '敏捷开发'],
-    "期望管理法": ['期望管理法'],
-    "标准化流程建设": ['标准化流程建设'],
-    "标准化管理": ['标准化管理', '标准化', '规范管理'],
-    "根因分析法": ['根因分析法', 'RCA', '根本原因', '根因分析', '根因分析RCA'],
-    "沟通矩阵法": ['沟通矩阵法'],
-    "沟通管理计划法": ['沟通管理计划法'],
-    "滚动计划法": ['滚动计划法'],
-    "相关方参与计划": ['相关方参与计划'],
-    "精益管理": ['精益管理', '精益', 'Lean'],
-    "绩效考核体系": ['绩效考核体系', '绩效考核', 'KPI'],
-    "能力提升与培训计划": ['能力提升与培训计划'],
-    "范围变更控制法": ['范围变更控制法'],
-    "质量门禁机制": ['质量门禁机制'],
-    "资源优化配置法": ['资源优化配置法'],
-    "资源平衡法": ['资源平衡法', '资源平衡', '资源优化'],
-    "采购流程标准化": ['采购流程标准化'],
-    "采购计划优化法": ['采购计划优化法'],
-    "里程碑计划法": ['里程碑计划法'],
-    "问题闭环管理法": ['问题闭环管理法'],
-    "需求基线管理法": ['需求基线管理法'],
-    "需求追踪矩阵法": ['需求追踪矩阵法'],
-    "项目章程优化法": ['项目章程优化法'],
-    "项目管理计划集成法": ['项目管理计划集成法'],
-    "预算分解法": ['预算分解法'],
-    "风险应对策略法": ['风险应对策略法', '风险应对', '风险处理', '风险应对策略'],
-    "风险责任矩阵法": ['风险责任矩阵法'],
-    "风险闭环管理法": ['风险闭环管理法'],
-    "风险预警机制": ['风险预警机制'],
-    "验收标准细化法": ['验收标准细化法'],
-    # 验证方法论
-    "AHP综合评价": ['AHP综合评价', 'AHP评价', '层次分析评价'],
-    "DEA数据包络分析": ['DEA数据包络分析', 'DEA', '数据包络'],
-    "DID双重差分法": ['DID双重差分法', 'DID', '双重差分'],
-    "Gompertz增长模型": ['Gompertz增长模型', 'Gompertz', '增长模型'],
-    "TOPSIS法": ['TOPSIS法', 'TOPSIS', '优劣解距离法'],
-    "专家评价法": ['专家评价法', '专家评价', '专家打分'],
-    "任务完成效率分析": ['任务完成效率分析'],
-    "会议效率评价": ['会议效率评价'],
-    "供应商绩效评分": ['供应商绩效评分'],
-    "信息透明度评价": ['信息透明度评价'],
-    "关键路径变化分析": ['关键路径变化分析'],
-    "冲突事件数量对比": ['冲突事件数量对比'],
-    "准实验研究设计": ['准实验研究设计', '准实验', '准实验研究'],
-    "准时交付率分析": ['准时交付率分析'],
-    "前后对比分析法": ['前后对比分析法', '对比分析', '前后对比', '前后对比法'],
-    "参与度指标分析": ['参与度指标分析'],
-    "变更次数与变更周期对比": ['变更次数与变更周期对比'],
-    "合同履约率分析": ['合同履约率分析'],
-    "回归分析": ['回归分析', '多元回归', '线性回归'],
-    "团队满意度调查": ['团队满意度调查'],
-    "客户满意度评价": ['客户满意度评价'],
-    "工期偏差分析": ['工期偏差分析', '进度偏差', '工期对比'],
-    "成本偏差分析": ['成本偏差分析', '成本对比', 'CV'],
-    "成本偏差率分析": ['成本偏差率分析'],
-    "成本绩效指数CPI分析": ['成本绩效指数CPI分析'],
-    "成熟度评价法": ['成熟度评价法'],
-    "技能达标率分析": ['技能达标率分析'],
-    "投入产出分析法": ['投入产出分析法'],
-    "指标评价法": ['指标评价法', '指标评价', '效果评价'],
-    "控制图分析法": ['控制图分析法', 'SPC', '控制图', '控制图法'],
-    "时间序列分析": ['时间序列分析', '时间序列', '趋势分析'],
-    "模糊综合评价法": ['模糊综合评价法', 'FCE', '模糊综合评价', '模糊综合评价法FCE'],
-    "沟通响应时间分析": ['沟通响应时间分析'],
-    "满意度前后对比": ['满意度前后对比'],
-    "灰色关联分析": ['灰色关联分析', '灰色关联'],
-    "熵权法": ['熵权法', '熵权', '信息熵'],
-    "用户验收通过率分析": ['用户验收通过率分析'],
-    "相关方满意度对比": ['相关方满意度对比'],
-    "缺陷率对比分析": ['缺陷率对比分析', '返工率', '缺陷率分析', '缺陷率返工率分析'],
-    "范围偏差率分析": ['范围偏差率分析'],
-    "计划完成率分析": ['计划完成率分析'],
-    "资源利用率分析": ['资源利用率分析'],
-    "趋势分析法": ['趋势分析法'],
-    "过程合规率分析": ['过程合规率分析'],
-    "进度绩效指数SPI分析": ['进度绩效指数SPI分析'],
-    "采购周期对比分析": ['采购周期对比分析'],
-    "采购成本节约率分析": ['采购成本节约率分析'],
-    "问卷满意度评价": ['问卷满意度评价', '满意度评价', '满意度调查'],
-    "问题关闭率分析": ['问题关闭率分析'],
-    "需求确认及时率分析": ['需求确认及时率分析'],
-    "需求覆盖率分析": ['需求覆盖率分析'],
-    "预算执行率分析": ['预算执行率分析'],
-    "预警准确率分析": ['预警准确率分析'],
-    "风险发生率对比": ['风险发生率对比'],
-    "风险损失程度分析": ['风险损失程度分析'],
-    "风险等级变化分析": ['风险等级变化分析', '风险变化', '风险评估对比'],
-    "验收通过率分析": ['验收通过率分析'],
-    "扎根理论法": ['扎根理论法'],  # discover
-
-    "内容分析法": ['内容分析法'],  # discover
-
-    "焦点小组法": ['焦点小组法'],  # discover
-
-    "现场观察法": ['现场观察法'],  # discover
-
-    "流程挖掘法": ['流程挖掘法'],  # discover
-
-    "SIPOC分析法": ['SIPOC分析法'],  # discover
-
-    "价值流图分析法": ['价值流图分析法'],  # discover
-
-    "BPMN流程建模法": ['BPMN流程建模法'],  # discover
-
-    "故障树分析法": ['故障树分析法'],  # discover
-
-    "FMEA失效模式与影响分析": ['FMEA失效模式与影响分析'],  # discover
-
-    "服务蓝图法": ['服务蓝图法'],  # discover
-
-    "数据剖析法": ['数据剖析法'],  # discover
-
-    "组织网络分析法": ['组织网络分析法'],  # discover
-
-    "用户旅程地图法": ['用户旅程地图法'],  # discover
-
-    "制度差距分析法": ['制度差距分析法'],  # discover
-
-    "TOC约束理论": ['TOC约束理论'],  # solve
-
-    "关键链项目管理法": ['关键链项目管理法'],  # solve
-
-    "看板方法": ['看板方法'],  # solve
-
-    "Scrum敏捷迭代法": ['Scrum敏捷迭代法'],  # solve
-
-    "Stage-Gate阶段门法": ['Stage-Gate阶段门法'],  # solve
-
-    "QFD质量功能展开": ['QFD质量功能展开'],  # solve
-
-    "TRIZ创新问题解决法": ['TRIZ创新问题解决法'],  # solve
-
-    "系统动力学建模法": ['系统动力学建模法'],  # solve
-
-    "精益项目管理法": ['精益项目管理法'],  # solve
-
-    "敏捷—瀑布混合管理法": ['敏捷—瀑布混合管理法'],  # solve
-
-    "OKR目标管理法": ['OKR目标管理法'],  # solve
-
-    "BPR业务流程再造法": ['BPR业务流程再造法'],  # solve
-
-    "知识管理机制设计": ['知识管理机制设计'],  # solve
-
-    "激励相容机制设计": ['激励相容机制设计'],  # solve
-
-    "数字化仪表盘建设": ['数字化仪表盘建设'],  # solve
-
-    "时间序列分析法": ['时间序列分析法'],  # validate
-
-    "回归分析法": ['回归分析法'],  # validate
-
-    "双重差分法": ['双重差分法'],  # validate
-
-    "合成控制法": ['合成控制法'],  # validate
-
-    "中断时间序列法": ['中断时间序列法'],  # validate
-
-    "结构方程模型": ['结构方程模型'],  # validate
-
-    "偏最小二乘结构方程模型": ['偏最小二乘结构方程模型'],  # validate
-
-    "熵权法": ['熵权法'],  # validate
-
-    "灰色关联分析法": ['灰色关联分析法'],  # validate
-
-    "TOPSIS综合评价法": ['TOPSIS综合评价法'],  # validate
-
-    "数据包络分析法": ['数据包络分析法'],  # validate
-
-    "蒙特卡洛模拟法": ['蒙特卡洛模拟法'],  # validate
-
-    "敏感性分析法": ['敏感性分析法'],  # validate
-
-    "稳健性检验法": ['稳健性检验法'],  # validate
-
-    "案例复盘验证法": ['案例复盘验证法'],  # validate
-    "扎根理论法": "discover",
-
-    "内容分析法": "discover",
-
-    "焦点小组法": "discover",
-
-    "现场观察法": "discover",
-
-    "流程挖掘法": "discover",
-
-    "SIPOC分析法": "discover",
-
-    "价值流图分析法": "discover",
-
-    "BPMN流程建模法": "discover",
-
-    "故障树分析法": "discover",
-
-    "FMEA失效模式与影响分析": "discover",
-
-    "服务蓝图法": "discover",
-
-    "数据剖析法": "discover",
-
-    "组织网络分析法": "discover",
-
-    "用户旅程地图法": "discover",
-
-    "制度差距分析法": "discover",
-
-    "TOC约束理论": "solve",
-
-    "关键链项目管理法": "solve",
-
-    "看板方法": "solve",
-
-    "Scrum敏捷迭代法": "solve",
-
-    "Stage-Gate阶段门法": "solve",
-
-    "QFD质量功能展开": "solve",
-
-    "TRIZ创新问题解决法": "solve",
-
-    "系统动力学建模法": "solve",
-
-    "精益项目管理法": "solve",
-
-    "敏捷—瀑布混合管理法": "solve",
-
-    "OKR目标管理法": "solve",
-
-    "BPR业务流程再造法": "solve",
-
-    "知识管理机制设计": "solve",
-
-    "激励相容机制设计": "solve",
-
-    "数字化仪表盘建设": "solve",
-
-    "时间序列分析法": "validate",
-
-    "回归分析法": "validate",
-
-    "双重差分法": "validate",
-
-    "合成控制法": "validate",
-
-    "中断时间序列法": "validate",
-
-    "结构方程模型": "validate",
-
-    "偏最小二乘结构方程模型": "validate",
-
-    "熵权法": "validate",
-
-    "灰色关联分析法": "validate",
-
-    "TOPSIS综合评价法": "validate",
-
-    "数据包络分析法": "validate",
-
-    "蒙特卡洛模拟法": "validate",
-
-    "敏感性分析法": "validate",
-
-    "稳健性检验法": "validate",
-
-    "案例复盘验证法": "validate",
-    "民族志研究法": ["民族志研究法"],  # discover
-
-    "叙事分析法": ["叙事分析法"],  # discover
-
-    "Q方法论": ["Q方法论"],  # discover
-
-    "经验取样法": ["经验取样法"],  # discover
-
-    "工作日记研究法": ["工作日记研究法"],  # discover
-
-    "认知任务分析法": ["认知任务分析法"],  # discover
-
-    "心智模型分析法": ["心智模型分析法"],  # discover
-
-    "隐性知识萃取法": ["隐性知识萃取法"],  # discover
-
-    "文化探针法": ["文化探针法"],  # discover
-
-    "归因风格分析法": ["归因风格分析法"],  # discover
-
-    "框架分析法": ["框架分析法"],  # discover
-
-    "关键决策追踪法": ["关键决策追踪法"],  # discover
-
-    "组织沉默诊断法": ["组织沉默诊断法"],  # discover
-
-    "边界对象分析法": ["边界对象分析法"],  # discover
-
-    "感知公平诊断法": ["感知公平诊断法"],  # discover
-
-    "机制设计法": ["机制设计法"],  # solve
-
-    "选择架构设计法": ["选择架构设计法"],  # solve
-
-    "承诺装置法": ["承诺装置法"],  # solve
-
-    "社会规范反馈法": ["社会规范反馈法"],  # solve
-
-    "游戏化激励设计法": ["游戏化激励设计法"],  # solve
-
-    "认知作业辅助设计法": ["认知作业辅助设计法"],  # solve
-
-    "情景脚本设计法": ["情景脚本设计法"],  # solve
-
-    "原型迭代法": ["原型迭代法"],  # solve
-
-    "实践共同体构建法": ["实践共同体构建法"],  # solve
-
-    "行动学习法": ["行动学习法"],  # solve
-
-    "双环学习法": ["双环学习法"],  # solve
-
-    "工作重塑法": ["工作重塑法"],  # solve
-
-    "心理安全建设法": ["心理安全建设法"],  # solve
-
-    "冲突转化法": ["冲突转化法"],  # solve
-
-    "制度嵌入式干预法": ["制度嵌入式干预法"],  # solve
-
-    "随机对照试验法": ["随机对照试验法"],  # validate
-
-    "A/B测试法": ["A/B测试法"],  # validate
-
-    "断点回归法": ["断点回归法"],  # validate
-
-    "倾向得分匹配法": ["倾向得分匹配法"],  # validate
-
-    "中介效应检验法": ["中介效应检验法"],  # validate
-
-    "调节效应检验法": ["调节效应检验法"],  # validate
-
-    "多层线性模型法": ["多层线性模型法"],  # validate
-
-    "生存分析法": ["生存分析法"],  # validate
-
-    "贝叶斯更新法": ["贝叶斯更新法"],  # validate
-
-    "模糊集定性比较分析法": ["模糊集定性比较分析法"],  # validate
-
-    "交叉滞后分析法": ["交叉滞后分析法"],  # validate
-
-    "安慰剂检验法": ["安慰剂检验法"],  # validate
-
-    "留一法交叉验证": ["留一法交叉验证"],  # validate
-
-    "反事实情景评估法": ["反事实情景评估法"],  # validate
-
-    "过程追踪法": ["过程追踪法"],  # validate
-}
-
-
-# 方法论所属阶段
-METHODOLOGY_PHASES = {
-    # 发现阶段
-    "5M1E分析法": "discover",
-    "5W1H": "discover",
-    "RBS风险分解结构": "discover",
-    "SWOT分析法": "discover",
-    "WBS分析法": "discover",
-    "专家访谈法": "discover",
-    "主成分分析法PCA": "discover",
-    "交付偏差分析法": "discover",
-    "会议纪要分析法": "discover",
-    "供应商评价法": "discover",
-    "偏差分析法": "discover",
-    "关键路径法": "discover",
-    "冲突分析法": "discover",
-    "利益相关方分析法": "discover",
-    "合同分析法": "discover",
-    "因子分析法": "discover",
-    "层次分析法AHP": "discover",
-    "帕累托分析法": "discover",
-    "德尔菲法": "discover",
-    "成本偏差分析法": "discover",
-    "技能矩阵分析法": "discover",
-    "挣值管理法": "discover",
-    "文档分析法": "discover",
-    "文献研究法": "discover",
-    "权力—利益矩阵": "discover",
-    "标杆分析法": "discover",
-    "案例研究法": "discover",
-    "检查表法": "discover",
-    "沟通满意度问卷": "discover",
-    "沟通路径分析法": "discover",
-    "满意度问卷": "discover",
-    "现场调查法": "discover",
-    "甘特图分析法": "discover",
-    "相关方识别分析": "discover",
-    "结构方程模型SEM": "discover",
-    "访谈法": "discover",
-    "责任分配矩阵分析法": "discover",
-    "质量数据统计分析": "discover",
-    "质量管理理论": "discover",
-    "资源负荷分析法": "discover",
-    "过程审计法": "discover",
-    "进度偏差分析法": "discover",
-    "采购流程审计法": "discover",
-    "问卷调查法": "discover",
-    "需求访谈法": "discover",
-    "需求追踪矩阵分析法": "discover",
-    "风险清单法": "discover",
-    "风险矩阵法": "discover",
-    "鱼骨图分析法": "discover",
-    # 解决阶段
-    "BIM方法": "solve",
-    "CMMI": "solve",
-    "DevOps": "solve",
-    "PDCA循环法": "solve",
-    "PERT三点估算法": "solve",
-    "PERT计划评审技术": "solve",
-    "PMO治理机制设计": "solve",
-    "RACI责任矩阵法": "solve",
-    "Scrum方法": "solve",
-    "WBS优化法": "solve",
-    "WBS分解法": "solve",
-    "价值工程法": "solve",
-    "会议机制优化法": "solve",
-    "供应商分级管理法": "solve",
-    "供应商绩效考核机制": "solve",
-    "信息化管理平台": "solve",
-    "信息看板法": "solve",
-    "六西格玛DMAIC": "solve",
-    "六西格玛管理": "solve",
-    "关键路径优化法": "solve",
-    "冲突协调机制": "solve",
-    "参与度提升策略": "solve",
-    "变更控制流程优化法": "solve",
-    "合同条款优化法": "solve",
-    "团队激励机制设计": "solve",
-    "平衡计分卡BSC": "solve",
-    "应急预案设计": "solve",
-    "成本基准管理法": "solve",
-    "成本控制流程优化法": "solve",
-    "挣值管理改进法": "solve",
-    "敏捷管理": "solve",
-    "期望管理法": "solve",
-    "标准化流程建设": "solve",
-    "标准化管理": "solve",
-    "根因分析法": "solve",
-    "沟通矩阵法": "solve",
-    "沟通管理计划法": "solve",
-    "滚动计划法": "solve",
-    "相关方参与计划": "solve",
-    "精益管理": "solve",
-    "绩效考核体系": "solve",
-    "能力提升与培训计划": "solve",
-    "范围变更控制法": "solve",
-    "质量门禁机制": "solve",
-    "资源优化配置法": "solve",
-    "资源平衡法": "solve",
-    "采购流程标准化": "solve",
-    "采购计划优化法": "solve",
-    "里程碑计划法": "solve",
-    "问题闭环管理法": "solve",
-    "需求基线管理法": "solve",
-    "需求追踪矩阵法": "solve",
-    "项目章程优化法": "solve",
-    "项目管理计划集成法": "solve",
-    "预算分解法": "solve",
-    "风险应对策略法": "solve",
-    "风险责任矩阵法": "solve",
-    "风险闭环管理法": "solve",
-    "风险预警机制": "solve",
-    "验收标准细化法": "solve",
-    # 验证阶段
-    "AHP综合评价": "validate",
-    "DEA数据包络分析": "validate",
-    "DID双重差分法": "validate",
-    "Gompertz增长模型": "validate",
-    "TOPSIS法": "validate",
-    "专家评价法": "validate",
-    "任务完成效率分析": "validate",
-    "会议效率评价": "validate",
-    "供应商绩效评分": "validate",
-    "信息透明度评价": "validate",
-    "关键路径变化分析": "validate",
-    "冲突事件数量对比": "validate",
-    "准实验研究设计": "validate",
-    "准时交付率分析": "validate",
-    "前后对比分析法": "validate",
-    "参与度指标分析": "validate",
-    "变更次数与变更周期对比": "validate",
-    "合同履约率分析": "validate",
-    "回归分析": "validate",
-    "团队满意度调查": "validate",
-    "客户满意度评价": "validate",
-    "工期偏差分析": "validate",
-    "成本偏差分析": "validate",
-    "成本偏差率分析": "validate",
-    "成本绩效指数CPI分析": "validate",
-    "成熟度评价法": "validate",
-    "技能达标率分析": "validate",
-    "投入产出分析法": "validate",
-    "指标评价法": "validate",
-    "控制图分析法": "validate",
-    "时间序列分析": "validate",
-    "模糊综合评价法": "validate",
-    "沟通响应时间分析": "validate",
-    "满意度前后对比": "validate",
-    "灰色关联分析": "validate",
-    "熵权法": "validate",
-    "用户验收通过率分析": "validate",
-    "相关方满意度对比": "validate",
-    "缺陷率对比分析": "validate",
-    "范围偏差率分析": "validate",
-    "计划完成率分析": "validate",
-    "资源利用率分析": "validate",
-    "趋势分析法": "validate",
-    "过程合规率分析": "validate",
-    "进度绩效指数SPI分析": "validate",
-    "采购周期对比分析": "validate",
-    "采购成本节约率分析": "validate",
-    "问卷满意度评价": "validate",
-    "问题关闭率分析": "validate",
-    "需求确认及时率分析": "validate",
-    "需求覆盖率分析": "validate",
-    "预算执行率分析": "validate",
-    "预警准确率分析": "validate",
-    "风险发生率对比": "validate",
-    "风险损失程度分析": "validate",
-    "风险等级变化分析": "validate",
-    "验收通过率分析": "validate",
-    "民族志研究法": "discover",
-
-    "叙事分析法": "discover",
-
-    "Q方法论": "discover",
-
-    "经验取样法": "discover",
-
-    "工作日记研究法": "discover",
-
-    "认知任务分析法": "discover",
-
-    "心智模型分析法": "discover",
-
-    "隐性知识萃取法": "discover",
-
-    "文化探针法": "discover",
-
-    "归因风格分析法": "discover",
-
-    "框架分析法": "discover",
-
-    "关键决策追踪法": "discover",
-
-    "组织沉默诊断法": "discover",
-
-    "边界对象分析法": "discover",
-
-    "感知公平诊断法": "discover",
-
-    "机制设计法": "solve",
-
-    "选择架构设计法": "solve",
-
-    "承诺装置法": "solve",
-
-    "社会规范反馈法": "solve",
-
-    "游戏化激励设计法": "solve",
-
-    "认知作业辅助设计法": "solve",
-
-    "情景脚本设计法": "solve",
-
-    "原型迭代法": "solve",
-
-    "实践共同体构建法": "solve",
-
-    "行动学习法": "solve",
-
-    "双环学习法": "solve",
-
-    "工作重塑法": "solve",
-
-    "心理安全建设法": "solve",
-
-    "冲突转化法": "solve",
-
-    "制度嵌入式干预法": "solve",
-
-    "随机对照试验法": "validate",
-
-    "A/B测试法": "validate",
-
-    "断点回归法": "validate",
-
-    "倾向得分匹配法": "validate",
-
-    "中介效应检验法": "validate",
-
-    "调节效应检验法": "validate",
-
-    "多层线性模型法": "validate",
-
-    "生存分析法": "validate",
-
-    "贝叶斯更新法": "validate",
-
-    "模糊集定性比较分析法": "validate",
-
-    "交叉滞后分析法": "validate",
-
-    "安慰剂检验法": "validate",
-
-    "留一法交叉验证": "validate",
-
-    "反事实情景评估法": "validate",
-
-    "过程追踪法": "validate",
-}
-
-
-# 兼容性别名
-METHODOLOGY_ALIASES_REVERSE = {
-    "5M1E": "5M1E分析法",
-    "5W1H分析法": "5W1H",
-    "AHP": "层次分析法AHP",
-    "AHP评价": "AHP综合评价",
-    "BIM": "BIM方法",
-    "BPR": "变更控制流程优化法",
-    "BSC": "平衡计分卡BSC",
-    "Benchmarking": "标杆分析法",
-    "CPM": "关键路径法",
-    "CPM关键路径法": "关键路径法",
-    "CV": "成本偏差分析",
-    "DEA": "DEA数据包络分析",
-    "DID": "DID双重差分法",
-    "DMAIC": "六西格玛DMAIC",
-    "DMAIC方法": "六西格玛DMAIC",
-    "Delphi": "德尔菲法",
-    "EVM": "挣值管理法",
-    "EVM挣值管理": "挣值管理法",
-    "Earned Value": "挣值管理法",
-    "FCE": "模糊综合评价法",
-    "Gompertz": "Gompertz增长模型",
-    "KPI": "绩效考核体系",
-    "Lean": "精益管理",
-    "PCA": "主成分分析法PCA",
-    "PDCA": "PDCA循环法",
-    "PDCA循环": "PDCA循环法",
-    "PERT": "PERT计划评审技术",
-    "RACI": "RACI责任矩阵法",
-    "RBS": "RBS风险分解结构",
-    "RCA": "根因分析法",
-    "SEM": "结构方程模型SEM",
-    "SPC": "控制图分析法",
-    "SWOT": "SWOT分析法",
-    "Scrum": "Scrum方法",
-    "Six Sigma": "六西格玛管理",
-    "TOPSIS": "TOPSIS法",
-    "TQM": "质量管理理论",
-    "WBS": "WBS分解法",
-    "ahp": "层次分析法AHP",
-    "cmmi": "CMMI",
-    "devops": "DevOps",
-    "dmaic": "六西格玛DMAIC",
-    "pdca": "PDCA循环法",
-    "scrum": "Scrum方法",
-    "swot": "SWOT分析法",
-    "专家打分": "专家评价法",
-    "专家访谈": "访谈法",
-    "专家评价": "专家评价法",
-    "主成分分析": "主成分分析法PCA",
-    "二八法则": "帕累托分析法",
-    "人机料法环测": "5M1E分析法",
-    "优劣解距离法": "TOPSIS法",
-    "供应商评价": "供应商分级管理法",
-    "供应商评价与分级管理": "供应商分级管理法",
-    "信息化管理": "信息化管理平台",
-    "信息熵": "熵权法",
-    "全面质量管理": "质量管理理论",
-    "六西格玛": "六西格玛管理",
-    "关键路径": "关键路径法",
-    "准实验": "准实验研究设计",
-    "准实验研究": "准实验研究设计",
-    "前后对比": "前后对比分析法",
-    "前后对比法": "前后对比分析法",
-    "双重差分": "DID双重差分法",
-    "因子分析": "因子分析法",
-    "因果图": "鱼骨图分析法",
-    "增长模型": "Gompertz增长模型",
-    "多元回归": "回归分析",
-    "实地调研": "现场调查法",
-    "对比分析": "前后对比分析法",
-    "层次分析法": "层次分析法AHP",
-    "层次分析评价": "AHP综合评价",
-    "工作分解结构": "WBS分解法",
-    "工期对比": "工期偏差分析",
-    "帕累托": "帕累托分析法",
-    "平衡计分卡": "平衡计分卡BSC",
-    "建筑信息模型": "BIM方法",
-    "德尔菲": "德尔菲法",
-    "成本对比": "成本偏差分析",
-    "指标评价": "指标评价法",
-    "挣值管理": "挣值管理法",
-    "控制图": "控制图分析法",
-    "控制图法": "控制图分析法",
-    "效果评价": "指标评价法",
-    "敏捷开发": "敏捷管理",
-    "数据包络": "DEA数据包络分析",
-    "文献分析": "文献研究法",
-    "文献研究": "文献研究法",
-    "文献综述": "文献研究法",
-    "时间序列": "时间序列分析",
-    "标准化": "标准化管理",
-    "标杆分析": "标杆分析法",
-    "标杆管理": "标杆分析法",
-    "根因分析": "根因分析法",
-    "根因分析RCA": "根因分析法",
-    "根本原因": "根因分析法",
-    "案例": "案例研究法",
-    "案例分析": "案例研究法",
-    "案例研究": "案例研究法",
-    "检查表": "检查表法",
-    "模糊综合评价": "模糊综合评价法",
-    "模糊综合评价法FCE": "模糊综合评价法",
-    "流程再造": "变更控制流程优化法",
-    "流程再造BPR": "变更控制流程优化法",
-    "深度访谈": "访谈法",
-    "满意度评价": "问卷满意度评价",
-    "满意度调查": "问卷满意度评价",
-    "灰色关联": "灰色关联分析",
-    "熵权": "熵权法",
-    "现场观察": "现场调查法",
-    "现场调查": "现场调查法",
-    "管理系统": "信息化管理平台",
-    "精益": "精益管理",
-    "线性回归": "回归分析",
-    "结构方程模型": "结构方程模型SEM",
-    "绩效考核": "绩效考核体系",
-    "缺陷率分析": "缺陷率对比分析",
-    "缺陷率返工率分析": "缺陷率对比分析",
-    "规范管理": "标准化管理",
-    "计划评审": "PERT计划评审技术",
-    "访谈": "访谈法",
-    "调查问卷": "问卷调查法",
-    "责任矩阵": "RACI责任矩阵法",
-    "责任矩阵RACI": "RACI责任矩阵法",
-    "资源优化": "资源平衡法",
-    "资源平衡": "资源平衡法",
-    "趋势分析": "时间序列分析",
-    "返工率": "缺陷率对比分析",
-    "进度偏差": "工期偏差分析",
-    "问卷": "问卷调查法",
-    "问卷调查": "问卷调查法",
-    "风险分解": "RBS风险分解结构",
-    "风险变化": "风险等级变化分析",
-    "风险处理": "风险应对策略法",
-    "风险应对": "风险应对策略法",
-    "风险应对策略": "风险应对策略法",
-    "风险评估对比": "风险等级变化分析",
-    "鱼骨图": "鱼骨图分析法",
-    "鱼骨图法": "鱼骨图分析法",
-    "BPMN": "BPMN流程建模法",
-
-    "BPR": "BPR业务流程再造法",
-
-    "DEA": "数据包络分析法",
-
-    "FMEA": "FMEA失效模式与影响分析",
-
-    "OKR": "OKR目标管理法",
-
-    "PLSSEM": "偏最小二乘结构方程模型",
-
-    "QFD": "QFD质量功能展开",
-
-    "SIPOC": "SIPOC分析法",
-
-    "Scrum敏捷迭代": "Scrum敏捷迭代法",
-
-    "StageGate": "Stage-Gate阶段门法",
-
-    "TOC": "TOC约束理论",
-
-    "TOPSIS": "TOPSIS综合评价法",
-
-    "TRIZ": "TRIZ创新问题解决法",
-
-    "价值流图": "价值流图分析法",
-
-    "关键链": "关键链项目管理法",
-
-    "故障树": "故障树分析法",
-
-    "服务蓝图": "服务蓝图法",
-
-    "用户旅程": "用户旅程地图法",
-
-    "看板": "看板方法",
-
-    "组织网络": "组织网络分析法",
-
-    "结构方程": "结构方程模型",
-
-    "蒙特卡洛": "蒙特卡洛模拟法",
-    "AB测试": "A/B测试法",
-
-    "Q方法": "Q方法论",
-
-    "Q方法论": "Q方法论",
-
-    "fsQCA": "模糊集定性比较分析法",
-
-    "中介效应": "中介效应检验法",
-
-    "交叉滞后": "交叉滞后分析法",
-
-    "倾向得分": "倾向得分匹配法",
-
-    "关键决策": "关键决策追踪法",
-
-    "冲突转化": "冲突转化法",
-
-    "制度嵌入": "制度嵌入式干预法",
-
-    "原型迭代": "原型迭代法",
-
-    "双环学习": "双环学习法",
-
-    "反事实情景": "反事实情景评估法",
-
-    "叙事分析": "叙事分析法",
-
-    "多层线性": "多层线性模型法",
-
-    "安慰剂检验": "安慰剂检验法",
-
-    "实践共同体": "实践共同体构建法",
-
-    "工作日记": "工作日记研究法",
-
-    "工作重塑": "工作重塑法",
-
-    "归因风格": "归因风格分析法",
-
-    "心智模型": "心智模型分析法",
-
-    "心理安全": "心理安全建设法",
-
-    "情景脚本": "情景脚本设计法",
-
-    "感知公平": "感知公平诊断法",
-
-    "承诺装置": "承诺装置法",
-
-    "文化探针": "文化探针法",
-
-    "断点回归": "断点回归法",
-
-    "机制设计": "机制设计法",
-
-    "框架分析": "框架分析法",
-
-    "民族志": "民族志研究法",
-
-    "游戏化": "游戏化激励设计法",
-
-    "生存分析": "生存分析法",
-
-    "留一法": "留一法交叉验证",
-
-    "社会规范": "社会规范反馈法",
-
-    "组织沉默": "组织沉默诊断法",
-
-    "经验取样": "经验取样法",
-
-    "行动学习": "行动学习法",
-
-    "认知任务": "认知任务分析法",
-
-    "认知作业": "认知作业辅助设计法",
-
-    "调节效应": "调节效应检验法",
-
-    "贝叶斯更新": "贝叶斯更新法",
-
-    "边界对象": "边界对象分析法",
-
-    "过程追踪": "过程追踪法",
-
-    "选择架构": "选择架构设计法",
-
-    "随机对照": "随机对照试验法",
-
-    "隐性知识": "隐性知识萃取法",
-}
-
-
-THEORY_ALIASES = {
-    "CMMI 2.0": ["CMMI", "CMMI 2.0", "CMMI DEV"],
-    "PDCA质量闭环理论": ["PDCA", "质量闭环"],
-    "全面质量管理 TQM": ["全面质量管理", "TQM"],
-    "软件质量模型 FURPS+": ["FURPS", "FURPS+"],
-    "过程改进理论": ["过程改进", "流程改善", "流程优化"],
-    "成熟度模型理论": ["成熟度模型", "能力成熟度"],
-    "系统工程理论": ["系统工程"],
-    "项目质量管理理论": ["项目质量管理", "质量管理"],
-    "敏捷开发理论": ["敏捷", "Scrum"],
-    "DevOps能力模型": ["DevOps"],
-    "需求管理理论": ["需求管理", "Kano", "QFD"],
-    "模糊综合评价理论": ["模糊综合评价", "模糊认知"],
-    "层次分析决策理论": ["层次分析", "AHP"],
-    "双重差分 DID": ["双重差分", "DID"],
-    "Gompertz增长模型": ["Gompertz"],
-    "准实验研究设计": ["准实验"],
-    "平衡计分卡理论": ["平衡计分卡"],
-    "演化博弈理论": ["演化博弈"],
-}
-
 WORD_WEIGHTS = {
     "绪论": 0.14,
     "理论基础": 0.17,
@@ -1585,30 +579,13 @@ def _generate_method_summaries_via_llm(method_names: List[str]) -> Dict[str, str
     return {}
 
 
-CITATION_DIRECTIONS = {
-    "quality_management": [
-        "质量",
-        "CMMI",
-        "PDCA",
-        "六西格玛",
-        "FURPS",
-        "缺陷",
-        "测试",
-        "研发",
-    ],
+# 方向→搜索关键词（领域概念部分，方法名从注册中心动态补充）
+_CITATION_DIRECTION_DOMAIN_KEYWORDS: Dict[str, List[str]] = {
+    "quality_management": ["质量", "缺陷", "测试", "研发"],
     "risk_management": ["风险", "风控", "安全", "反欺诈"],
     "schedule_management": ["进度", "工期", "排产", "计划"],
-    "requirements_management": ["需求", "Kano", "QFD"],
-    "process_optimization": [
-        "流程",
-        "改善",
-        "优化",
-        "过程",
-        "SPEM",
-        "敏捷",
-        "Scrum",
-        "DevOps",
-    ],
+    "requirements_management": ["需求"],
+    "process_optimization": ["流程", "改善", "优化", "过程"],
     "cost_management": ["成本", "投资", "库存"],
     "supply_chain_logistics": ["供应链", "物流", "配送", "库存"],
     "resource_management": ["资源", "人力", "团队", "技能", "培训"],
@@ -1616,24 +593,33 @@ CITATION_DIRECTIONS = {
     "stakeholder_management": ["相关方", "利益相关", "冲突", "期望"],
 }
 
-CITATION_METHOD_KEYWORDS = {
-    "CMMI": ["CMMI"],
-    "PDCA循环": ["PDCA"],
-    "FURPS+": ["FURPS"],
-    "案例研究法": ["案例研究"],
-    "文献研究法": ["文献研究"],
-    "鱼骨图": ["鱼骨图"],
-    "5W1H": ["5W1H", "5Why"],
-    "层次分析法 AHP": ["层次分析", "AHP"],
-    "德尔菲法": ["德尔菲"],
-    "六西格玛": ["六西格玛", "DMAIC"],
-    "标杆分析法": ["标杆分析"],
-    "模糊综合评价": ["模糊综合评价", "模糊认知"],
-    "Scrum敏捷开发": ["Scrum", "敏捷"],
-    "DevOps能力模型": ["DevOps"],
-    "SPEM": ["SPEM"],
-    "WBS": ["WBS", "工作分解结构"],
-}
+def _build_citation_directions() -> Dict[str, List[str]]:
+    """从注册中心动态构建方向→关键词映射（领域概念 + 方法名/别名）。"""
+    from src.method_registry import get_registry as _cd_reg
+    _reg = _cd_reg()
+    _domains_map = _reg.get_domain_to_names()
+    _aliases_map = _reg.get_aliases()
+    _result: Dict[str, List[str]] = {}
+    for _dir_id, _domain_kws in _CITATION_DIRECTION_DOMAIN_KEYWORDS.items():
+        _kws = list(_domain_kws)
+        for _name in _domains_map.get(_dir_id, []):
+            if _name not in _kws:
+                _kws.append(_name)
+            for _alias in _aliases_map.get(_name, []):
+                if _alias not in _kws:
+                    _kws.append(_alias)
+        _result[_dir_id] = _kws
+    return _result
+
+CITATION_DIRECTIONS: Dict[str, List[str]] = {}
+CITATION_DIRECTIONS.update(_build_citation_directions())
+
+
+def _get_method_keywords_map() -> Dict[str, List[str]]:
+    """从注册中心动态获取方法名→搜索关键词映射。"""
+    from src.method_registry import get_method_keywords
+    return get_method_keywords()
+
 
 
 def _json_response(
@@ -2020,121 +1006,38 @@ def _enrich_items_from_cards(items: List[Dict[str, Any]]) -> List[Dict[str, Any]
         except Exception:
             pass
 
-    # 方法→方向 后备映射（cards.sqlite3 不存在时使用）
-    _FALLBACK_DOMAINS: Dict[str, List[str]] = {
-        "CMMI": ["quality_management"],
-        "PDCA": ["quality_management", "process_optimization"],
-        "六西格玛": ["quality_management", "process_optimization"],
-        "DMAIC": ["quality_management", "process_optimization"],
-        "FURPS": ["quality_management", "requirements_management"],
-        "鱼骨图": ["quality_management", "risk_management"],
-        "5Why": ["quality_management", "risk_management"],
-        "5M1E": ["quality_management"],
-        "QFD": ["quality_management", "requirements_management"],
-        "FMEA": ["quality_management", "risk_management"],
-        "SPC": ["quality_management"],
-        "8D": ["quality_management"],
-        "帕累托": ["quality_management"],
-        "FTA": ["quality_management", "risk_management"],
-        "检查表": ["quality_management"],
-        "SWOT": ["risk_management", "requirements_management"],
-        "德尔菲": ["risk_management", "requirements_management"],
-        "层次分析": ["risk_management", "requirements_management", "cost_management", "supply_chain_logistics"],
-        "AHP": ["risk_management", "requirements_management", "cost_management", "supply_chain_logistics"],
-        "模糊综合": ["risk_management", "requirements_management"],
-        "RBS": ["risk_management"],
-        "WBS": ["schedule_management", "cost_management"],
-        "关键路径": ["schedule_management"],
-        "CPM": ["schedule_management"],
-        "挣值": ["schedule_management", "cost_management"],
-        "EVM": ["schedule_management", "cost_management"],
-        "甘特": ["schedule_management"],
-        "标杆分析": ["cost_management", "quality_management"],
-        "作业成本": ["cost_management"],
-        "价值工程": ["cost_management"],
-        "Kano": ["requirements_management"],
-        "需求分析": ["requirements_management"],
-        "ESIA": ["process_optimization"],
-        "BPR": ["process_optimization"],
-        "价值流": ["process_optimization"],
-        "VSM": ["process_optimization"],
-        "精益": ["process_optimization"],
-        "看板": ["process_optimization", "schedule_management"],
-        "Scrum": ["process_optimization", "schedule_management"],
-        "DevOps": ["process_optimization"],
-        "流程再造": ["process_optimization"],
-        "SPEM": ["process_optimization"],
+    # 纯领域概念关键词 → domains（非方法名，而是论文内容中出现的领域信号词）
+    _DOMAIN_CONCEPT_KEYWORDS: Dict[str, List[str]] = {
+        "返工率": ["quality_management"],
+        "缺陷率": ["quality_management"],
+        "控制图": ["quality_management"],
+        "工期偏差": ["schedule_management"],
+        "成本偏差": ["cost_management"],
+        "信息化": ["process_optimization", "requirements_management"],
         "库存": ["supply_chain_logistics", "cost_management"],
         "物流": ["supply_chain_logistics"],
         "供应链": ["supply_chain_logistics"],
         "配送": ["supply_chain_logistics"],
         "供应商": ["supply_chain_logistics"],
-        "平衡计分卡": ["cost_management", "quality_management"],
-        "KPI": ["cost_management", "quality_management"],
-        "PEST": ["risk_management", "requirements_management"],
-        "案例研究": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "文献研究": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "问卷": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "访谈": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "敏捷": ["process_optimization", "schedule_management"],
-        "流程优化": ["process_optimization"],
-        "过程改进": ["process_optimization", "quality_management"],
-        "质量管理": ["quality_management"],
-        "需求管理": ["requirements_management"],
-        "5W1H": ["quality_management", "risk_management"],
-        "模糊认知": ["risk_management"],
-        "全生命": ["cost_management", "quality_management", "schedule_management"],
-        "TQM": ["quality_management"],
-        "并行工程": ["schedule_management", "process_optimization"],
-        "系统工程": ["quality_management", "risk_management", "schedule_management", "requirements_management"],
-        "根因分析": ["quality_management", "risk_management"],
-        "标准化": ["quality_management"],
-        "多目标": ["cost_management", "supply_chain_logistics"],
-        "BIM": ["schedule_management", "cost_management"],
-        "演化博弈": ["risk_management", "requirements_management"],
-        "神经网络": ["risk_management", "requirements_management"],
-        "IPD": ["process_optimization", "schedule_management"],
-        "实物期权": ["cost_management"],
-        "物联网": ["supply_chain_logistics", "process_optimization"],
-        "人才画像": ["requirements_management"],
-        "度量": ["quality_management", "cost_management"],
-        # 通用研究方法 → 所有方向
-        "案例分析": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "现场调查": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "前后对比": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "专家评价": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "指标评价": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "因子分析": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "回归分析": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "时间序列": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "主成分": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "结构方程": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "灰色关联": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "熵权": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "TOPSIS": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "DEA": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        "DID": ["quality_management", "risk_management", "schedule_management", "cost_management", "requirements_management", "process_optimization", "supply_chain_logistics"],
-        # 方向特化方法
-        "PERT": ["schedule_management"],
-        "资源平衡": ["schedule_management", "cost_management"],
-        "责任矩阵": ["requirements_management", "schedule_management"],
-        "RACI": ["requirements_management", "schedule_management"],
-        "风险应对": ["risk_management"],
-        "风险等级": ["risk_management"],
-        "缺陷率": ["quality_management"],
-        "返工率": ["quality_management"],
-        "控制图": ["quality_management"],
-        "SPC": ["quality_management"],
-        "工期偏差": ["schedule_management"],
-        "成本偏差": ["cost_management"],
         "绩效考核": ["cost_management", "quality_management", "requirements_management"],
-        "信息化": ["process_optimization", "requirements_management"],
+        "全生命": ["cost_management", "quality_management", "schedule_management"],
+        "度量": ["quality_management", "cost_management"],
     }
 
     def _fallback_domains(method_name: str) -> List[str]:
-        for keyword, domains in _FALLBACK_DOMAINS.items():
-            if keyword.lower() in method_name.lower():
+        # 先查领域概念关键词
+        for keyword, domains in _DOMAIN_CONCEPT_KEYWORDS.items():
+            if keyword in method_name:
                 return domains
+        # 再从方法注册中心动态匹配
+        from src.method_registry import get_registry as _get_registry
+        reg = _get_registry()
+        alias_map = reg.get_alias_map()
+        domains_map = reg.get_domains()
+        # 检查是否匹配任何已知方法名/别名
+        for alias_key, canon in alias_map.items():
+            if alias_key in method_name.lower():
+                return domains_map.get(canon, [])
         return []
 
     if not card_list:
@@ -2283,10 +1186,9 @@ def scan_methodologies(force: bool = False) -> List[Dict[str, Any]]:
         ][:8]
 
     items: List[Dict[str, Any]] = []
-    for method_name, aliases in METHODOLOGY_ALIASES.items():
+    for method_name, aliases in get_method_aliases().items():
         sources = count_sources(aliases)
-        phase = METHODOLOGY_PHASES.get(method_name, "")
-        phases = [phase] if phase else ["discover", "solve", "validate"]
+        phases = get_method_phases().get(method_name, ["discover", "solve", "validate"])
         items.append({
             "id": re.sub(r"[^a-zA-Z0-9一-鿿]+", "_", method_name).strip("_").lower(),
             "name": method_name,
@@ -2749,9 +1651,10 @@ def build_citation_index(task_id: str = "") -> Dict[str, Any]:
 
         # 方法标记：从论文正文匹配（前 8000 字符），不是文件名
         content_sample = text[:8000] if text else ""
+        _method_keywords_map = _get_method_keywords_map()
         paper_methods = [
             method
-            for method, keywords in CITATION_METHOD_KEYWORDS.items()
+            for method, keywords in _method_keywords_map.items()
             if _matches_keywords(content_sample, keywords)
         ]
 
@@ -2768,7 +1671,7 @@ def build_citation_index(task_id: str = "") -> Dict[str, Any]:
                 # 引用级别方法标记：从引用文本自身匹配
                 ref_methods = [
                     method
-                    for method, keywords in CITATION_METHOD_KEYWORDS.items()
+                    for method, keywords in _method_keywords_map.items()
                     if _matches_keywords(formatted, keywords)
                 ]
                 entries.append(
@@ -3066,41 +1969,19 @@ def _extract_refs_from_kb_papers(
     return all_refs
 
 
-# 研究工具类方法——引文内容不直接包含工具名，跳过内容过滤，用来源论文的方法标签匹配
-_RESEARCH_TOOL_METHODS: Set[str] = {
-    "问卷调查法", "案例研究法", "文献研究法", "访谈法",
-    "层次分析法", "模糊综合评价", "德尔菲法", "SWOT",
-}
+# 研究工具类方法——从注册中心动态加载，cards DB 中 method_role=research_tool 的方法
+def _get_research_tool_methods() -> Set[str]:
+    from src.method_registry import get_research_tool_methods
+    tools = get_research_tool_methods()
+    if tools:
+        return tools
+    # 注册中心无 tool 标记时（cards DB 尚未更新 method_role）回退到最常见的工具方法
+    return {"问卷调查法", "案例研究法", "文献研究法", "访谈法"}
 
-# 方法关键词到搜索词的映射（用于内容级引用过滤）
-_METHOD_CONTENT_KEYWORDS: Dict[str, List[str]] = {
-    "CMMI": ["CMMI", "能力成熟度模型", "软件过程", "过程改进"],
-    "PDCA": ["PDCA", "戴明环", "戴明", "戴明循环", "计划-执行-检查", "Plan-Do-Check", "PDSA",
-             "Deming", "休哈特", "Shewhart"],
-    "鱼骨图": ["鱼骨图", "因果图", "石川图", "要因分析", "根因分析", "Ishikawa",
-               "cause-effect", "cause and effect", "fishbone", "根本原因"],
-    "六西格玛": ["六西格玛", "6σ", "6 sigma", "DMAIC", "Six Sigma"],
-    "Scrum": ["Scrum", "敏捷开发", "敏捷管理", "Agile"],
-    "DevOps": ["DevOps", "开发运维"],
-    "层次分析法": ["层次分析法", "AHP", "Analytic Hierarchy"],
-    "模糊综合评价": ["模糊综合评价", "模糊综合", "FCE", "模糊认知图"],
-    "德尔菲法": ["德尔菲", "Delphi", "专家调查"],
-    "SWOT": ["SWOT", "态势分析"],
-    "QFD": ["QFD", "质量功能展开", "质量屋"],
-    "FMEA": ["FMEA", "失效模式", "故障模式"],
-    "SPC": ["SPC", "统计过程控制"],
-    "WBS": ["WBS", "工作分解结构"],
-    "关键路径法": ["关键路径", "CPM", "Critical Path"],
-    "挣值管理": ["挣值管理", "EVM", "挣值分析"],
-    "精益": ["精益", "Lean", "价值流图", "VSM"],
-    "5Why": ["5Why", "五个为什么", "5问法"],
-    "5M1E": ["5M1E", "人机料法环"],
-    "问卷调查法": ["问卷调查", "量表"],
-    "案例研究法": ["案例研究", "案例分析"],
-    "文献研究法": ["文献研究", "文献综述"],
-    "访谈法": ["访谈"],
-    "标杆分析法": ["标杆分析", "标杆管理", "Benchmarking"],
-}
+# 方法关键词到搜索词的映射——从注册中心动态加载
+def _get_method_content_keywords() -> Dict[str, List[str]]:
+    from src.method_registry import get_method_keywords
+    return get_method_keywords()
 
 
 def _content_filter_cards(
@@ -3113,13 +1994,15 @@ def _content_filter_cards(
     """
     if not methods:
         return cards
-    subject_methods = [m for m in methods if m not in _RESEARCH_TOOL_METHODS]
+    tool_methods = _get_research_tool_methods()
+    subject_methods = [m for m in methods if m not in tool_methods]
     if not subject_methods:
         # 全是工具类方法，不做内容过滤
         return cards
+    content_keywords = _get_method_content_keywords()
     search_texts = set()
     for m in subject_methods:
-        for kw in _METHOD_CONTENT_KEYWORDS.get(m, [m]):
+        for kw in content_keywords.get(m, [m]):
             search_texts.add(kw.lower())
     filtered = []
     for c in cards:
@@ -3173,7 +2056,7 @@ def _cards_to_citations(cards: List[Dict[str, Any]], source: str = "local") -> L
 
 
 def generate_citations(payload: Dict[str, Any], task_id: str = "") -> Dict[str, Any]:
-    from paper_store import get_cards_by_direction_and_methods, search_cards, get_paper_stats, _diversify_cards
+    from src.paper_store import get_cards_by_direction_and_methods, search_cards, get_paper_stats, _diversify_cards
 
     topic = payload.get("topic", "论文主题")
     project_context = persist_project_context(payload)
@@ -3371,6 +2254,151 @@ JSON 结构：
         with TASK_LOCK:
             TASKS[task_id]["progress"] = 100
     return result
+
+
+def _classify_citations_batch(
+    citations: List[Dict[str, Any]], batch_size: int = 25
+) -> int:
+    """LLM 逐条分类引用涉及的研究方法和理论，更新 paper_store DB。
+
+    Returns: 成功分类的引用数量。
+    """
+    config = load_llm_config()
+    if not config.api_key:
+        raise RuntimeError("未配置 API Key")
+    client, provider = _build_llm_client_and_provider(config)
+    total_updated = 0
+
+    for i in range(0, len(citations), batch_size):
+        batch = citations[i : i + batch_size]
+        payload = [
+            {"card_id": c["card_id"], "title": (c.get("title") or "")[:200]}
+            for c in batch
+        ]
+
+        prompt = (
+            "请分析以下参考文献引用，每条根据标题判断该文献使用的研究方法和理论框架。\n\n"
+            "要求：\n"
+            "1. 只看标题中的关键词来判断\n"
+            "2. 标题中明确包含方法/理论关键词才标注，不要猜测\n"
+            "3. 方法名要规范通用（如：作业成本法、社会网络分析、BIM、PDCA、层次分析法、模糊综合评价等）\n"
+            "4. 没有明确方法论关键词的返回空数组\n\n"
+            f"参考文献列表：\n{json.dumps(payload, ensure_ascii=False, indent=2)}\n\n"
+            "只输出JSON数组：\n"
+            '[{"card_id": "...", "methods": ["方法1"], "theories": ["理论1"]}, ...]'
+        )
+
+        try:
+            response = _llm_create_message(
+                client, provider, config,
+                system="你是研究方法分类专家。根据文献标题中的关键词判断该文献涉及的研究方法或理论框架，只标注明确的，不猜测。",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=min(2000, 300 + len(batch) * 80),
+                disable_thinking=True,
+            )
+            raw_text = _llm_response_text(response, provider).strip()
+            raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+            raw_text = re.sub(r"\s*```$", "", raw_text)
+            if raw_text.startswith("["):
+                results = json.loads(raw_text)
+            elif raw_text.startswith("{"):
+                obj = json.loads(raw_text)
+                results = obj if isinstance(obj, list) else obj.get("results", obj.get("data", []))
+            else:
+                results = []
+        except Exception:
+            results = []
+
+        # Update DB
+        from src.paper_store import update_card_methods
+        for item in results:
+            card_id = item.get("card_id", "")
+            methods = item.get("methods", []) or []
+            theories = item.get("theories", []) or []
+            if card_id and methods:
+                update_card_methods(card_id, methods, theories)
+                total_updated += 1
+
+    return total_updated
+
+
+def _run_classify_citations_task(task_id: str, payload: Dict[str, Any]) -> None:
+    from src.paper_store import count_citations_without_methods, get_citations_without_methods
+
+    with TASK_LOCK:
+        TASKS[task_id].update(
+            {"status": "running", "message": "正在统计待分类的引用...", "progress": 0}
+        )
+
+    try:
+        total = count_citations_without_methods()
+        max_cards = payload.get("max_cards")
+        target = min(total, max_cards) if max_cards else total
+        task_log(task_id, f"共 {total} 条引用需要 LLM 分类" + (f"，本次限制 {max_cards} 条" if max_cards else ""))
+        with TASK_LOCK:
+            TASKS[task_id].update({f"message": f"共 {total} 条引用，准备分批分类...", "progress": 0})
+
+        batch_size = 25
+        processed = 0
+        updated = 0
+
+        while processed < target:
+            batch = get_citations_without_methods(limit=batch_size, offset=0)
+            if not batch:
+                break
+            n = _classify_citations_batch(batch, batch_size=batch_size)
+            updated += n
+            processed += len(batch)
+
+            pct = min(95, int(processed / max(target, 1) * 100))
+            task_log(task_id, f"  批次 {processed}/{target}: 本批 {len(batch)} 条，LLM 标注 {n} 条有方法")
+            with TASK_LOCK:
+                TASKS[task_id].update({
+                    "progress": pct,
+                    "message": f"已处理 {processed}/{target}，标注 {updated} 条有方法",
+                })
+
+        remaining = count_citations_without_methods()
+        task_log(task_id, f"分类完成：标注 {updated} 条，剩余 {remaining} 条无方法")
+        with TASK_LOCK:
+            TASKS[task_id].update({
+                "status": "done",
+                "message": f"LLM分类完成：{updated} 条已标注方法，{remaining} 条无明确方法",
+                "result": {"updated": updated, "remaining": remaining, "total": total, "processed": processed},
+                "finished_at": time.time(),
+                "progress": 100,
+            })
+    except Exception as exc:
+        with TASK_LOCK:
+            TASKS[task_id].update({
+                "status": "error",
+                "message": str(exc),
+                "finished_at": time.time(),
+            })
+
+
+_CLASSIFY_CITATIONS_TASK_KIND = "classify_citations"
+
+
+def start_classify_citations_task(payload: Dict[str, Any]) -> str:
+    task_id = uuid.uuid4().hex
+    with TASK_LOCK:
+        TASKS[task_id] = {
+            "kind": _CLASSIFY_CITATIONS_TASK_KIND,
+            "permission_menu": TASK_PERMISSION_BY_KIND.setdefault(
+                _CLASSIFY_CITATIONS_TASK_KIND, "methods"
+            ),
+            "status": "queued",
+            "message": "引用分类任务已创建",
+            "logs": [{"time": time.strftime("%H:%M:%S"), "message": "引用分类任务已创建，等待后台执行"}],
+            "created_at": time.time(),
+            "progress": 0,
+        }
+    thread = threading.Thread(
+        target=_run_classify_citations_task, args=(task_id, payload), daemon=True
+    )
+    thread.start()
+    return task_id
 
 
 def _run_citation_generate_task(task_id: str, payload: Dict[str, Any]) -> None:
@@ -4225,6 +3253,7 @@ def _llm_create_message(
     messages: List[Dict[str, str]],
     max_tokens: int,
     tools: Any = None,
+    disable_thinking: bool = False,
 ) -> Any:
     if provider == "openai":
         api_messages: List[Dict[str, str]] = []
@@ -4242,6 +3271,8 @@ def _llm_create_message(
         system=system,
         messages=messages,
     )
+    if disable_thinking:
+        kwargs["thinking"] = {"type": "disabled"}
     if tools:
         kwargs["tools"] = tools
     return client.messages.create(**kwargs)
@@ -5999,6 +5030,10 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 force = "refresh=1" in self.path
                 _json_response(self, {"items": scan_methodologies(force=force)})
                 return
+            if path == "/api/method-catalog":
+                from src.method_registry import get_method_catalog
+                _json_response(self, {"catalog": get_method_catalog()})
+                return
             if path == "/api/projects":
                 _json_response(
                     self,
@@ -6086,7 +5121,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _file_response(self, file_path, "thesis_export.pdf", "application/pdf")
                 return
             if path == "/api/citation-cards/stats":
-                from paper_store import PAPER_DB_PATH
+                from src.paper_store import PAPER_DB_PATH
                 conn = sqlite3.connect(str(PAPER_DB_PATH))
                 total = conn.execute("SELECT COUNT(*) FROM citation_cards").fetchone()[0]
                 verified = conn.execute("SELECT COUNT(*) FROM citation_cards WHERE verified = 1").fetchone()[0]
@@ -6109,7 +5144,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
 
             if path.startswith("/api/citation-cards"):
                 from urllib.parse import parse_qs, urlparse
-                from paper_store import PAPER_DB_PATH, _card_row_to_dict, _expand_method_terms
+                from src.paper_store import PAPER_DB_PATH, _card_row_to_dict, _expand_method_terms
                 qs = parse_qs(urlparse(self.path).query)
                 direction = qs.get("direction", [""])[0]
                 method = qs.get("method", [""])[0]
@@ -6188,7 +5223,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
             if path == "/api/papers/stats":
                 if not _check_license_api(self, "/api/papers/stats"):
                     return
-                from paper_store import get_paper_stats
+                from src.paper_store import get_paper_stats
                 _json_response(self, {"status": "ok", **get_paper_stats()})
                 return
 
@@ -6196,7 +5231,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 if not _check_license_api(self, "/api/papers/list"):
                     return
                 from urllib.parse import parse_qs, urlparse
-                from paper_store import list_all_papers
+                from src.paper_store import list_all_papers
                 qs = parse_qs(urlparse(self.path).query)
                 direction = qs.get("direction", [""])[0]
                 keyword = qs.get("keyword", [""])[0]
@@ -6210,7 +5245,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 if not _check_license_api(self, "/api/papers/detail"):
                     return
                 from urllib.parse import parse_qs, urlparse
-                from paper_store import get_paper_by_id
+                from src.paper_store import get_paper_by_id
                 qs = parse_qs(urlparse(self.path).query)
                 doc_id = qs.get("doc_id", [""])[0]
                 if not doc_id:
@@ -6457,7 +5492,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 if not doc_id:
                     _json_response(self, {"status": "error", "message": "缺少 doc_id"}, status=400)
                     return
-                from paper_store import delete_paper
+                from src.paper_store import delete_paper
                 ok = delete_paper(doc_id)
                 _json_response(self, {"status": "ok" if ok else "error", "deleted": ok})
                 return
@@ -6492,13 +5527,13 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/paper-library/stats":
-                from paper_store import get_paper_stats, get_papers_by_direction
+                from src.paper_store import get_paper_stats, get_papers_by_direction
                 stats = get_paper_stats()
                 _json_response(self, {"status": "ok", **stats})
                 return
 
             if path == "/api/paper-library/papers":
-                from paper_store import get_papers_by_direction
+                from src.paper_store import get_papers_by_direction
                 dir_id = payload.get("direction", "")
                 papers = get_papers_by_direction(dir_id, limit=50) if dir_id else []
                 _json_response(self, {"status": "ok", "papers": papers})
@@ -6627,6 +5662,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _json_response(self, {"status": "ok"})
                 return
 
+
             if path == "/api/proposal":
                 if not _check_license_api(self, path):
                     return
@@ -6689,7 +5725,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/citation-cards/update":
-                from paper_store import PAPER_DB_PATH
+                from src.paper_store import PAPER_DB_PATH
                 card_id = str(payload.get("card_id", "")).strip()
                 if not card_id:
                     _json_response(self, {"status": "error", "message": "card_id required"}, status=400)
@@ -6704,8 +5740,13 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _json_response(self, {"status": "ok", "card_id": card_id})
                 return
 
+            if path == "/api/citation-cards/classify":
+                task_id = start_classify_citations_task(payload)
+                _json_response(self, {"status": "queued", "task_id": task_id})
+                return
+
             if path == "/api/citation-cards/toggle-verify":
-                from paper_store import PAPER_DB_PATH
+                from src.paper_store import PAPER_DB_PATH
                 card_ids = payload.get("card_ids", [])
                 verified = 1 if payload.get("verified", True) else 0
                 if not card_ids:
@@ -6720,7 +5761,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/citation-cards/delete":
-                from paper_store import PAPER_DB_PATH
+                from src.paper_store import PAPER_DB_PATH
                 card_ids = payload.get("card_ids", [])
                 if not card_ids:
                     _json_response(self, {"status": "error", "message": "card_ids required"}, status=400)
@@ -6805,7 +5846,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                     _json_response(self, {"duplicates": []})
                     return
                 import sqlite3 as _sqlite3
-                from paper_store import PAPER_DB_PATH as _PAPER_DB
+                from src.paper_store import PAPER_DB_PATH as _PAPER_DB
                 _conn = _sqlite3.connect(str(_PAPER_DB))
                 dupes = set()
                 for text in texts:
@@ -6826,7 +5867,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/citation-cards/insert":
-                from paper_store import PAPER_DB_PATH as _PAPER_DB2, upsert_citation_card as _upsert
+                from src.paper_store import PAPER_DB_PATH as _PAPER_DB2, upsert_citation_card as _upsert
                 citations = payload.get("citations", [])
                 if not citations:
                     _json_response(self, {"status": "ok", "inserted": 0})

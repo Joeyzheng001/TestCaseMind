@@ -51,33 +51,10 @@ DIRECTION_STRONG_KEYWORDS: Dict[str, List[str]] = {
     ],
 }
 
-METHOD_KEYWORDS: Dict[str, List[str]] = {
-    "CMMI": ["CMMI", "能力成熟度模型"],
-    "PDCA": ["PDCA", "戴明环", "计划-执行-检查"],
-    "六西格玛": ["六西格玛", "DMAIC", "6σ", "6 sigma"],
-    "鱼骨图": ["鱼骨图", "因果图", "石川图", "要因分析"],
-    "5Why": ["5Why", "5问法", "五个为什么"],
-    "5M1E": ["5M1E", "人机料法环"],
-    "层次分析法": ["层次分析法", "AHP", "层次分析"],
-    "模糊综合评价": ["模糊综合评价", "模糊综合评判", "FCE", "模糊认知图"],
-    "德尔菲法": ["德尔菲", "Delphi", "专家调查"],
-    "SWOT": ["SWOT", "态势分析"],
-    "PEST": ["PEST", "宏观环境分析"],
-    "QFD": ["QFD", "质量功能展开", "质量屋"],
-    "FMEA": ["FMEA", "失效模式", "故障模式"],
-    "SPC": ["SPC", "统计过程控制"],
-    "WBS": ["WBS", "工作分解结构"],
-    "关键路径法": ["关键路径法", "CPM", "关键路径"],
-    "挣值管理": ["挣值管理", "EVM", "挣值分析"],
-    "Scrum": ["Scrum", "敏捷开发", "敏捷管理"],
-    "DevOps": ["DevOps", "开发运维"],
-    "精益": ["精益", "Lean", "价值流图", "VSM"],
-    "标杆分析法": ["标杆分析", "标杆管理", "Benchmarking"],
-    "问卷调查法": ["问卷调查", "问卷法", "量表"],
-    "案例研究法": ["案例研究", "案例分析法"],
-    "文献研究法": ["文献研究", "文献综述", "文献分析"],
-    "访谈法": ["访谈法", "深度访谈", "半结构化访谈"],
-}
+def _get_method_keywords() -> Dict[str, List[str]]:
+    """从方法注册中心动态加载方法名→关键词映射。"""
+    from src.method_registry import get_method_keywords
+    return get_method_keywords()
 
 DIRECTION_LABELS = {
     "quality_management": "质量管理",
@@ -351,18 +328,20 @@ def _extract_methods(text: str, title: str, abstract: str, fm: Dict[str, Any]) -
     """从 frontmatter、题目、摘要、正文中提取研究方法。"""
     found_methods = set()
 
+    _mk = _get_method_keywords()
+
     # 1) Frontmatter methodologies 字段（最可靠）
     fm_methods = fm.get("methodologies", "")
     if isinstance(fm_methods, list):
         fm_methods = " ".join(fm_methods)
     if fm_methods:
-        for method, keywords in METHOD_KEYWORDS.items():
+        for method, keywords in _mk.items():
             if any(kw.lower() in fm_methods.lower() for kw in keywords):
                 found_methods.add(method)
 
     # 2) 全文搜索方法关键词
     search_text = f"{title} {abstract} {text[:10000]}"
-    for method, keywords in METHOD_KEYWORDS.items():
+    for method, keywords in _mk.items():
         if any(kw.lower() in search_text.lower() for kw in keywords):
             found_methods.add(method)
 

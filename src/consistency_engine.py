@@ -43,18 +43,13 @@ _DEFINITION_RE = re.compile(
     re.UNICODE,
 )
 
-# 兜底方法名列表（当卡片库不可用时使用）
-_FALLBACK_METHOD_NAMES = [
-    "层次分析法", "AHP", "模糊综合评价", "FCE", "PDCA", "DMAIC",
-    "六西格玛", "鱼骨图", "5M1E", "SWOT", "WBS", "RBS", "帕累托",
-    "德尔菲", "Scrum", "DevOps", "CMMI", "BIM", "EVM", "挣值管理",
-    "CPM", "关键路径", "PERT", "BPR", "流程再造", "RACI", "BSC",
-    "平衡计分卡", "TOPSIS", "熵权法", "DEA", "灰色关联", "因子分析",
-    "主成分分析", "结构方程模型", "SEM", "回归分析", "DID", "双重差分",
-    "根因分析", "RCA", "SPC", "控制图", "前后对比", "问卷调查",
-    "访谈法", "文献研究", "案例研究", "现场调查", "德尔菲法",
-    "精益管理", "敏捷管理", "标准化管理", "KPI", "绩效考核",
-]
+# 兜底方法名列表（当卡片库不可用时使用，从注册中心动态加载）
+def _get_fallback_method_names() -> List[str]:
+    from src.method_registry import get_all_method_names
+    names = get_all_method_names()
+    if names:
+        return names
+    return []
 
 _methods_pattern_cache: Optional[re.Pattern] = None
 
@@ -96,7 +91,7 @@ def _get_methods_pattern() -> re.Pattern:
         return _methods_pattern_cache
     names = _load_method_names_from_db()
     if not names:
-        names = _FALLBACK_METHOD_NAMES
+        names = _get_fallback_method_names()
     _methods_pattern_cache = re.compile(
         "|".join(re.escape(m) for m in sorted(names, key=len, reverse=True)),
         re.UNICODE,
@@ -121,7 +116,7 @@ def _get_method_promise_pattern() -> re.Pattern:
         return _method_promise_pattern_cache
     names = _load_method_names_from_db()
     if not names:
-        names = _FALLBACK_METHOD_NAMES
+        names = _get_fallback_method_names()
     methods_alt = "|".join(re.escape(m) for m in sorted(names, key=len, reverse=True))
     _method_promise_pattern_cache = re.compile(
         _METHOD_PROMISE_TEMPLATE.replace("{methods}", methods_alt),

@@ -157,52 +157,20 @@ def _match_condition(content: str, condition: str, chapter_title: str = "") -> b
 
 def _count_method_mentions(content: str) -> int:
     """统计内容中出现的独立方法数量，处理同义词去重。"""
-    # 方法组: 同一组内的关键词视为同一个方法
-    method_groups = [
-        # 每组第一个是规范名，其余是别名
-        ["层次分析法", "AHP", "ahp", "层次分析"],
-        ["模糊综合评价", "FCE", "fce", "模糊评价"],
-        ["PDCA", "pdca", "PDCA循环"],
-        ["DMAIC", "dmaic"],
-        ["SWOT", "swot", "SWOT分析"],
-        ["PEST", "pest", "PEST分析"],
-        ["鱼骨图", "因果图", "鱼骨图法", "因果分析"],
-        ["5M1E", "5M1E分析法", "人机料法环测"],
-        ["5W1H"],
-        ["德尔菲", "Delphi", "delphi", "德尔菲法"],
-        ["DID", "双重差分", "倍差法"],
-        ["结构方程", "SEM", "sem"],
-        ["TOPSIS", "topsis", "优劣解距离法"],
-        ["熵权", "熵权法", "信息熵"],
-        ["灰色关联", "灰色关联分析"],
-        ["回归分析", "多元回归", "线性回归"],
-        ["因子分析", "因子分析法"],
-        ["主成分", "PCA", "pca", "主成分分析"],
-        ["RACI", "raci", "责任矩阵"],
-        ["WBS", "wbs", "工作分解"],
-        ["RBS", "rbs", "风险分解"],
-        ["CMMI", "cmmi", "能力成熟度"],
-        ["DevOps", "devops"],
-        ["挣值", "EVM", "evm", "挣值管理"],
-        ["关键路径", "CPM", "cpm"],
-        ["PERT", "pert", "计划评审"],
-        ["BSC", "bsc", "平衡计分卡"],
-        ["六西格玛", "Six Sigma", "6 Sigma"],
-        ["精益", "Lean", "精益管理"],
-        ["敏捷", "Agile", "Scrum", "scrum", "敏捷管理"],
-        ["Gompertz", "gompertz", "冈珀茨"],
-        ["文献研究", "文献综述", "文献分析"],
-        ["案例研究", "案例分析"],
-        ["访谈法", "访谈", "深度访谈", "专家访谈"],
-        ["问卷调查", "问卷", "调查问卷"],
-        ["现场调查", "实地调研", "现场观察"],
-        ["对标分析", "标杆", "对标"],
-        ["流程图", "流程分析", "流程优化"],
-        ["故障数", "故障分析", "缺陷分析"],
-        ["扎根理论", "扎根"],
-    ]
+    from src.method_registry import get_registry as _rc_reg
+    _reg = _rc_reg()
+    _aliases = _reg.get_aliases()
+    method_groups: List[List[str]] = []
+    for _canon, _als in _aliases.items():
+        _group = [_canon] + [a for a in _als if a != _canon]
+        # 为纯英文别名补充小写形式，确保大小写不敏感匹配
+        _extra = []
+        for _a in _group:
+            if _a.isascii() and _a.upper() != _a.lower():
+                _extra.append(_a.lower())
+        method_groups.append(_group + _extra)
     content_lower = content.lower()
-    found_groups = set()
+    found_groups: Set[str] = set()
     for group in method_groups:
         if any(kw.lower() in content_lower for kw in group):
             found_groups.add(group[0])

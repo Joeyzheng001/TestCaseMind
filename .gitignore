@@ -4,10 +4,16 @@
 .env.*.local
 .thesismind/
 
-# ── 知识产权资产 (明文) ──
-# 以下目录包含 curated 论文模板、方法卡片、引用库等核心 IP
-# 仅通过 assets_enc/ 加密分发，clone 后不可直接使用
-knowledge_base/
+# ── 知识产权资产 — 只分发加工过的数据库，原始文件不给 ──
+# 不给用户：原始论文 PDF / 转换后 MD
+knowledge_base/references/
+knowledge_base/papers/
+# 不给用户：备份文件、WAL 日志、向量索引（太大，本地重建）
+knowledge_base/*_backup_*
+knowledge_base/*.sqlite3-shm
+knowledge_base/*.sqlite3-wal
+knowledge_base/vector_store.sqlite3
+# 旧版卡片目录
 cards/
 
 # Python
@@ -66,8 +72,6 @@ logs/
 # Cache
 .cache/
 .pytest_cache/
-knowledge_base/vector_store.sqlite3
-
 # Temporary
 tmp/
 temp/

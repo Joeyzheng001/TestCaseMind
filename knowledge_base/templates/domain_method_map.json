@@ -1,0 +1,842 @@
+{
+  "communication_management": {
+    "label": "沟通管理",
+    "discover": [
+      {
+        "name": "沟通满意度问卷",
+        "description": "调查项目成员和相关方对沟通频率、沟通质量、信息透明度和反馈及时性的评价。",
+        "card_id": "method_comm_satisfaction"
+      },
+      {
+        "name": "访谈法",
+        "description": "访谈不同角色，识别信息传递断层、会议低效、反馈滞后和跨部门协同困难。",
+        "card_id": "method_interview"
+      },
+      {
+        "name": "沟通路径分析法",
+        "description": "梳理信息从发起、传递到反馈的路径，发现沟通层级过多或责任不清问题。",
+        "card_id": "method_comm_path_analysis"
+      },
+      {
+        "name": "会议纪要分析法",
+        "description": "分析会议频率、议题、决议、跟踪事项和关闭情况，判断沟通机制是否有效。",
+        "card_id": "method_meeting_minutes"
+      },
+      {
+        "name": "利益相关方分析法",
+        "description": "识别不同相关方的信息需求和影响程度，发现沟通对象遗漏或沟通策略不匹配问题。",
+        "card_id": "method_stakeholder_analysis"
+      }
+    ],
+    "solve": [
+      {
+        "name": "沟通管理计划法",
+        "description": "明确沟通对象、内容、频率、渠道、责任人和反馈机制，规范项目信息传递。",
+        "card_id": "method_comm_plan"
+      },
+      {
+        "name": "会议机制优化法",
+        "description": "优化例会、专题会和决策会的议题、参与人、输出物和跟踪机制，提高会议效率。",
+        "card_id": "method_meeting_optimize"
+      },
+      {
+        "name": "信息看板法",
+        "description": "通过项目看板、仪表盘或协同平台实时展示进度、风险、问题和任务状态。",
+        "card_id": "method_info_kanban"
+      },
+      {
+        "name": "问题闭环管理法",
+        "description": "建立问题登记、分派、处理、验证、关闭的闭环机制，减少沟通遗漏。",
+        "card_id": "method_issue_closed_loop"
+      },
+      {
+        "name": "沟通矩阵法",
+        "description": "根据相关方类型和信息需求制定差异化沟通策略，提高沟通精准度。",
+        "card_id": "method_comm_matrix"
+      }
+    ],
+    "validate": [
+      {
+        "name": "沟通响应时间分析",
+        "description": "比较问题反馈、审批和决策的响应周期，验证沟通效率提升。",
+        "card_id": "method_comm_response_time"
+      },
+      {
+        "name": "问题关闭率分析",
+        "description": "统计沟通问题或项目问题的按期关闭比例，评价沟通闭环效果。",
+        "card_id": "method_issue_close_rate"
+      },
+      {
+        "name": "会议效率评价",
+        "description": "通过会议时长、决议数量、行动项完成率评价会议机制优化效果。",
+        "card_id": "method_meeting_efficiency"
+      },
+      {
+        "name": "满意度前后对比",
+        "description": "比较优化前后团队和相关方沟通满意度变化。",
+        "card_id": "method_satisfaction_compare"
+      },
+      {
+        "name": "信息透明度评价",
+        "description": "通过问卷或指标评价项目信息是否及时、准确、完整地传递给相关方。",
+        "card_id": "method_info_transparency"
+      }
+    ]
+  },
+  "cost_management": {
+    "label": "成本管理",
+    "discover": [
+      {
+        "name": "成本偏差分析法",
+        "description": "比较预算成本与实际成本，识别超支环节、超支金额和成本失控阶段。",
+        "card_id": "method_cost_deviation"
+      },
+      {
+        "name": "挣值管理法",
+        "description": "通过PV、EV、AC、CV、CPI等指标识别成本绩效问题，适合数据较完整的项目。",
+        "card_id": "method_evm"
+      },
+      {
+        "name": "文档分析法",
+        "description": "分析预算表、合同、采购单、报销记录和成本台账，发现预算编制不合理和成本归集不规范问题。",
+        "card_id": "method_document_analysis"
+      },
+      {
+        "name": "访谈法",
+        "description": "访谈财务、采购、项目经理和执行团队，识别成本超支背后的资源、变更和管理原因。",
+        "card_id": "method_interview"
+      },
+      {
+        "name": "帕累托分析法",
+        "description": "按成本超支贡献度排序，识别造成主要成本偏差的少数关键因素。",
+        "card_id": "method_pareto"
+      }
+    ],
+    "solve": [
+      {
+        "name": "成本基准管理法",
+        "description": "建立分阶段预算、成本控制基线和预算调整机制，提高成本控制依据。",
+        "card_id": "method_cost_baseline"
+      },
+      {
+        "name": "挣值管理改进法",
+        "description": "引入EV、CPI、CV等指标进行成本动态监控和预警，增强过程控制。",
+        "card_id": "method_evm_improve"
+      },
+      {
+        "name": "预算分解法",
+        "description": "将总预算分解到工作包、责任部门和时间阶段，便于成本责任落实。",
+        "card_id": "method_budget_decompose"
+      },
+      {
+        "name": "成本控制流程优化法",
+        "description": "设计成本申请、审批、执行、监控、调整的闭环流程，减少无序支出。",
+        "card_id": "method_liuchengyouhuafa"
+      },
+      {
+        "name": "价值工程法",
+        "description": "在保证功能和质量前提下优化方案、材料、资源或流程，实现成本节约。",
+        "card_id": "method_value_engineering"
+      }
+    ],
+    "validate": [
+      {
+        "name": "成本绩效指数CPI分析",
+        "description": "通过CPI评价单位成本投入形成的项目价值，验证成本管理效果。",
+        "card_id": "method_cpi_analysis"
+      },
+      {
+        "name": "预算执行率分析",
+        "description": "比较预算与实际支出匹配程度，判断预算控制是否改善。",
+        "card_id": "method_budget_exec_rate"
+      },
+      {
+        "name": "成本偏差率分析",
+        "description": "计算优化前后成本偏差率变化，直观验证成本控制成效。",
+        "card_id": "method_cost_deviation_rate"
+      },
+      {
+        "name": "投入产出分析法",
+        "description": "比较成本投入与交付成果、收益或绩效改善之间的关系，评价成本优化价值。",
+        "card_id": "method_input_output"
+      },
+      {
+        "name": "前后对比分析法",
+        "description": "比较优化前后超支金额、审批周期、成本异常次数等指标，验证改进效果。",
+        "card_id": "method_before_after_compare"
+      }
+    ]
+  },
+  "process_optimization": {
+    "label": "流程优化",
+    "discover": [
+      {
+        "name": "案例研究法",
+        "description": "通过对某一具体项目的全过程进行梳理，识别目标不一致、计划割裂、变更失控、部门协同不足等整合管理问题；适合用于论文第3章现状诊断。",
+        "card_id": "method_anliyanjiufa"
+      },
+      {
+        "name": "访谈法",
+        "description": "访谈项目经理、职能负责人、关键成员和客户代表，获取跨部门协调、决策机制、变更审批和整体管控中的真实问题；适合补充案例资料。",
+        "card_id": "method_interview"
+      },
+      {
+        "name": "文档分析法",
+        "description": "分析项目章程、项目管理计划、会议纪要、变更记录、验收材料等，发现计划体系不完整、审批链条不清、目标分解不足等问题；适合形成证据链。",
+        "card_id": "method_document_analysis"
+      },
+      {
+        "name": "鱼骨图分析法",
+        "description": "从组织、流程、人员、机制、工具、外部环境等维度归纳整合管理失效原因；适合用于问题成因分析。",
+        "card_id": "method_yugutu"
+      },
+      {
+        "name": "利益相关方分析法",
+        "description": "识别项目中各方诉求、权力影响和参与程度，判断目标冲突、沟通断层和决策阻塞来源；适合分析复杂协同类项目。",
+        "card_id": "method_stakeholder_analysis"
+      }
+    ],
+    "solve": [
+      {
+        "name": "项目章程优化法",
+        "description": "重新明确项目目标、范围边界、关键里程碑、职责权限和治理机制；适合用于提出整合管理优化方案。",
+        "card_id": "method_project_charter"
+      },
+      {
+        "name": "项目管理计划集成法",
+        "description": "将范围、进度、成本、质量、风险、沟通等子计划统一纳入整体计划，减少各计划之间的不一致；适合用于系统性改进章节。",
+        "card_id": "method_pm_plan_integration"
+      },
+      {
+        "name": "变更控制流程优化法",
+        "description": "设计变更申请、评估、审批、执行、回溯的闭环机制，控制变更对项目目标的冲击；适合解决需求频繁变化问题。",
+        "card_id": "method_liuchengyouhuafa"
+      },
+      {
+        "name": "PMO治理机制设计",
+        "description": "通过设立项目管理办公室或项目治理小组，统一标准、协调资源、监督进度和处理重大问题；适合组织级项目管理优化。",
+        "card_id": "method_pmo_design"
+      },
+      {
+        "name": "PDCA循环法",
+        "description": "按照计划、执行、检查、处理构建持续改进闭环，用于持续优化整体项目管控机制；适合硕士论文中的改进路径设计。",
+        "card_id": "method_pdca"
+      }
+    ],
+    "validate": [
+      {
+        "name": "前后对比分析法",
+        "description": "比较优化前后项目目标达成率、变更响应周期、问题关闭率和里程碑准时率，验证整合管理改进效果。",
+        "card_id": "method_before_after_compare"
+      },
+      {
+        "name": "专家评价法",
+        "description": "邀请项目管理专家、项目负责人或业务骨干对优化方案的合理性、可行性和完整性进行评价；适合缺少长期数据时使用。",
+        "card_id": "method_expert_evaluation"
+      },
+      {
+        "name": "指标评价法",
+        "description": "构建目标一致性、计划完整性、变更控制有效性、协同效率等指标，评价整合管理水平变化。",
+        "card_id": "method_indicator_evaluation"
+      },
+      {
+        "name": "模糊综合评价法",
+        "description": "将专家或问卷评价转化为综合评分，适合评价整合管理能力提升这种难以直接量化的问题。",
+        "card_id": "method_fce"
+      },
+      {
+        "name": "成熟度评价法",
+        "description": "从制度化、标准化、协同化、持续改进等维度评价项目整合管理成熟度变化；适合管理优化类论文。",
+        "card_id": "method_maturity_evaluation"
+      }
+    ]
+  },
+  "quality_management": {
+    "label": "质量管理",
+    "discover": [
+      {
+        "name": "质量数据统计分析",
+        "description": "统计缺陷数、返工率、验收问题、客户投诉等数据，识别质量管理薄弱环节。",
+        "card_id": "method_quality_stats"
+      },
+      {
+        "name": "鱼骨图分析法",
+        "description": "从人员、方法、工具、流程、环境和度量等维度分析质量问题原因。",
+        "card_id": "method_yugutu"
+      },
+      {
+        "name": "帕累托分析法",
+        "description": "找出造成主要质量问题的关键缺陷类型或关键流程环节。",
+        "card_id": "method_pareto"
+      },
+      {
+        "name": "问卷调查法",
+        "description": "收集团队和客户对质量计划、过程控制、测试验证和质量改进的评价。",
+        "card_id": "method_wenjuandiaochafa"
+      },
+      {
+        "name": "过程审计法",
+        "description": "检查项目过程是否按制度执行，发现评审缺失、测试不足、质量门禁弱等问题。",
+        "card_id": "method_process_audit"
+      }
+    ],
+    "solve": [
+      {
+        "name": "PDCA循环法",
+        "description": "围绕质量计划、执行、检查和改进建立持续优化机制，是质量管理论文最常用方法之一。",
+        "card_id": "method_pdca"
+      },
+      {
+        "name": "质量门禁机制",
+        "description": "在需求、设计、开发、测试、验收等阶段设置准入和准出标准，防止缺陷后移。",
+        "card_id": "method_quality_gate"
+      },
+      {
+        "name": "根因分析法",
+        "description": "对重大缺陷或返工问题进行原因追溯，制定针对性纠正和预防措施。",
+        "card_id": "method_genyinfenxifa"
+      },
+      {
+        "name": "标准化流程建设",
+        "description": "建立评审、测试、缺陷管理、验收等标准流程，提高质量活动一致性。",
+        "card_id": "method_standardize_process"
+      },
+      {
+        "name": "六西格玛DMAIC",
+        "description": "按照定义、测量、分析、改进、控制步骤降低缺陷和过程波动，适合数据基础较好的项目。",
+        "card_id": "method_dmaic"
+      }
+    ],
+    "validate": [
+      {
+        "name": "缺陷率对比分析",
+        "description": "比较优化前后缺陷密度、严重缺陷数和缺陷关闭周期，验证质量改进效果。",
+        "card_id": "method_defect_rate_compare"
+      },
+      {
+        "name": "验收通过率分析",
+        "description": "通过一次验收通过率、验收问题数量等指标评价质量管理成果。",
+        "card_id": "method_acceptance_rate"
+      },
+      {
+        "name": "过程合规率分析",
+        "description": "统计评审、测试、检查等活动按标准执行的比例，验证过程质量改善。",
+        "card_id": "method_process_compliance"
+      },
+      {
+        "name": "客户满意度评价",
+        "description": "通过问卷或访谈评价客户对交付质量、响应速度和问题解决效果的满意程度。",
+        "card_id": "method_customer_satisfaction"
+      },
+      {
+        "name": "控制图分析法",
+        "description": "观察质量指标随时间变化是否稳定，用于验证质量过程是否受控。",
+        "card_id": "method_control_chart"
+      }
+    ]
+  },
+  "requirements_management": {
+    "label": "需求管理",
+    "discover": [
+      {
+        "name": "需求访谈法",
+        "description": "访谈客户、业务方、产品经理和项目团队，识别需求边界不清、需求遗漏、需求反复变更等范围问题。",
+        "card_id": "method_requirement_interview"
+      },
+      {
+        "name": "问卷调查法",
+        "description": "通过问卷收集团队对范围定义、需求确认、变更控制和验收标准的评价，适合量化范围管理问题。",
+        "card_id": "method_wenjuandiaochafa"
+      },
+      {
+        "name": "WBS分析法",
+        "description": "检查工作分解结构是否完整、颗粒度是否合理、责任是否明确，识别任务遗漏和范围蔓延风险。",
+        "card_id": "method_wbs_analysis"
+      },
+      {
+        "name": "需求追踪矩阵分析法",
+        "description": "分析需求、设计、开发、测试和验收之间是否一一对应，发现需求断链、漏测和交付偏差问题。",
+        "card_id": "method_req_trace_matrix"
+      },
+      {
+        "name": "偏差分析法",
+        "description": "对比计划范围与实际交付内容，识别范围蔓延、范围遗漏和无效工作投入；适合项目复盘。",
+        "card_id": "method_deviation_analysis"
+      }
+    ],
+    "solve": [
+      {
+        "name": "WBS优化法",
+        "description": "重新分解项目工作包，明确交付物、责任人和验收标准，提高范围可控性。",
+        "card_id": "method_wbs_optimize"
+      },
+      {
+        "name": "需求基线管理法",
+        "description": "建立需求确认、冻结、变更和版本管理机制，防止需求随意变动。",
+        "card_id": "method_req_baseline"
+      },
+      {
+        "name": "需求追踪矩阵法",
+        "description": "建立从需求到设计、开发、测试、验收的双向追踪关系，保证交付范围完整。",
+        "card_id": "method_req_trace"
+      },
+      {
+        "name": "范围变更控制法",
+        "description": "设计变更评估和审批机制，对变更影响进行范围、进度、成本和质量联动评估。",
+        "card_id": "method_scope_change_control"
+      },
+      {
+        "name": "验收标准细化法",
+        "description": "将模糊需求转化为可验证的验收标准，减少交付争议；适合软件、工程和服务项目。",
+        "card_id": "method_acceptance_criteria"
+      }
+    ],
+    "validate": [
+      {
+        "name": "需求覆盖率分析",
+        "description": "统计需求被设计、开发、测试和验收覆盖的比例，验证范围管理完整性。",
+        "card_id": "method_req_coverage"
+      },
+      {
+        "name": "范围偏差率分析",
+        "description": "比较实际交付范围与计划范围的偏差，评价范围控制效果。",
+        "card_id": "method_scope_deviation_rate"
+      },
+      {
+        "name": "变更次数与变更周期对比",
+        "description": "比较优化前后需求变更数量、审批周期和返工次数，验证变更控制效果。",
+        "card_id": "method_change_freq_compare"
+      },
+      {
+        "name": "用户验收通过率分析",
+        "description": "以验收一次通过率、验收问题数量等指标验证范围定义和验收标准的有效性。",
+        "card_id": "method_uat_pass_rate"
+      },
+      {
+        "name": "专家评价法",
+        "description": "邀请业务方和项目专家评价范围管理方案的完整性、可执行性和适用性。",
+        "card_id": "method_expert_evaluation"
+      }
+    ]
+  },
+  "resource_management": {
+    "label": "资源管理",
+    "discover": [
+      {
+        "name": "资源负荷分析法",
+        "description": "分析人员、设备、资金和关键资源的占用情况，识别过载、闲置和冲突问题。",
+        "card_id": "method_resource_load"
+      },
+      {
+        "name": "访谈法",
+        "description": "访谈项目经理、成员和资源管理者，了解资源不足、能力不匹配和跨项目争抢问题。",
+        "card_id": "method_interview"
+      },
+      {
+        "name": "技能矩阵分析法",
+        "description": "对比任务需求与成员能力，发现能力缺口和岗位匹配不足。",
+        "card_id": "method_skill_matrix"
+      },
+      {
+        "name": "责任分配矩阵分析法",
+        "description": "检查RACI或责任矩阵，发现职责不清、多人负责或无人负责的问题。",
+        "card_id": "method_ram_analysis"
+      },
+      {
+        "name": "问卷调查法",
+        "description": "收集团队对资源配置、工作负荷、能力支持和协同效率的评价。",
+        "card_id": "method_wenjuandiaochafa"
+      }
+    ],
+    "solve": [
+      {
+        "name": "资源平衡法",
+        "description": "在不改变项目关键目标的前提下调整任务安排，缓解资源过载和冲突。",
+        "card_id": "method_resource_balance"
+      },
+      {
+        "name": "资源优化配置法",
+        "description": "根据任务优先级、关键路径和人员能力重新配置资源，提高资源利用效率。",
+        "card_id": "method_resource_optimize"
+      },
+      {
+        "name": "RACI责任矩阵法",
+        "description": "明确负责、批准、咨询和知情角色，解决职责边界不清问题。",
+        "card_id": "method_raci"
+      },
+      {
+        "name": "能力提升与培训计划",
+        "description": "针对技能缺口制定培训、辅导或外部支持方案，提高团队交付能力。",
+        "card_id": "method_capability_training"
+      },
+      {
+        "name": "团队激励机制设计",
+        "description": "通过绩效目标、反馈机制和激励措施提升团队积极性和资源投入稳定性。",
+        "card_id": "method_team_incentive"
+      }
+    ],
+    "validate": [
+      {
+        "name": "资源利用率分析",
+        "description": "比较优化前后人员或设备利用率，判断资源配置是否更加合理。",
+        "card_id": "method_resource_utilization"
+      },
+      {
+        "name": "任务完成效率分析",
+        "description": "分析单位人力投入完成的任务量或交付成果，验证资源管理效果。",
+        "card_id": "method_task_efficiency"
+      },
+      {
+        "name": "团队满意度调查",
+        "description": "评价成员对工作负荷、资源支持和协作机制的满意程度。",
+        "card_id": "method_team_satisfaction"
+      },
+      {
+        "name": "技能达标率分析",
+        "description": "统计关键岗位人员技能达标情况，验证培训和能力建设效果。",
+        "card_id": "method_skill_compliance"
+      },
+      {
+        "name": "前后对比分析法",
+        "description": "比较优化前后资源冲突次数、加班时长、任务延期率等指标。",
+        "card_id": "method_before_after_compare"
+      }
+    ]
+  },
+  "risk_management": {
+    "label": "风险管理",
+    "discover": [
+      {
+        "name": "风险清单法",
+        "description": "系统梳理项目中可能影响目标实现的技术、进度、成本、质量、外部环境等风险。",
+        "card_id": "method_risk_checklist"
+      },
+      {
+        "name": "专家访谈法",
+        "description": "邀请项目专家和核心成员识别隐性风险，适合复杂项目和经验依赖较强的场景。",
+        "card_id": "method_expert_interview"
+      },
+      {
+        "name": "德尔菲法",
+        "description": "通过多轮专家匿名咨询收敛风险因素，提高风险识别的系统性和可信度。",
+        "card_id": "method_deerfeifa"
+      },
+      {
+        "name": "风险矩阵法",
+        "description": "从发生概率和影响程度两个维度评估风险等级，识别重点风险。",
+        "card_id": "method_risk_matrix"
+      },
+      {
+        "name": "SWOT分析法",
+        "description": "从优势、劣势、机会和威胁角度识别项目内外部风险与机会。",
+        "card_id": "method_swot"
+      }
+    ],
+    "solve": [
+      {
+        "name": "风险应对策略法",
+        "description": "针对风险制定规避、转移、减轻、接受等应对策略，提高风险可控性。",
+        "card_id": "method_risk_response"
+      },
+      {
+        "name": "风险预警机制",
+        "description": "设置风险指标、阈值和触发条件，实现风险提前发现和及时处理。",
+        "card_id": "method_risk_early_warning"
+      },
+      {
+        "name": "风险责任矩阵法",
+        "description": "明确每项风险的责任人、监控人和处理机制，避免风险无人负责。",
+        "card_id": "method_risk_raci"
+      },
+      {
+        "name": "应急预案设计",
+        "description": "针对高等级风险制定备用方案、资源预案和处置流程，降低风险冲击。",
+        "card_id": "method_contingency_plan"
+      },
+      {
+        "name": "风险闭环管理法",
+        "description": "建立风险识别、评估、应对、监控、复盘的闭环流程，形成持续风险管理机制。",
+        "card_id": "method_risk_closed_loop"
+      }
+    ],
+    "validate": [
+      {
+        "name": "风险发生率对比",
+        "description": "比较优化前后风险事件发生频率，评价风险识别与预防效果。",
+        "card_id": "method_risk_occurrence_rate"
+      },
+      {
+        "name": "风险损失程度分析",
+        "description": "比较风险造成的进度、成本或质量损失变化，验证风险应对有效性。",
+        "card_id": "method_risk_loss_analysis"
+      },
+      {
+        "name": "预警准确率分析",
+        "description": "评价风险预警是否能提前识别真实风险事件，适合有预警数据的项目。",
+        "card_id": "method_early_warning_accuracy"
+      },
+      {
+        "name": "风险等级变化分析",
+        "description": "比较改进前后风险矩阵中的高风险数量和风险等级分布。",
+        "card_id": "method_risk_level_change"
+      },
+      {
+        "name": "专家评价法",
+        "description": "通过专家评价风险管理方案的完整性、可执行性和预防效果。",
+        "card_id": "method_expert_evaluation"
+      }
+    ]
+  },
+  "schedule_management": {
+    "label": "进度管理",
+    "discover": [
+      {
+        "name": "进度偏差分析法",
+        "description": "对比计划进度与实际进度，识别延期任务、延期阶段和延期程度，是进度管理论文最常用的诊断方法。",
+        "card_id": "method_schedule_deviation"
+      },
+      {
+        "name": "关键路径法",
+        "description": "识别决定项目总工期的关键任务，发现影响整体延期的核心节点；适合工程、软件和研发项目。",
+        "card_id": "method_cpm"
+      },
+      {
+        "name": "甘特图分析法",
+        "description": "用图形方式展示计划与实际进度差异，直观发现任务重叠、排期不合理和里程碑延期。",
+        "card_id": "method_gantt_analysis"
+      },
+      {
+        "name": "访谈法",
+        "description": "访谈项目成员和管理者，识别进度延误背后的资源、沟通、需求变更和技术障碍。",
+        "card_id": "method_interview"
+      },
+      {
+        "name": "鱼骨图分析法",
+        "description": "从人员、资源、流程、技术、沟通和外部环境等维度分析进度延误原因。",
+        "card_id": "method_yugutu"
+      }
+    ],
+    "solve": [
+      {
+        "name": "WBS分解法",
+        "description": "将项目工作细化到可计划、可分配、可跟踪的任务单元，为进度计划优化提供基础。",
+        "card_id": "method_wbs"
+      },
+      {
+        "name": "关键路径优化法",
+        "description": "针对关键路径任务进行资源倾斜、并行安排或工期压缩，缩短总工期。",
+        "card_id": "method_cpm_optimize"
+      },
+      {
+        "name": "PERT三点估算法",
+        "description": "通过乐观、最可能、悲观时间估计任务工期，提高不确定项目的进度计划科学性。",
+        "card_id": "method_pert"
+      },
+      {
+        "name": "滚动计划法",
+        "description": "近期计划详细、远期计划粗略，并随项目推进持续修正，适合需求变化较快的项目。",
+        "card_id": "method_rolling_plan"
+      },
+      {
+        "name": "里程碑计划法",
+        "description": "设置阶段性交付节点和检查点，提高管理层对进度状态的控制能力。",
+        "card_id": "method_milestone_plan"
+      }
+    ],
+    "validate": [
+      {
+        "name": "前后对比分析法",
+        "description": "比较优化前后延期率、里程碑准时率、计划完成率和平均延期天数，验证进度改进效果。",
+        "card_id": "method_before_after_compare"
+      },
+      {
+        "name": "进度绩效指数SPI分析",
+        "description": "基于挣值管理计算SPI，衡量项目实际进度相对计划进度的绩效变化。",
+        "card_id": "method_spi_analysis"
+      },
+      {
+        "name": "计划完成率分析",
+        "description": "统计任务按期完成比例，评价进度计划执行效果。",
+        "card_id": "method_plan_completion_rate"
+      },
+      {
+        "name": "关键路径变化分析",
+        "description": "比较优化前后关键路径长度、关键任务数量和关键节点延期情况，验证进度优化合理性。",
+        "card_id": "method_cpm_change_analysis"
+      },
+      {
+        "name": "趋势分析法",
+        "description": "观察项目多个周期内进度偏差变化趋势，判断改进措施是否持续有效。",
+        "card_id": "method_trend_analysis"
+      }
+    ]
+  },
+  "stakeholder_management": {
+    "label": "相关方管理",
+    "discover": [
+      {
+        "name": "相关方识别分析",
+        "description": "系统识别客户、用户、管理层、项目团队、供应商和监管方等相关方，发现遗漏对象。",
+        "card_id": "method_stakeholder_identify"
+      },
+      {
+        "name": "权力—利益矩阵",
+        "description": "根据相关方权力和利益程度分类，判断重点管理对象和潜在阻力来源。",
+        "card_id": "method_power_interest_matrix"
+      },
+      {
+        "name": "访谈法",
+        "description": "访谈关键相关方，了解期望差异、冲突点和参与不足问题。",
+        "card_id": "method_interview"
+      },
+      {
+        "name": "满意度问卷",
+        "description": "调查相关方对项目目标、沟通、交付和参与机制的满意程度。",
+        "card_id": "method_satisfaction_survey"
+      },
+      {
+        "name": "冲突分析法",
+        "description": "分析相关方之间目标、资源、进度和质量诉求冲突，识别项目推进障碍。",
+        "card_id": "method_conflict_analysis"
+      }
+    ],
+    "solve": [
+      {
+        "name": "相关方参与计划",
+        "description": "根据不同相关方需求制定沟通、参与、反馈和决策机制，提高支持度。",
+        "card_id": "method_stakeholder_engagement"
+      },
+      {
+        "name": "期望管理法",
+        "description": "通过目标澄清、需求确认和阶段性反馈管理相关方预期，减少交付争议。",
+        "card_id": "method_expectation_management"
+      },
+      {
+        "name": "沟通矩阵法",
+        "description": "明确不同相关方的信息内容、频率、渠道和责任人，提高沟通针对性。",
+        "card_id": "method_comm_matrix"
+      },
+      {
+        "name": "冲突协调机制",
+        "description": "建立争议升级、协调会议和决策机制，及时处理相关方冲突。",
+        "card_id": "method_conflict_resolution"
+      },
+      {
+        "name": "参与度提升策略",
+        "description": "通过评审会、共创工作坊、阶段验收等方式提高关键相关方参与度。",
+        "card_id": "method_engagement_strategy"
+      }
+    ],
+    "validate": [
+      {
+        "name": "相关方满意度对比",
+        "description": "比较优化前后关键相关方满意度变化，评价管理方案效果。",
+        "card_id": "method_stakeholder_satisfaction"
+      },
+      {
+        "name": "参与度指标分析",
+        "description": "统计相关方参加评审、会议、反馈和验收的频率，验证参与机制改善。",
+        "card_id": "method_engagement_metrics"
+      },
+      {
+        "name": "冲突事件数量对比",
+        "description": "比较优化前后相关方冲突、投诉或升级事件数量变化。",
+        "card_id": "method_conflict_count"
+      },
+      {
+        "name": "需求确认及时率分析",
+        "description": "评价相关方是否按时完成需求确认、评审和验收，验证期望管理效果。",
+        "card_id": "method_req_confirm_timeliness"
+      },
+      {
+        "name": "专家评价法",
+        "description": "邀请项目管理专家或管理层评价相关方管理方案的合理性和可执行性。",
+        "card_id": "method_expert_evaluation"
+      }
+    ]
+  },
+  "supply_chain_logistics": {
+    "label": "供应链与物流",
+    "discover": [
+      {
+        "name": "供应商评价法",
+        "description": "从交付能力、质量、价格、响应速度和合作稳定性评价供应商问题。",
+        "card_id": "method_supplier_evaluation"
+      },
+      {
+        "name": "合同分析法",
+        "description": "分析合同条款、交付标准、违约责任和变更条款，识别采购管理风险。",
+        "card_id": "method_contract_analysis"
+      },
+      {
+        "name": "采购流程审计法",
+        "description": "检查采购申请、询价、评审、审批、验收和付款流程，发现流程不合规或效率低问题。",
+        "card_id": "method_procurement_audit"
+      },
+      {
+        "name": "交付偏差分析法",
+        "description": "比较供应商计划交付与实际交付，识别延期、质量不达标和响应不及时问题。",
+        "card_id": "method_delivery_deviation"
+      },
+      {
+        "name": "访谈法",
+        "description": "访谈采购、项目团队、供应商和财务人员，了解采购协同和合同执行中的真实问题。",
+        "card_id": "method_interview"
+      }
+    ],
+    "solve": [
+      {
+        "name": "供应商分级管理法",
+        "description": "按能力、风险和重要性对供应商分类管理，提升重点供应商管理强度。",
+        "card_id": "method_supplier_tier"
+      },
+      {
+        "name": "合同条款优化法",
+        "description": "完善交付标准、验收要求、违约责任和变更机制，降低合同执行风险。",
+        "card_id": "method_contract_optimize"
+      },
+      {
+        "name": "采购计划优化法",
+        "description": "根据项目进度和资源需求制定采购节奏，减少采购滞后对项目的影响。",
+        "card_id": "method_procurement_plan"
+      },
+      {
+        "name": "供应商绩效考核机制",
+        "description": "建立质量、交期、成本、服务等评价指标，推动供应商持续改进。",
+        "card_id": "method_supplier_performance"
+      },
+      {
+        "name": "采购流程标准化",
+        "description": "规范采购申请、审批、验收和付款流程，提高采购效率和透明度。",
+        "card_id": "method_procurement_standardize"
+      }
+    ],
+    "validate": [
+      {
+        "name": "准时交付率分析",
+        "description": "比较优化前后供应商按期交付比例，验证采购管理效果。",
+        "card_id": "method_on_time_delivery"
+      },
+      {
+        "name": "采购成本节约率分析",
+        "description": "比较预算价格、合同价格和实际采购成本，评价成本控制效果。",
+        "card_id": "method_procurement_cost_saving"
+      },
+      {
+        "name": "供应商绩效评分",
+        "description": "用交期、质量、响应和服务指标评价供应商管理改善情况。",
+        "card_id": "method_supplier_score"
+      },
+      {
+        "name": "合同履约率分析",
+        "description": "统计合同条款执行、验收合格和违约事件情况，验证合同管理效果。",
+        "card_id": "method_contract_compliance"
+      },
+      {
+        "name": "采购周期对比分析",
+        "description": "比较优化前后采购申请到到货或验收的周期变化。",
+        "card_id": "method_procurement_cycle"
+      }
+    ]
+  }
+}

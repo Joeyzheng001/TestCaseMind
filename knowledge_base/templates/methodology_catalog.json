@@ -1,0 +1,5588 @@
+{
+  "built_at": "2026-05-16 22:47:57",
+  "items": [
+    {
+      "id": "method_5w1h",
+      "name": "5W1H",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/methodologies/5W1H/基于5W1H分析法的档案数据管理研究_周枫.md",
+        "cleaned/methodologies/5W1H/高校图书馆阅读推广5W1H分析法应用研究_安娜.md",
+        "cleaned/methodologies/5W1H/5W1H方法在大科学工程项目沟通管理中的应用研究_王传珂.md",
+        "cleaned/methodologies/5W1H/工业工程技术在B公司中的应用研究_王强.md",
+        "converted/methodologies/5W1H/基于5W1H分析法的档案数据管理研究_周枫.md",
+        "converted/methodologies/5W1H/高校图书馆阅读推广5W1H分析法应用研究_安娜.md",
+        "converted/methodologies/5W1H/5W1H方法在大科学工程项目沟通管理中的应用研究_王传珂.md",
+        "converted/methodologies/5W1H/工业工程技术在B公司中的应用研究_王强.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "5W1H分析法（又称六何分析法），源于美国政治学家Harold D. Lasswell于1948年提出的“5W传播模式”，后经管理实践拓展为涵盖“为何（Why）”与“如何（How）”的通用诊断框架。在工程管理语境中，其学术定义为：一种通过对研究对象进行主体（Who）、对象（What）、地点（Wher - **项目绩效偏差归因前梳理**：当工期滞后或成本超支表象明显但致因交织时，用以穷举所有可能的影响要素而不遗漏。\n- **工程方案可行性初判**：在装配式施工、绿色改造等新方案设计前，梳理关键技术、资源、环境与利益相关方诉求。\n- **管理流程痛点识别**：对招标采购、变更签证等流程中的低效环节进 - **将Why等同于简单归咎**：仅追问到“员工疏忽”“领导不重视”等不具备改进介入点的浅层原因即停止，未能触及制度、流程或激励结构等深层Why。\n- **忽视How的层次分离**：未能区分“现行做法（How is）”和“理论上的标准流程（How should be）”，导致问题与对策的描述混杂不 待补充：生成约束相关内容。",
+      "_card_name": "5W1H"
+    },
+    {
+      "id": "method_bpmn",
+      "name": "BPMN流程建模法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "BPMN流程建模法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。用标准化流程图描述项目执行过程，暴露流程断点、职责交叉和审批路径不合理问题；适合需要把项目现状可视化的论文。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "BPMN流程建模法"
+    },
+    {
+      "id": "method_bpr",
+      "name": "BPR业务流程再造法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "BPR业务流程再造法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。对核心流程进行根本性重构，减少低效审批和重复流转；适合流程问题严重、局部优化不足以解决问题的项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "BPR业务流程再造法"
+    },
+    {
+      "id": "method_cmmi_2",
+      "name": "CMMI",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/papers/质量管理/基于CMMI模型的X公司软件质量管理改进研究_郭波.md",
+        "cleaned/papers/质量管理/基于CMMI模型的S公司半导体软件质量管理研究_终稿版.md",
+        "cleaned/papers/质量管理/基于CMMI模型的K公司软件项目质量管理改进研究-终稿版.md",
+        "cleaned/papers/质量管理/基于CMMI模型的K公司软件项目质量管理改进研究+王子心.md",
+        "converted/papers/质量管理/基于CMMI模型的X公司软件质量管理改进研究_郭波.md",
+        "converted/papers/质量管理/基于CMMI模型的S公司半导体软件质量管理研究_终稿版.md",
+        "converted/papers/质量管理/基于CMMI模型的K公司软件项目质量管理改进研究-终稿版.md",
+        "converted/papers/质量管理/基于CMMI模型的K公司软件项目质量管理改进研究+王子心.md"
+      ],
+      "phases": [
+        "discover",
+        "solve",
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "CMMI 2.0（Capability Maturity Model Integration, Version 2.0）是由CMMI研究院（CMMI Institute）于2018年正式发布的集成能力成熟度模型。它将组织的能力改进视为由若干“实践域”构成的系统，通过评价特定实践域中行为的制度化与成熟 - 诊断企业工程总承包（EPC）项目过程管理中的制度执行偏差与流程断点。\n- 评估某大型基础设施运营单位标准化体系落地的过程成熟度，识别影响标准实施的关键过程域。\n- 为信息化开发项目群建立基线成熟度画像，锁定导致延期超支的共性管理弱项。\n- 在供应链协同研究中，量化各合作方在接口管理、风险管理等实 - 将CMMI成熟度等级直接等同于绝对绩效水平，忽视“成熟度描述的是过程制度化的程度，而非结果优异程度”。\n- 未进行商业目标对齐，机械地评估所有实践域，导致数据庞杂而核心问题被淹没。\n- 仅依赖问卷自评分数，缺少访谈与文档审查的三角验证，结论缺乏可信度。\n- 把“文档完整”直接判为“完全实施”，忽 待补充：生成约束相关内容。",
+      "_card_name": "CMMI 2.0"
+    },
+    {
+      "id": "method_fmea",
+      "name": "FMEA失效模式与影响分析",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "FMEA失效模式与影响分析是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。识别项目过程中的潜在失效模式，评估严重度、发生度和探测度，计算风险优先级；适合发现高风险管理环节。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "FMEA失效模式与影响分析"
+    },
+    {
+      "id": "method_okr",
+      "name": "OKR目标管理法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "OKR目标管理法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过目标与关键结果对齐团队行动方向，提高项目目标透明度和执行聚焦度；适合战略型、创新型和跨部门项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "OKR目标管理法"
+    },
+    {
+      "id": "method_pdca",
+      "name": "PDCA循环法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/papers/质量管理/基于PDCA循环的混合式BOPPPS技能培训模式探索——以B汽车公司新能源培训为例_答辩版.md",
+        "cleaned/papers/质量管理/基于PDCA循环的研发项目质量管理研究——以场景化AI研发项目为例-终稿版.md",
+        "cleaned/papers/质量管理/基于三层嵌套式PDCA的A公司广告服务质量管理研究-终稿版.md",
+        "cleaned/methodologies/PDCA/PDCA循环理论在质量管理工作中的运用_斯欣宇.md",
+        "cleaned/methodologies/PDCA/PDCA循环在企业绩效管理系统中的运用_曹书民.md",
+        "cleaned/methodologies/PDCA/基于PDCA的信息系统全面质量管理模型_常金玲.md",
+        "cleaned/methodologies/PDCA/PDCA循环推进持续的质量改进_刘宏.md",
+        "converted/papers/质量管理/基于PDCA循环的混合式BOPPPS技能培训模式探索——以B汽车公司新能源培训为例_答辩版.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization",
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "PDCA循环又称戴明环（Deming Cycle），由美国质量管理专家威廉·爱德华兹·戴明（W. Edwards Deming）在20世纪50年代系统提出并推广。该模型将持续改进过程划分为计划（Plan）、执行（Do）、检查（Check）和处理（Act）四个阶段，通过反复循环推动质量问题或管理缺陷的 - 工程项目质量缺陷反复出现，需建立预防机制并验证改进效果。\n- 施工工序或管理流程效率低下，需要设计优化方案并持续监控绩效。\n- 标准或体系落地偏差明显，需通过小范围试点、效果评价后固化新规范。\n- 安全风险排查后，需要闭环整改并将有效措施纳入作业规程。\n- 信息化系统上线后运维管理优化，需迭代调 1. 只有一轮循环而无迭代，将PDCA简化为线性步骤，丧失持续改进本质。\n2. 计划阶段直接给出对策，跳过根因分析，导致后续措施治标不治本。\n3. 检查阶段仅用“效果良好”等笼统表述，缺乏量化指标对比与统计分析。\n4. 处理阶段未将有效措施标准化，仅停留在问题处理层面，未写入制度文件。\n5. 四阶段 1. 必须按P-D-C-A四个阶段展开，且明确标识循环次数与每一轮发现的问题。\n2. 检查阶段",
+      "_card_name": "PDCA循环"
+    },
+    {
+      "id": "method_qfd",
+      "name": "QFD质量功能展开",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "QFD质量功能展开是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。将客户需求转化为技术指标、设计要求或交付标准，减少需求理解偏差；适合需求管理、产品项目和客户定制项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "QFD质量功能展开"
+    },
+    {
+      "id": "method_sipoc",
+      "name": "SIPOC分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "SIPOC分析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。从供应者、输入、过程、输出、客户五个维度梳理项目流程边界，定位接口不清和输入输出失控问题；适合流程型项目管理诊断。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "SIPOC分析法"
+    },
+    {
+      "id": "method_scrum_iterative",
+      "name": "Scrum敏捷迭代法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "Scrum敏捷迭代法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过短周期迭代、每日站会、评审和回顾机制提升需求响应与交付节奏；适合软件开发、产品研发和数字化项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "Scrum敏捷迭代法"
+    },
+    {
+      "id": "method_stage_gate",
+      "name": "Stage-Gate阶段门法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "Stage-Gate阶段门法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。在项目关键阶段设置准入、评审和退出标准，减少无效投入和阶段失控；适合新产品研发、工程开发和创新项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "Stage-Gate阶段门法"
+    },
+    {
+      "id": "method_toc",
+      "name": "TOC约束理论",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "TOC约束理论是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。识别限制项目整体绩效的核心约束，并围绕约束进行资源倾斜和流程优化；适合解决进度瓶颈、资源瓶颈和跨部门协同瓶颈。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "TOC约束理论"
+    },
+    {
+      "id": "method_topsis_comprehensive",
+      "name": "TOPSIS综合评价法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "TOPSIS综合评价法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过与理想解和负理想解的距离比较，评价不同阶段、项目或方案的优劣；适合多指标效果评价。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "TOPSIS综合评价法"
+    },
+    {
+      "id": "method_triz",
+      "name": "TRIZ创新问题解决法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "TRIZ创新问题解决法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过矛盾分析和创新原理寻找非折中式解决方案；适合技术难题、流程创新和资源受限场景下的方案设计。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "TRIZ创新问题解决法"
+    },
+    {
+      "id": "method_wbs",
+      "name": "WBS分解法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/methodologies/WBS/施工项目结构分解(WBS)方法及准则研究_江萍.md",
+        "cleaned/methodologies/WBS/改进的WBS方法在工程项目管理中的应用_刘金星.md",
+        "cleaned/methodologies/WBS/工作分解结构(WBS)在施工项目管理计划阶段中的应用_薛自力.md",
+        "cleaned/methodologies/WBS/大型施工项目的集成管理_王延树.md",
+        "cleaned/methodologies/WBS/工作分解结构WBS技术_魏永涛.md",
+        "converted/methodologies/WBS/施工项目结构分解(WBS)方法及准则研究_江萍.md",
+        "converted/methodologies/WBS/改进的WBS方法在工程项目管理中的应用_刘金星.md",
+        "converted/methodologies/WBS/WBS方法在工程项目管理中的应用研究_徐森.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "WBS分解法是一种工程管理研究方法。将项目工作细化到可计划、可分配、可跟踪的任务单元，为进度计划优化提供基础。 - 工程项目管理中的项目进度管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "WBS分解法"
+    },
+    {
+      "id": "method_zhongduanshijian",
+      "name": "中断时间序列法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "中断时间序列法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。以管理改进实施时间点为断点，检验指标水平或趋势是否发生显著变化；适合政策、流程或工具上线后的效果验证。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "中断时间序列法"
+    },
+    {
+      "id": "method_jiazhiliutu",
+      "name": "价值流图分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "价值流图分析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。绘制从需求提出到交付验收的端到端流转过程，识别等待时间、重复审批和非增值活动；适合交付周期较长或流程冗余明显的项目。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "价值流图分析法"
+    },
+    {
+      "id": "method_jiegoufangcheng",
+      "name": "偏最小二乘结构方程模型",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "结构方程模型是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。检验管理因素、过程能力、团队协同与项目绩效之间的路径关系；适合问卷样本较充分、研究模型较复杂的论文。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "结构方程模型"
+    },
+    {
+      "id": "method_six_sigma",
+      "name": "六西格玛管理",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/papers/质量管理/基于六西格玛的H公司可降解树脂质量改善研究_董开岳.md",
+        "cleaned/papers/质量管理/基于六西格玛设计管理的X公司天线研发项目质量管理优化研究_学位论文-送审版.md",
+        "cleaned/methodologies/六西格玛/精益管理、六西格玛、约束理...业工程方法的系统化集成应用_江志斌.md",
+        "cleaned/methodologies/六西格玛/基于精益六西格玛的质量管理改进实证研究_吕永卫.md",
+        "cleaned/methodologies/六西格玛/论六西格玛管理的本质属性_胡雅琴.md",
+        "cleaned/methodologies/六西格玛/六西格玛管理与MINITAB软件_何晓群.md",
+        "converted/papers/质量管理/基于六西格玛的H公司可降解树脂质量改善研究_董开岳.md",
+        "converted/papers/质量管理/基于六西格玛设计管理的X公司天线研发项目质量管理优化研究_学位论文-送审版.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "六西格玛（Six Sigma）是一种以数据驱动的质量管理方法论，通过DMAIC（定义-测量-分析-改进-控制）循环，系统性地减少过程变异和缺陷率，将流程能力提升至每百万次机会中缺陷不超过3.4个的水平。 待补充。",
+      "_card_name": "六西格玛管理"
+    },
+    {
+      "id": "method_guanjianlian",
+      "name": "关键链项目管理法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "关键链项目管理法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。在考虑资源约束和缓冲管理的基础上优化项目计划，减少多任务切换和人为安全时间浪费；适合研发、工程和系统实施项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "关键链项目管理法"
+    },
+    {
+      "id": "method_neirongfenxi",
+      "name": "内容分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "内容分析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。对项目制度、周报、评审记录、变更单等文本资料进行编码统计，识别高频问题与管理薄弱环节；适合资料较多但难以直接量化的论文。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "内容分析法"
+    },
+    {
+      "id": "method_zhiduchaju",
+      "name": "制度差距分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "制度差距分析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。将项目现行制度与企业规范、行业标准或成熟模型要求进行对照，识别制度缺失和执行偏差；适合管理体系优化类论文。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "制度差距分析法"
+    },
+    {
+      "id": "method_did",
+      "name": "双重差分法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate",
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "双重差分法（Difference-in-Differences，简称DID）是一种面板数据因果推断方法，由John Snow（1855）和早期计量经济学家逐步形式化，后经Ashenfelter & Card（1985）等学者发展为现代因果识别框架。其核心思想是通过比较干预组与对照组在干预前后结果变量 - 评估某地区新施工安全法规实施后，事故率在不同项目群中的净影响。\n- 测算引入BIM协同平台对工程变更指令响应时间的政策效应。\n- 检验智慧工地推广计划对重点管控项目与普通项目工期偏差的差异化效果。\n- 分析强制性绿色建筑标准升级对开发商项目成本绩效的因果效应。\n- 考察工程款支付保障条例出台前后 - 仅凭组内前后对比或组间对比得出结论，未正确构造双重差分估计量。\n- 忽略平行趋势检验的统计检验，仅依靠视觉判断，导致虚假因果推断。\n- 对面板数据使用普通标准误，而未对组别或项目进行聚类，严重低估标准误。\n- 将DID交互项系数直接解释为干预组干预前后的变化，而非两组变化差异。\n- 未考虑干预可 - 必须清晰陈述平行趋势假设，并提供干预前统计检验或图形证据，不得省略。\n- 估计时必须使用聚",
+      "_card_name": "DID双重差分法"
+    },
+    {
+      "id": "method_hechengkongzhi",
+      "name": "合成控制法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "合成控制法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。用多个未实施改进的项目构造虚拟对照组，评估单个项目管理改进的净效果；适合样本较少但对照信息较丰富的研究。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "合成控制法"
+    },
+    {
+      "id": "method_huiguifenxi",
+      "name": "回归分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "回归分析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。检验管理措施、资源投入、变更频率等因素与项目绩效之间的统计关系；适合有多期或多项目样本的数据型论文。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "回归分析法"
+    },
+    {
+      "id": "method_ahp",
+      "name": "层次分析法AHP",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/methodologies/层次分析法/基于改进层次分析法的模糊综合评价模型_金菊良.md",
+        "cleaned/methodologies/层次分析法/运用层次分析法构建国有企业绩效评价体系_申志东.md",
+        "cleaned/methodologies/层次分析法/层次分析法中几种标度的比较_骆正清.md",
+        "cleaned/methodologies/层次分析法/层次分析法的研究与应用_郭金玉.md",
+        "cleaned/methodologies/层次分析法/模糊层次分析法(FAHP)_张吉军.md",
+        "converted/methodologies/层次分析法/基于改进层次分析法的模糊综合评价模型_金菊良.md",
+        "converted/methodologies/层次分析法/运用层次分析法构建国有企业绩效评价体系_申志东.md",
+        "converted/methodologies/层次分析法/层次分析法中几种标度的比较_骆正清.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "层次分析法（Analytic Hierarchy Process, AHP）是由美国运筹学家 T.L. Saaty 于 20 世纪 70 年代提出的一种定性与定量相结合的多准则决策分析方法。其核心是将决策问题分解为目标、准则、子准则及方案等层次，通过两两比较构建判断矩阵，计算各要素的相对权重，并为复 - **施工方案比选**：在工期、成本、质量、安全等多个冲突准则下，从多种备选施工方案中选出最优方案。\n- **风险因素权重排序**：将识别出的项目风险因素按层次分类，通过专家比较权重，定量识别关键风险源。\n- **供应商/承包商优选**：综合技术能力、报价、信誉、财务状况等多维度指标，对投标企业进 1. **层次结构元素过多**：单层准则超过7-9个，导致专家判断混淆、一致性难以通过。\n2. **忽略或弱化一致性检验**：直接使用原始判断矩阵计算权重，未报告\\(CR\\)值，或对\\(CR>0.1\\)的矩阵不予修正就纳入计算。\n3. **1-9标度使用不当**：成对比较中反复反转标度方向，或在问卷 - 必须明确定义层次结构中的目标、准则和方案/因素，并在论文中附上图示标号。\n- 必须报告每一",
+      "_card_name": "层次分析法 AHP"
+    },
+    {
+      "id": "method_deerfeifa",
+      "name": "德尔菲法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/methodologies/德尔菲专家法/德尔菲法及其构建指标体系的应用进展_王少娜.md",
+        "cleaned/methodologies/德尔菲专家法/德尔菲法的应用及其难点_徐蔼婷.md",
+        "cleaned/methodologies/德尔菲专家法/基于德尔菲法的专家意见集成模型研究_田军.md",
+        "cleaned/methodologies/德尔菲专家法/基于德尔菲法的专家评估方法_刘伟涛.md",
+        "cleaned/methodologies/德尔菲专家法/专家视野中的职业教育校企合...菲专家咨询法进行的调查分析_吴建新.md",
+        "cleaned/methodologies/德尔菲专家法/德尔菲法中的数据统计处理方法及其应用研究_王春枝.md",
+        "cleaned/methodologies/德尔菲专家法/科学教师教学能力结构模型建...德尔菲专家咨询法的调查分析_王碧梅.md",
+        "cleaned/methodologies/德尔菲专家法/公立医疗机构公益性评价指标...选——基于德尔菲专家咨询法_陈英耀.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "德尔菲法（Delphi Method）是一种结构化群体沟通与预测技术，由美国兰德公司（RAND Corporation）的 Dalkey 和 Helmer 于 1963 年正式提出。其通过多轮匿名问卷与受控反馈，对一组专家的独立判断进行迭代征询与统计聚合，直至意见趋于收敛，从而获得相对可靠的群体预见 - 探索新兴工程管理模式的关键成功因素，如数字化交付的推动障碍与驱动力。\n- 构建复杂基础设施项目风险指标体系，识别难以量化的风险维度及其权重。\n- 预测建筑工业化技术在未来 5—10 年的普及路径与政策需求。\n- 确定工程组织变革管理中的阻力因素优先顺序，为变革方案设计提供输入。\n- 评估智慧工地 1. 将德尔菲法等同于普通问卷调研，只做一轮即宣告结束，丢失迭代收敛的核心机制。\n2. 专家数量过少（例如不足 10 人），使得统计结果缺乏代表性与稳定性。\n3. 第二轮就直接采用封闭式题项，未经过第一轮开放性意见征集，导致维度设置主观偏误。\n4. 反馈环节仅告知平均数，未提供离散度指标和专家个人上 1. 必须明确说明专家遴选标准、人数、专业背景分布及脱落情况，不可隐瞒处理。\n2. 必须设定并",
+      "_card_name": "德尔菲法"
+    },
+    {
+      "id": "method_zhagenlilun",
+      "name": "扎根理论法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "扎根理论法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过开放编码、主轴编码和选择性编码，从访谈、会议纪要、项目复盘材料中归纳项目管理问题类型；适合用于论文中从一手资料中提炼问题框架。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "扎根理论法"
+    },
+    {
+      "id": "method_guzhangshu",
+      "name": "故障树分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "故障树分析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。从项目延期、成本超支、质量缺陷等顶层事件出发，逐层分解导致问题的逻辑原因；适合分析复杂问题的多因素因果关系。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "故障树分析法"
+    },
+    {
+      "id": "method_minganxing",
+      "name": "敏感性分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "敏感性分析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。检验关键参数变化对项目绩效结果的影响，判断结论是否稳健；适合模型类、评价类和预测类论文。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "敏感性分析法"
+    },
+    {
+      "id": "method_hybrid_agile_waterfall",
+      "name": "敏捷—瀑布混合管理法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "敏捷—瀑布混合管理法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。将总体里程碑和阶段管控与敏捷迭代交付结合，兼顾可控性与灵活性；适合大型信息化和数字化转型项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "敏捷—瀑布混合管理法"
+    },
+    {
+      "id": "method_agile",
+      "name": "敏捷管理",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md",
+        "cleaned/papers/质量管理/规模化敏捷开发模式下的质量管理研究-以S公司为例_终稿版.md",
+        "cleaned/papers/质量管理/基于Scrum敏捷开发的项目质量管理优化研究_学位论文-送审版.md",
+        "converted/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md",
+        "converted/papers/质量管理/规模化敏捷开发模式下的质量管理研究-以S公司为例_终稿版.md",
+        "converted/papers/质量管理/基于Scrum敏捷开发的项目质量管理优化研究_学位论文-送审版.md",
+        "论文类/质量管理/敏捷开发在B公司制药行业MES软件开发中的研究.pdf",
+        "论文类/质量管理/基于Scrum敏捷开发的项目质量管理优化研究_学位论文-送审版.pdf"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management",
+        "process_optimization"
+      ],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "敏捷管理是一套以迭代开发、增量交付和快速响应变化为核心的项目管理方法论。通过小步快跑、持续反馈和自组织团队，在不确定性和快速变化的环境中高效交付价值。 待补充。",
+      "_card_name": "敏捷管理"
+    },
+    {
+      "id": "method_shuzihuayibiao",
+      "name": "数字化仪表盘建设",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "数字化仪表盘建设是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。将进度、成本、质量、风险和资源数据可视化，形成实时监控和预警机制；适合有项目管理系统或数据台账的论文。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "数字化仪表盘建设"
+    },
+    {
+      "id": "method_shujupouxi",
+      "name": "数据剖析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "数据剖析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。对项目台账、缺陷、工单、变更、成本和进度数据做完整性、一致性和异常值检查；适合在实证分析前确认数据质量问题。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "数据剖析法"
+    },
+    {
+      "id": "method_dea",
+      "name": "数据包络分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "cost_management"
+      ],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "数据包络分析（Data Envelopment Analysis, DEA）是一种非参数效率评价方法，用于评估具有多投入多产出特征的同质决策单元（DMU）的相对效率。适用于项目绩效评价、资源配置效率评估等场景。 待补充。",
+      "_card_name": "DEA数据包络分析"
+    },
+    {
+      "id": "method_wenxianyanjiufa",
+      "name": "文献研究法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/methodologies/文献研究法/文献研究法在高校历史教学中的运用_韩建萍.md",
+        "cleaned/methodologies/文献研究法/富有生命力的文献研究法_杜晓利.md",
+        "cleaned/methodologies/文献研究法/基于文献研究法的精准扶贫综述_刘胜林.md",
+        "cleaned/methodologies/文献研究法/文献研究法辨析_东阳.md",
+        "converted/methodologies/文献研究法/文献研究法在高校历史教学中的运用_韩建萍.md",
+        "converted/methodologies/文献研究法/富有生命力的文献研究法_杜晓利.md",
+        "converted/methodologies/文献研究法/基于文献研究法的精准扶贫综述_刘胜林.md",
+        "converted/methodologies/文献研究法/文献研究法辨析_东阳.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "文献研究法（Literature Review Method）是指研究者围绕特定研究主题，以系统、明确与可再现的方式搜索、筛选、评价与综合已有学术文献，以形成对该主题研究进展、核心争论与前沿趋势的整体性认知的研究手段。该方法并非简单的资料堆砌，而是一种遵循严格程序的知识整合过程，其方法学基础可追溯至 - 识别装配式建筑供应链韧性研究中的理论空白与关键变量关系。\n- 建立重大工程社会责任评价的指标体系前，梳理现有指标维度与权重设定方法。\n- 探究BIM技术采纳障碍时，归纳已有实证研究中的障碍因素分类框架。\n- 比较不同项目管理模式（如DBB、EPC、IPD）绩效差异的已有研究成果。\n- 构建工程管 - 将文献研究法等同于“读书笔记汇编”，只罗列不分析，缺少批判性评价。\n- 检索策略过于随意，仅使用少数宽泛关键词，导致大量重要文献遗漏。\n- 缺乏明确的文献纳入与排除标准，主观取舍，损害综述的系统性。\n- 忽视文献质量评价环节，将观点性文章、低质量案例与高水平实证研究同等对待。\n- 综述结论与研究 - 必须明确报告检索数据库、检索式及检索日期，保证可复制性。\n- 必须使用PRISMA流程图或",
+      "_card_name": "文献研究法"
+    },
+    {
+      "id": "method_shijianxulie",
+      "name": "时间序列分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "时间序列分析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。对项目绩效指标按月、周或阶段进行趋势分析，观察改进前后变化方向和持续性；适合有连续数据的效果验证。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "时间序列分析法"
+    },
+    {
+      "id": "method_fuwulantufenxi",
+      "name": "服务蓝图法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "服务蓝图法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。区分前台活动、后台支撑、系统支持和客户接触点，识别协作断层与客户体验问题；适合服务项目、平台项目和数字化项目。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "服务蓝图法"
+    },
+    {
+      "id": "method_biaoganfenxifa",
+      "name": "标杆分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/methodologies/标杆分析法/论标杆分析法在供应链配送中心运营评价中的使用_俞仲秋.md",
+        "cleaned/methodologies/标杆分析法/基于大数据和标杆分析法的市...病种质量评价指标构建及应用_侯冷晨.md",
+        "cleaned/methodologies/标杆分析法/标杆分析法的引进与应用研究_于文益.md",
+        "converted/methodologies/标杆分析法/论标杆分析法在供应链配送中心运营评价中的使用_俞仲秋.md",
+        "converted/methodologies/标杆分析法/基于大数据和标杆分析法的市...病种质量评价指标构建及应用_侯冷晨.md",
+        "converted/methodologies/标杆分析法/标杆分析法在图书馆绩效评估上的应用_欧明臣.md",
+        "converted/methodologies/标杆分析法/标杆分析法的引进与应用研究_于文益.md",
+        "方法论资料类/10.标杆分析法/标杆分析法在图书馆绩效评估上的应用_欧明臣.pdf"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "标杆分析法（Benchmarking）是由美国施乐公司于1979年率先系统化应用，后经罗伯特·坎普（Robert C. Camp）在1989年出版的《标杆管理：寻找行业最佳实践》中正式确立的管理研究方法。该方法指通过持续地将本组织的工程项目管理过程、绩效指标与行业内外公认的领先者进行比较，识别差距、 - 施工企业项目成本超支严重，需对标行业头部企业的成本控制流程与指标。\n- 大型基建项目工期延误频发，需比较同期同类项目进度管理的最佳做法。\n- 业主方对工程质量管理水平不满，欲借鉴标杆项目全过程质量保证体系。\n- 企业推行数字化转型，须参照领先工程公司的BIM、智慧工地应用成熟度。\n- 新承接EP - 标杆对象选择随意，未论证其领先性和可比性。\n- 仅对比数值指标，忽略产生差距的流程、制度和文化差异。\n- 数据采集单一依赖公开材料，缺乏一手调研深度。\n- 分析结论停留在描述差距，未根因分析即提出改进建议。\n- 将标杆分析等同于简单排名，无后续实践转化设计。\n- 忽视时间维度，用静态标杆衡量动态 - 必须明确标杆类型（内部、竞争、功能、通用）并论证选择依据。\n- 须构建包含至少一个定量维度",
+      "_card_name": "标杆分析法"
+    },
+    {
+      "id": "method_anlifupan",
+      "name": "案例复盘验证法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "案例复盘验证法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过项目复盘会、复盘报告和关键人员反馈验证优化措施的实际适用性；适合数据不足但实践过程完整的论文。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "案例复盘验证法"
+    },
+    {
+      "id": "method_anliyanjiufa",
+      "name": "案例研究法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/methodologies/案例研究法/“去产能”背景下国有企业并...宝钢吸收合并武钢的案例研究_张伦萍.md",
+        "cleaned/methodologies/案例研究法/案例研究的方法论_孙海法.md",
+        "cleaned/methodologies/案例研究法/案例研究法的研究与发展综述...(CNKI)的核心期刊文献_汪婷.md",
+        "cleaned/methodologies/案例研究法/论案例研究法与实证研究法的结合_乔坤.md",
+        "cleaned/methodologies/案例研究法/企业借壳上市动因与绩效的相...——基于证券公司的案例研究_陈蓉.md",
+        "cleaned/methodologies/案例研究法/案例研究法的理论与应用_孙海法.md",
+        "cleaned/methodologies/案例研究法/再论案例研究法的属性、类型、功能与研究设计_唐权.md",
+        "converted/methodologies/案例研究法/“去产能”背景下国有企业并...宝钢吸收合并武钢的案例研究_张伦萍.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization",
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "案例研究法是一种实证研究方法，它在现实背景下深入调查当代某个现象，尤其是现象与背景的界限不易分明时（Yin, 1984）。该方法通过多来源证据对个案或多元个案进行系统分析，追求分析性归纳而非统计性概括，适用于工程管理研究中理解过程机制、生成新概念或命题。 - 探索新型建设模式（如全过程工程咨询、IPD）在具体项目中的组织逻辑与实施机制。\n- 揭示大型基础设施工程中利益相关者冲突的深层成因与演化路径。\n- 分析BIM、数字孪生等技术在施工协同管理中遭受抵制的组织文化障碍。\n- 考察EPC项目成本超支的多因素联动效应与管理陷阱。\n- 描述某个标杆项目在安 - 将案例研究等同于单纯举例或教学案例，只描述不分析，缺乏理论贡献。\n- 未清晰界定分析单元（例如是整个项目还是某一管理流程），导致边界模糊。\n- 仅靠访谈证据构建结论，缺乏文档、观察等多来源三角验证。\n- 案例选择随意，或未说明案例的理论抽样逻辑，影响结论说服力。\n- 选择性展现支持偏见的证据，忽 待补充：生成约束相关内容。",
+      "_card_name": "案例研究法"
+    },
+    {
+      "id": "method_liuchengwajue",
+      "name": "流程挖掘法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "流程挖掘法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。利用系统日志或流程记录还原实际流程路径，识别返工、等待、绕行和瓶颈环节；适合有流程系统或工单系统数据的信息化项目。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "流程挖掘法"
+    },
+    {
+      "id": "method_jilixiangrong",
+      "name": "激励相容机制设计",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "激励相容机制设计是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过目标、考核、奖惩和协作机制设计，使成员行为与项目目标一致；适合责任弱化、协作不足和执行动力不足的项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "激励相容机制设计"
+    },
+    {
+      "id": "method_huiseguanlian",
+      "name": "灰色关联分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "灰色关联分析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。衡量各影响因素与项目绩效指标之间的关联程度，识别改进效果的主要贡献因素；适合样本量较小、信息不完全的项目研究。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "灰色关联分析法"
+    },
+    {
+      "id": "method_jiaodianxiaozu",
+      "name": "焦点小组法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "焦点小组法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。组织项目成员、业务方、供应商或管理层围绕项目痛点集中讨论，形成问题清单和初步判断；适合补充访谈法并提升问题识别的充分性。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "焦点小组法"
+    },
+    {
+      "id": "method_shangquan",
+      "name": "熵权法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "熵权法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。根据指标数据离散程度客观确定权重，减少主观赋权影响；适合构建项目管理效果评价指标体系。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "熵权法"
+    },
+    {
+      "id": "method_xianchangquancha",
+      "name": "现场观察法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "现场观察法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过旁听例会、观察流程执行、跟踪交付活动，发现制度与实际执行之间的偏差；适合工程建设、软件实施、运营改善类项目。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "现场观察法"
+    },
+    {
+      "id": "method_yonghulvcheng",
+      "name": "用户旅程地图法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "用户旅程地图法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。从用户或客户视角梳理需求、实施、验收、反馈全过程，发现交付体验与期望之间的差距；适合客户导向型项目。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "用户旅程地图法"
+    },
+    {
+      "id": "method_kanban",
+      "name": "看板方法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "看板方法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过可视化工作流、限制在制品和持续改进机制提升项目交付透明度；适合需求变化频繁的软件、运营和改进类项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "看板方法"
+    },
+    {
+      "id": "method_zhishiguanli",
+      "name": "知识管理机制设计",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "知识管理机制设计是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。建立经验库、问题库、模板库和复盘机制，减少重复错误并提升团队复用能力；适合多项目组织和知识密集型项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "知识管理机制设计"
+    },
+    {
+      "id": "method_wenjianxing",
+      "name": "稳健性检验法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "稳健性检验法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过更换指标、样本、模型或权重方法，验证研究结论是否稳定；适合提高论文实证部分可信度。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "稳健性检验法"
+    },
+    {
+      "id": "method_lean",
+      "name": "精益管理",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md",
+        "cleaned/papers/其他/SPEM 在基金风控_敏捷场景中的应用.md",
+        "cleaned/papers/其他/基于演化博弈的建筑工程材料送检监督策略研究_王骁彬.md",
+        "cleaned/papers/其他/模型驱动架构（MDA）：定义、核心架构与实践逻辑.md",
+        "cleaned/papers/其他/FURPS_FURPS+模型：内涵、演进与质量管理论文资料体系.md",
+        "cleaned/papers/其他/ISO 15939：软件测量的国际标准框架与实践应用.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization",
+        "cost_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "精益管理（Lean Management）是一种以消除浪费、持续改进和追求价值最大化为核心理念的管理方法。通过价值流分析、拉动式生产、看板管理、快速换模等工具，优化流程效率，降低运营成本。 待补充。",
+      "_card_name": "精益管理"
+    },
+    {
+      "id": "method_jingyixiangmu",
+      "name": "精益项目管理法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "精益项目管理法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。围绕消除浪费、缩短周期和提升价值流动效率设计优化措施；适合流程冗余、等待时间长和返工较多的项目。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "精益项目管理法"
+    },
+    {
+      "id": "method_xitongdonglixue",
+      "name": "系统动力学建模法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "系统动力学建模法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。构建变量之间的因果反馈关系，模拟资源、进度、质量、成本之间的动态影响；适合复杂项目管理机制优化。 - 适用于工程项目管理中解决问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "系统动力学建模法"
+    },
+    {
+      "id": "method_zuzhiwangluo",
+      "name": "组织网络分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "组织网络分析法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。分析项目成员之间的信息流、协作频率和关键节点，识别沟通孤岛、过度依赖和协同瓶颈；适合跨部门项目管理研究。 - 适用于工程项目管理中发现问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "组织网络分析法"
+    },
+    {
+      "id": "method_mengtekaluo",
+      "name": "蒙特卡洛模拟法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "模型规范类/复旦大学研究生学位论文开题报告记录表（2024版）.doc",
+        "模型规范类/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
+        "模型规范类/3.00 复旦MEM硕士毕业论文模板(2025).docx",
+        "模型规范类/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).docx",
+        "模型规范类/复旦大学研究生中期考核记录表（2024版）.doc",
+        "cleaned/papers/其他/软件质量模型的演进与应用.md",
+        "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
+        "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md"
+      ],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "蒙特卡洛模拟法是一种通用的工程管理研究方法，属于项目管理补充研究方法体系。通过随机模拟任务工期、成本或风险分布，评估方案实施后的不确定性和成功概率；适合进度、成本和风险验证。 - 适用于工程项目管理中验证问题环节的通用研究场景。\n- 不限定于特定管理领域，可根据具体项目问题灵活选用。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "蒙特卡洛模拟法"
+    },
+    {
+      "id": "method_yugutu",
+      "name": "鱼骨图分析法",
+      "type": "method",
+      "source_count": 8,
+      "sources": [
+        "cleaned/methodologies/3_鱼骨图/综合鱼骨图及其在项目管理中的应用研究_皮圣雷.md",
+        "cleaned/methodologies/3_鱼骨图/基于鱼骨图分析企业标准实施偏差成因的应用研究_项庆辉.md",
+        "cleaned/methodologies/3_鱼骨图/鱼骨图分析下8S精益管理提升手术室管理质量效果分析_徐亚莉.md",
+        "converted/methodologies/3_鱼骨图/综合鱼骨图及其在项目管理中的应用研究_皮圣雷.md",
+        "converted/methodologies/3_鱼骨图/基于鱼骨图分析企业标准实施偏差成因的应用研究_项庆辉.md",
+        "converted/methodologies/3_鱼骨图/鱼骨图分析下8S精益管理提升手术室管理质量效果分析_徐亚莉.md",
+        "方法论资料类/3 鱼骨图/鱼骨图分析下8S精益管理提升手术室管理质量效果分析_徐亚莉.pdf",
+        "方法论资料类/3 鱼骨图/综合鱼骨图及其在项目管理中的应用研究_皮圣雷.pdf"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization",
+        "quality_management",
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "鱼骨图（Fishbone Diagram），又名石川图或特性要因图，是由日本质量管理专家石川馨（Kaoru Ishikawa）于20世纪50年代提出的一种根因分析工具（皮圣雷，2009；项庆辉，2021）。它以图形化方式将问题（结果）置于“鱼头”，将引发该问题的各级原因分类排列于“鱼骨”和“鱼刺”上 - **施工进度延误诊断**：从人、机、料、法、环、测等多维度分解导致工期滞后的各类原因。\n- **工程质量缺陷追溯**：如混凝土开裂、钢结构焊接不合格等质量问题的根本原因系统分析。\n- **工程项目成本超支分析**：识别预算失控背后的管理、市场、技术及组织等深层次因素。\n- **安全管理事故成因探 1. **将问题表述误作原因**：如“缺乏培训”实为原因，但写成“员工技能不足问题”，混淆了问题与原因。\n2. **大要因维度缺失或混用**：同时混杂“人机料法环”和“进度、成本”等不同分类逻辑，导致重复或遗漏。\n3. **原因停留于表面**：仅列举“管理不到位”“工人素质差”等笼统说法，未继续追问 待补充：生成约束相关内容。",
+      "_card_name": "鱼骨图"
+    },
+    {
+      "id": "method_info_platform",
+      "name": "信息化管理平台",
+      "type": "method",
+      "source_count": 6,
+      "sources": [
+        "cleaned/papers/流程优化/H公司整车低压能量管理系统开发流程改善研究_巢一鸣.md",
+        "cleaned/methodologies/PDCA/PDCA循环在企业绩效管理系统中的运用_曹书民.md",
+        "converted/papers/流程优化/H公司整车低压能量管理系统开发流程改善研究_巢一鸣.md",
+        "converted/methodologies/PDCA/PDCA循环在企业绩效管理系统中的运用_曹书民.md",
+        "论文类/流程优化/H公司整车低压能量管理系统开发流程改善研究_巢一鸣.pdf",
+        "方法论资料类/9.PDCA/PDCA循环在企业绩效管理系统中的运用_曹书民.pdf"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "信息化管理平台是一种通过信息技术手段构建项目管理系统或数字化工具的方法论。通过需求分析、系统设计、功能开发与实施部署，实现项目信息的集中管理、流程自动化与数据可视化。 待补充。",
+      "_card_name": "信息化管理平台"
+    },
+    {
+      "id": "method_dmaic",
+      "name": "六西格玛DMAIC",
+      "type": "method",
+      "source_count": 6,
+      "sources": [
+        "cleaned/papers/质量管理/基于DMAIC的Y银行普惠...业贷款业务服务质量改进研究_黎云波.md",
+        "cleaned/papers/质量管理/基于DMAIC的建筑电气设计质量管理研究_吕国姣.md",
+        "converted/papers/质量管理/基于DMAIC的Y银行普惠...业贷款业务服务质量改进研究_黎云波.md",
+        "converted/papers/质量管理/基于DMAIC的建筑电气设计质量管理研究_吕国姣.md",
+        "论文类/质量管理/基于DMAIC的建筑电气设计质量管理研究_吕国姣.pdf",
+        "论文类/质量管理/基于DMAIC的Y银行普惠...业贷款业务服务质量改进研究_黎云波.pdf"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "六西格玛DMAIC是一种工程管理研究方法。按照定义、测量、分析、改进、控制步骤降低缺陷和过程波动，适合数据基础较好的项目。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "六西格玛DMAIC"
+    },
+    {
+      "id": "method_fce",
+      "name": "模糊综合评价法",
+      "type": "method",
+      "source_count": 6,
+      "sources": [
+        "cleaned/papers/风险管理/基于ANP-模糊综合评价的...工程EPC项目风险管理研究_路彩娟.md",
+        "cleaned/methodologies/层次分析法/基于改进层次分析法的模糊综合评价模型_金菊良.md",
+        "converted/papers/风险管理/基于ANP-模糊综合评价的...工程EPC项目风险管理研究_路彩娟.md",
+        "converted/methodologies/层次分析法/基于改进层次分析法的模糊综合评价模型_金菊良.md",
+        "论文类/风险管理/基于ANP-模糊综合评价的...工程EPC项目风险管理研究_路彩娟.pdf",
+        "方法论资料类/8.层次分析法/基于改进层次分析法的模糊综合评价模型_金菊良.pdf"
+      ],
+      "phases": [
+        "discover",
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization",
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "模糊综合评价法（Fuzzy Comprehensive Evaluation, FCE）是一种基于模糊数学理论的综合评价方法。该方法由美国自动控制专家L.A. Zadeh于1965年提出模糊集合理论后发展而来。它应用模糊关系合成的原理，将一些边界不清、不易定量的因素定量化，从多个因素对被评价事物隶属 1.  **项目风险管理评估**：对大型复杂工程项目中的技术、经济、环境等难以量化的风险源进行综合风险等级评价。\n2.  **施工方案优选决策**：针对多个可行的施工方案，综合考虑工期、成本、质量、安全、可操作性等模糊指标，进行方案综合比选。\n3.  **项目后评价与绩效评估**：对已完工项目的经济 1.  **评价集与指标不匹配**：定义的评语无法准确度量所有指标。例如，用{快，较快，中，较慢，慢}来评价“安全性”，导致专家无法判断。\n2.  **混淆权重与隶属度**：将某个因素的AHP全局权重值填入单因素评价矩阵中，这是概念性的错误。隶属度是评判该因素对各评语的归属程度。\n3.  **单因素 1.  **指标独立性与完备性**：构建的评价指标体系需确保同一层级的指标间相互独立，无重叠内",
+      "_card_name": "模糊综合评价法FCE"
+    },
+    {
+      "id": "method_scrum",
+      "name": "Scrum方法",
+      "type": "method",
+      "source_count": 4,
+      "sources": [
+        "cleaned/papers/质量管理/基于Scrum敏捷开发的项目质量管理优化研究_学位论文-送审版.md",
+        "converted/papers/质量管理/基于Scrum敏捷开发的项目质量管理优化研究_学位论文-送审版.md",
+        "论文类/质量管理/基于Scrum敏捷开发的项目质量管理优化研究_学位论文-送审版.pdf",
+        "论文类/质量管理/基于Scrum敏捷开发的项目质量管理优化研究.pdf"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management",
+        "process_optimization"
+      ],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "Scrum是一种敏捷项目管理框架，通过短周期迭代（Sprint）、每日站会、Sprint评审和回顾等实践，实现快速交付、持续改进和团队自组织管理。适用于需求不确定、变化频繁的项目环境。 待补充。",
+      "_card_name": "Scrum方法"
+    },
+    {
+      "id": "method_bim",
+      "name": "BIM方法",
+      "type": "method",
+      "source_count": 3,
+      "sources": [
+        "cleaned/papers/质量管理/BIM技术在医疗综合体项目...电工程质量控制中的应用研究_韩波涛.md",
+        "converted/papers/质量管理/BIM技术在医疗综合体项目...电工程质量控制中的应用研究_韩波涛.md",
+        "论文类/质量管理/BIM技术在医疗综合体项目...电工程质量控制中的应用研究_韩波涛.pdf"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization"
+      ],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "建筑信息模型（Building Information Modeling, BIM）是一种基于三维数字模型的工程项目全生命周期管理方法。通过集成设计、施工、运维各阶段信息，实现多方协同、碰撞检测、进度模拟和成本管控。 待补充。",
+      "_card_name": "BIM方法"
+    },
+    {
+      "id": "method_devops",
+      "name": "DevOps",
+      "type": "method",
+      "source_count": 3,
+      "sources": [
+        "cleaned/papers/质量管理/基于DevOps能力模型的Y公司办公软件项目质量管理研究-终稿版.md",
+        "converted/papers/质量管理/基于DevOps能力模型的Y公司办公软件项目质量管理研究-终稿版.md",
+        "论文类/质量管理/基于DevOps能力模型的Y公司办公软件项目质量管理研究-终稿版.pdf"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "DevOps是一种融合开发（Development）与运维（Operations）的软件工程方法论。通过自动化工具链、持续集成/持续交付（CI/CD）和协作文化的建立，缩短开发周期，提高交付质量和运维效率。 待补充。",
+      "_card_name": "DevOps"
+    },
+    {
+      "id": "method_standardization",
+      "name": "标准化管理",
+      "type": "method",
+      "source_count": 3,
+      "sources": [
+        "cleaned/papers/质量管理/基于多目标优化的机电类非标产品标准化统型研究_王立婷.md",
+        "converted/papers/质量管理/基于多目标优化的机电类非标产品标准化统型研究_王立婷.md",
+        "论文类/质量管理/基于多目标优化的机电类非标产品标准化统型研究_王立婷.pdf"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "process_optimization"
+      ],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "标准化管理是一种通过制定、发布和实施统一的标准和规范来提升管理效率和质量水平的方法。包括技术标准、管理标准和工作标准的建立，以及标准化的培训、监督和持续改进机制。 待补充。",
+      "_card_name": "标准化管理"
+    },
+    {
+      "id": "method_genyinfenxifa",
+      "name": "根因分析法",
+      "type": "method",
+      "source_count": 3,
+      "sources": [
+        "cleaned/papers/质量管理/基于根因分析法的C车间生产绩效精益改善研究-终稿版_致谢+昌飞.md",
+        "converted/papers/质量管理/基于根因分析法的C车间生产绩效精益改善研究-终稿版_致谢+昌飞.md",
+        "论文类/质量管理/基于根因分析法的C车间生产绩效精益改善研究-终稿版_致谢+昌飞.pdf"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "根因分析法（Root Cause Analysis, RCA）是一套结构化的问题诊断方法论，旨在通过系统性的追溯分析，识别导致特定问题或事件发生的直接原因与根本原因，而非停留在表面现象。该方法由石川馨等质量管理学者发展成型（其中鱼骨图于20世纪50年代由石川馨提出），强调透过现象看本质，理清因果链， 1. **施工质量缺陷频发**：用于追溯某分项工程反复出现裂纹、渗漏等质量缺陷的深层致因。\n2. **项目进度拖延诊断**：分析EPC项目关键路径多次延误，却屡纠不正的管理层面根因。\n3. **安全事故事后剖析**：对高处坠落等典型事故，找出个人行为、管理缺陷、环境条件等多维根因。\n4. **标准实 1. **仅止于直接原因**：如分析裂缝时只找到“振捣不密实”，未再追问“为什么工人会振捣不密实”，未能触及交底不清或抢工期等管理根因。\n2. **大要因选择不当**：不加区分地照搬“人机料法环”，对管理类问题未采取“人事时地物”或自定框架，导致分析维度失配。\n3. **过早评价否决**：头脑风暴阶 - 必须从多维度识别原因，严禁仅从单一领域（如仅指责人员失误）开展分析。\n- 根因判定需满足“",
+      "_card_name": "根因分析RCA"
+    },
+    {
+      "id": "method_zhiliangguanlili",
+      "name": "质量管理理论",
+      "type": "method",
+      "source_count": 3,
+      "sources": [
+        "cleaned/methodologies/PDCA/基于PDCA的信息系统全面质量管理模型_常金玲.md",
+        "converted/methodologies/PDCA/基于PDCA的信息系统全面质量管理模型_常金玲.md",
+        "方法论资料类/9.PDCA/基于PDCA的信息系统全面质量管理模型_常金玲.pdf"
+      ],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "质量管理理论是一套关于质量策划、控制、保证与改进的系统化学说，由戴明（W. Edwards Deming）、朱兰（Joseph M. Juran）、石川馨（Kaoru Ishikawa）等学者于20世纪中叶逐步建立和完善。其中，石川馨于1950年代提出的鱼骨图（Fishbone Diagram，亦称 - 工程项目竣工后出现质量通病，需要从管理流程、人员操作等多维度排查成因。\n- 施工过程中新材料或新工艺应用后产生非预期缺陷，需追溯其根本原因。\n- 工程质量管理体系中某项关键绩效指标（如一次验收合格率）持续未达标的原因诊断。\n- 对已发生的重大质量事故进行复盘，构建完整的因果关系链以防止再发。\n- 1. 将鱼骨图画成流程顺序图或组织结构图，用时间先后或隶属关系替代因果逻辑。\n2. 大要因分类不当，例如将管理层主观态度直接作为一条独立大骨，混淆归因层次。\n3. 中、小要因只列现象不探原因，例如写“工人不按规定操作”而不再追问为何不按规定。\n4. 头脑风暴阶段过早否定或筛选原因，压制了现场人员提供 1. 必须使用规范的“人、机、料、法、环”或“人、事、时、地、物”等成熟因果归类框架，不可自创",
+      "_card_name": "质量管理理论"
+    },
+    {
+      "id": "method_bsc",
+      "name": "平衡计分卡BSC",
+      "type": "method",
+      "source_count": 2,
+      "sources": [
+        "converted/papers/绩效评价/基于平衡计分卡的T房地产公司住宅项目运营管理评价研究_张钰.md",
+        "论文类/绩效评价/基于平衡计分卡的T房地产公司住宅项目运营管理评价研究_张钰.pdf"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management",
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "平衡计分卡（Balanced Scorecard, BSC）是一种战略绩效管理工具，从财务、客户、内部流程、学习与成长四个维度将组织战略转化为可操作、可衡量的具体目标和指标，实现战略与执行的衔接。 待补充。",
+      "_card_name": "平衡计分卡BSC"
+    },
+    {
+      "id": "method_5m1e",
+      "name": "5M1E分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "process_optimization"
+      ],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "5M1E分析法是一种通过分析影响产品质量的六大因素（人Man、机Machine、料Material、法Method、环Environment、测Measurement）来识别问题根因的系统化方法。适用于工程管理中的质量问题诊断、生产过程分析和项目管理瓶颈识别。 待补充。",
+      "_card_name": "5M1E分析法"
+    },
+    {
+      "id": "method_ab_test",
+      "name": "A/B测试法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "A/B测试法是一种可迁移到工程管理研究的跨学科方法，源自互联网产品 / 行为实验。对不同流程表单、提醒方式、看板设计或沟通模板进行分组测试，比较响应率、完成率和错误率差异。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：互联网产品 / 行为实验 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从互联网产品 / 行为实验迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "A/B测试法"
+    },
+    {
+      "id": "method_ahp_eval",
+      "name": "AHP综合评价",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "AHP综合评价是基于层次分析法（AHP）构建的多准则综合评价模型，通过建立递阶层次结构、两两比较判断矩阵计算各指标权重，再结合评分数据对方案或项目进行综合排序与评价。 待补充。",
+      "_card_name": "AHP综合评价"
+    },
+    {
+      "id": "method_gompertz",
+      "name": "Gompertz增长模型",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "Gompertz增长模型（Gompertz Growth Model）是由英国数学家Benjamin Gompertz于1825年提出的一种S型曲线（Sigmoid Curve）数学模型，最初用于描述人口 mortality 规律。在工程管理领域，该模型被广泛用于描述因资源、技术或市场容量存在上限而 - **新兴技术成熟度预测**：验证某项工程技术的性能指标（如光伏电池转换效率）是否遵循Gompertz规律，并预测其物理极限。\n- **基础设施市场扩散验证**：验证某一新基建项目（如5G基站、充电桩）的市场渗透率历史数据，并预测其在饱和前的用户采纳路径。\n- **工程系统可靠性增长验证**：在设 1.  **方法定位错误**：在“问题分析”或“现状描述”章节随意使用，而未将其作为验证假设或预测目标的严格工具。\n2.  **忽视“饱和”前提**：对明显呈指数增长、尚无任何减速迹象的早期数据强行套用Gompertz模型，导致预测严重失真。\n3.  **数据点过少**：使用少于10个数据点拟合复杂 1.  **必须阐明上限K的设定依据**：无论 \\(K\\) 是自由估计还是外生给定，均需在文中",
+      "_card_name": "Gompertz增长模型"
+    },
+    {
+      "id": "method_pert",
+      "name": "PERT三点估算法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "计划评审技术（Program Evaluation and Review Technique, PERT）是一种基于网络图的进度管理工具，通过三点估计（乐观、最可能、悲观）计算活动持续时间的期望值和方差，识别关键路径上的不确定性和风险。 待补充。",
+      "_card_name": "PERT计划评审技术"
+    },
+    {
+      "id": "method_pmo_design",
+      "name": "PMO治理机制设计",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "PMO治理机制设计是一种工程管理研究方法。通过设立项目管理办公室或项目治理小组，统一标准、协调资源、监督进度和处理重大问题；适合组织级项目管理优化。 - 工程项目管理中的项目整合管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "PMO治理机制设计"
+    },
+    {
+      "id": "method_q_methodology",
+      "name": "Q方法论",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "Q方法论是一种可迁移到工程管理研究的跨学科方法，源自心理学 / 政治学。让项目成员对一组观点陈述进行排序，识别项目团队内部不同认知类型，如风险敏感型、进度优先型、质量优先型。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：心理学 / 政治学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从心理学 / 政治学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "Q方法论"
+    },
+    {
+      "id": "method_raci",
+      "name": "RACI责任矩阵法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "RACI责任矩阵法是一种工程管理研究方法。明确负责、批准、咨询和知情角色，解决职责边界不清问题。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "RACI责任矩阵法"
+    },
+    {
+      "id": "method_rbs",
+      "name": "RBS风险分解结构",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "process_optimization"
+      ],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "风险分解结构（Risk Breakdown Structure, RBS）是一种将项目风险按来源和层级进行系统分解和分类的结构化工具。通过逐层分解，帮助项目团队全面识别和梳理各类潜在风险因素。 待补充。",
+      "_card_name": "RBS风险分解结构"
+    },
+    {
+      "id": "method_swot",
+      "name": "SWOT分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "SWOT分析法是一种工程管理研究方法。从优势、劣势、机会和威胁角度识别项目内外部风险与机会。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "SWOT分析法"
+    },
+    {
+      "id": "method_topsis",
+      "name": "TOPSIS法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "cost_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "逼近理想解排序法（Technique for Order Preference by Similarity to Ideal Solution, TOPSIS）是一种多属性决策方法。通过计算各备选方案与正理想解和负理想解的距离，对方案进行排序，选出最接近理想解的方案。 待补充。",
+      "_card_name": "TOPSIS法"
+    },
+    {
+      "id": "method_expert_interview",
+      "name": "专家访谈法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "专家访谈法是一种工程管理研究方法。邀请项目专家和核心成员识别隐性风险，适合复杂项目和经验依赖较强的场景。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "专家访谈法"
+    },
+    {
+      "id": "method_expert_evaluation",
+      "name": "专家评价法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization",
+        "requirements_management",
+        "risk_management",
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "专家评价法是一种工程管理研究方法。邀请项目管理专家、项目负责人或业务骨干对优化方案的合理性、可行性和完整性进行评价；适合缺少长期数据时使用。 - 工程项目管理中的项目整合管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "专家评价法"
+    },
+    {
+      "id": "method_zhongjiexiaoying",
+      "name": "中介效应检验法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "中介效应检验法是一种可迁移到工程管理研究的跨学科方法，源自心理学 / 管理学。检验管理措施是否通过沟通效率、心理安全、流程合规性等中介变量影响项目绩效，用于解释为什么有效。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：心理学 / 管理学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从心理学 / 管理学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "中介效应检验法"
+    },
+    {
+      "id": "method_pca",
+      "name": "主成分分析法PCA",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "process_optimization"
+      ],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "主成分分析（Principal Component Analysis, PCA）是一种数据降维方法，通过正交变换将多个相关变量转化为少数几个不相关的主成分，保留原始数据的大部分变异信息。适用于指标体系简化、综合评价中的降维预处理。 待补充。",
+      "_card_name": "主成分分析法PCA"
+    },
+    {
+      "id": "method_deviation_analysis",
+      "name": "交付偏差分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "requirements_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "偏差分析法是一种工程管理研究方法。对比计划范围与实际交付内容，识别范围蔓延、范围遗漏和无效工作投入；适合项目复盘。 - 工程项目管理中的项目范围管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "偏差分析法"
+    },
+    {
+      "id": "method_jiaochazhihou",
+      "name": "交叉滞后分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "交叉滞后分析法是一种可迁移到工程管理研究的跨学科方法，源自心理学 / 纵向研究。分析沟通效率、团队信任、流程合规与项目绩效在不同时间点之间的相互影响，适合多期跟踪数据。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：心理学 / 纵向研究 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从心理学 / 纵向研究迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "交叉滞后分析法"
+    },
+    {
+      "id": "method_value_engineering",
+      "name": "价值工程法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "价值工程法是一种工程管理研究方法。在保证功能和质量前提下优化方案、材料、资源或流程，实现成本节约。 - 工程项目管理中的项目成本管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "价值工程法"
+    },
+    {
+      "id": "method_task_efficiency",
+      "name": "任务完成效率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "任务完成效率分析是一种工程管理研究方法。分析单位人力投入完成的任务量或交付成果，验证资源管理效果。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "任务完成效率分析"
+    },
+    {
+      "id": "method_meeting_efficiency",
+      "name": "会议效率评价",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "会议效率评价是一种工程管理研究方法。通过会议时长、决议数量、行动项完成率评价会议机制优化效果。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "会议效率评价"
+    },
+    {
+      "id": "method_meeting_optimize",
+      "name": "会议机制优化法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "会议机制优化法是一种工程管理研究方法。优化例会、专题会和决策会的议题、参与人、输出物和跟踪机制，提高会议效率。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "会议机制优化法"
+    },
+    {
+      "id": "method_meeting_minutes",
+      "name": "会议纪要分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "会议纪要分析法是一种工程管理研究方法。分析会议频率、议题、决议、跟踪事项和关闭情况，判断沟通机制是否有效。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "会议纪要分析法"
+    },
+    {
+      "id": "method_supplier_tier",
+      "name": "供应商分级管理法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "供应商分级管理法是一种工程管理研究方法。按能力、风险和重要性对供应商分类管理，提升重点供应商管理强度。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "供应商分级管理法"
+    },
+    {
+      "id": "method_kpi_system",
+      "name": "供应商绩效考核机制",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "绩效考核体系是一种通过系统设定关键绩效指标（KPI）、建立评价标准和考核流程，对项目或团队成员的工作成果进行量化评估的管理方法。用于目标管理、绩效改进和激励决策。 待补充。",
+      "_card_name": "绩效考核体系"
+    },
+    {
+      "id": "method_supplier_score",
+      "name": "供应商绩效评分",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "供应商绩效评分是一种工程管理研究方法。用交期、质量、响应和服务指标评价供应商管理改善情况。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "供应商绩效评分"
+    },
+    {
+      "id": "method_supplier_evaluation",
+      "name": "供应商评价法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "供应商评价法是一种工程管理研究方法。从交付能力、质量、价格、响应速度和合作稳定性评价供应商问题。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "供应商评价法"
+    },
+    {
+      "id": "method_info_kanban",
+      "name": "信息看板法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "信息看板法是一种工程管理研究方法。通过项目看板、仪表盘或协同平台实时展示进度、风险、问题和任务状态。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "信息看板法"
+    },
+    {
+      "id": "method_info_transparency",
+      "name": "信息透明度评价",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "信息透明度评价是一种工程管理研究方法。通过问卷或指标评价项目信息是否及时、准确、完整地传递给相关方。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "信息透明度评价"
+    },
+    {
+      "id": "method_qingxiangdefen",
+      "name": "倾向得分匹配法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "倾向得分匹配法是一种可迁移到工程管理研究的跨学科方法，源自医学统计 / 经济学。在试点项目与非试点项目基础条件不同的情况下，按项目规模、复杂度、人员经验等变量匹配样本，再比较改进效果。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：医学统计 / 经济学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从医学统计 / 经济学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "倾向得分匹配法"
+    },
+    {
+      "id": "method_guanjianjuece",
+      "name": "关键决策追踪法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "关键决策追踪法是一种可迁移到工程管理研究的跨学科方法，源自决策科学。回溯项目中关键决策的输入、参与者、备选方案、决策理由和后果，识别决策链条中的信息缺失与责任断点。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：决策科学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从决策科学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "关键决策追踪法"
+    },
+    {
+      "id": "method_cpm",
+      "name": "关键路径法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "关键路径法是一种工程管理研究方法。识别决定项目总工期的关键任务，发现影响整体延期的核心节点；适合工程、软件和研发项目。 - 工程项目管理中的项目进度管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "关键路径法"
+    },
+    {
+      "id": "method_conflict_count",
+      "name": "冲突事件数量对比",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "冲突事件数量对比是一种工程管理研究方法。比较优化前后相关方冲突、投诉或升级事件数量变化。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "冲突事件数量对比"
+    },
+    {
+      "id": "method_conflict_analysis",
+      "name": "冲突分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "冲突分析法是一种工程管理研究方法。分析相关方之间目标、资源、进度和质量诉求冲突，识别项目推进障碍。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "冲突分析法"
+    },
+    {
+      "id": "method_conflict_resolution",
+      "name": "冲突协调机制",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "冲突协调机制是一种工程管理研究方法。建立争议升级、协调会议和决策机制，及时处理相关方冲突。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "冲突协调机制"
+    },
+    {
+      "id": "method_chongtuzhuanhua",
+      "name": "冲突转化法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "冲突转化法是一种可迁移到工程管理研究的跨学科方法，源自冲突管理 / 组织发展。将需求冲突、资源冲突和优先级冲突转化为可讨论的利益、标准和备选方案，形成建设性协商机制。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：冲突管理 / 组织发展 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从冲突管理 / 组织发展迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "冲突转化法"
+    },
+    {
+      "id": "method_shiyanyanjiu",
+      "name": "准实验研究设计",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "准实验研究设计（Quasi-Experimental Design）是由D. T. Campbell和J. C. Stanley于1963年在《实验与准实验研究设计》中系统提出的一种研究设计，指在缺乏对被试进行随机分配的情况下，通过自然形成的群体或条件施加干预，并利用前测-后测、对照组等手段来估计干 - 评估某施工企业引入BIM协同管理平台后，实际返工率的下降效果。\n- 比较实施精益建造的两个类似标段（非随机分配）在进度偏差上的改善差异。\n- 验证新制定的风险预警制度出台后，项目索赔事件发生率是否出现趋势性变化。\n- 测试改进后的绩效考核方案在三个不同项目部（自然形成班组）中的执行效果。\n- 评 - 误将准实验描述为“实验法”，未强调缺乏随机分配这一关键区别。\n- 仅依靠干预前后单一小组的简单前后对比，没有设置对照组，导致无法排除成熟效应和历史效应。\n- 忽略对实验组与对照组基线差异的系统检验，直接将均值差异归因于干预。\n- 在时间序列设计中仅对比干预前后单个时间点，忽视序列本身趋势和季节性 - 必须在论文中明确声明“由于无法随机分配，本研究为准实验设计”，并与真实验设计相区别。\n-",
+      "_card_name": "准实验研究设计"
+    },
+    {
+      "id": "method_on_time_delivery",
+      "name": "准时交付率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "准时交付率分析是一种工程管理研究方法。比较优化前后供应商按期交付比例，验证采购管理效果。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "准时交付率分析"
+    },
+    {
+      "id": "method_stakeholder_analysis",
+      "name": "利益相关方分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management",
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "利益相关方分析法是一种工程管理研究方法。识别项目中各方诉求、权力影响和参与程度，判断目标冲突、沟通断层和决策阻塞来源；适合分析复杂协同类项目。 - 工程项目管理中的项目整合管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "利益相关方分析法"
+    },
+    {
+      "id": "method_zhiduqianru",
+      "name": "制度嵌入式干预法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "制度嵌入式干预法是一种可迁移到工程管理研究的跨学科方法，源自制度理论 / 组织管理。将新规则嵌入审批、例会、系统、绩效和模板中，避免优化方案停留在倡议层面，提升制度执行稳定性。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：制度理论 / 组织管理 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从制度理论 / 组织管理迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "制度嵌入式干预法"
+    },
+    {
+      "id": "method_before_after_compare",
+      "name": "前后对比分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management",
+        "process_optimization",
+        "resource_management",
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "前后对比分析法是一种工程管理研究方法。比较优化前后项目目标达成率、变更响应周期、问题关闭率和里程碑准时率，验证整合管理改进效果。 - 工程项目管理中的项目整合管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "前后对比分析法"
+    },
+    {
+      "id": "method_yuanxingdiedai",
+      "name": "原型迭代法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "原型迭代法是一种可迁移到工程管理研究的跨学科方法，源自设计研究 / 产品管理。先用低成本原型验证流程、表单、看板或协作规则，再根据反馈迭代优化，适合管理工具或流程方案落地。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：设计研究 / 产品管理 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从设计研究 / 产品管理迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "原型迭代法"
+    },
+    {
+      "id": "method_engagement_metrics",
+      "name": "参与度指标分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "参与度指标分析是一种工程管理研究方法。统计相关方参加评审、会议、反馈和验收的频率，验证参与机制改善。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "参与度指标分析"
+    },
+    {
+      "id": "method_engagement_strategy",
+      "name": "参与度提升策略",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "参与度提升策略是一种工程管理研究方法。通过评审会、共创工作坊、阶段验收等方式提高关键相关方参与度。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "参与度提升策略"
+    },
+    {
+      "id": "method_shuanghuanxuexi",
+      "name": "双环学习法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "双环学习法是一种可迁移到工程管理研究的跨学科方法，源自组织学习理论。不仅修正具体做法，还反思目标、规则和假设是否合理，适合解决同类项目问题反复发生的深层机制问题。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：组织学习理论 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从组织学习理论迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "双环学习法"
+    },
+    {
+      "id": "method_fanshishiqingjing",
+      "name": "反事实情景评估法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "反事实情景评估法是一种可迁移到工程管理研究的跨学科方法，源自政策评估 / 战略分析。构造如果未实施优化方案的对照情景，与实际结果比较，用于说明方案对绩效改善的贡献。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：政策评估 / 战略分析 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从政策评估 / 战略分析迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "反事实情景评估法"
+    },
+    {
+      "id": "method_liuchengyouhuafa",
+      "name": "变更控制流程优化法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management",
+        "process_optimization",
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "流程优化法是以端到端业务流程为对象，综合运用诊断工具与分析技术，消除非增值活动、减少浪费、缩短周期、提升质量与柔性的系统化改进方法。其思想源于业务流程再造（BPR，Hammer & Champy，1993）和持续流程改进（CPI）理论，在工程管理领域中常与鱼骨图、ECRS（取消、合并、重排、简化）技 - 工程项目审批流程冗长，导致施工许可延迟与工期延后。\n- 材料与设备采购流程复杂，沟通环节多，造成库存积压或供应中断。\n- 施工质量管理流程中信息传递失真，引发返工与成本超支。\n- 多组织协作的生产或作业流程中权责交叉、等待浪费明显。\n- 标准化作业流程欠规范，员工操作差异大，合规性与效率偏低。 1. 绕过现状流程的可视化与数据测量，直接 待补充：生成约束相关内容。",
+      "_card_name": "流程再造BPR"
+    },
+    {
+      "id": "method_change_freq_compare",
+      "name": "变更次数与变更周期对比",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "requirements_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "变更次数与变更周期对比是一种工程管理研究方法。比较优化前后需求变更数量、审批周期和返工次数，验证变更控制效果。 - 工程项目管理中的项目范围管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "变更次数与变更周期对比"
+    },
+    {
+      "id": "method_xushifenxi",
+      "name": "叙事分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "叙事分析法是一种可迁移到工程管理研究的跨学科方法，源自社会学 / 组织行为学。分析项目成员对延期、冲突、返工等事件的讲述方式，识别不同角色对同一问题的责任归因和认知差异。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：社会学 / 组织行为学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从社会学 / 组织行为学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "叙事分析法"
+    },
+    {
+      "id": "method_contract_analysis",
+      "name": "合同分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "合同分析法是一种工程管理研究方法。分析合同条款、交付标准、违约责任和变更条款，识别采购管理风险。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "合同分析法"
+    },
+    {
+      "id": "method_contract_compliance",
+      "name": "合同履约率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "合同履约率分析是一种工程管理研究方法。统计合同条款执行、验收合格和违约事件情况，验证合同管理效果。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "合同履约率分析"
+    },
+    {
+      "id": "method_contract_optimize",
+      "name": "合同条款优化法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "合同条款优化法是一种工程管理研究方法。完善交付标准、验收要求、违约责任和变更机制，降低合同执行风险。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "合同条款优化法"
+    },
+    {
+      "id": "method_factor_analysis",
+      "name": "因子分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "process_optimization"
+      ],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "因子分析是一种从变量群中提取共性因子的多元统计方法。通过研究变量间的内部依赖关系，将多个实测变量浓缩为少数几个不可观测的潜在因子，揭示数据的潜在结构。适用于评价指标体系的构建和问卷效度检验。 待补充。",
+      "_card_name": "因子分析法"
+    },
+    {
+      "id": "method_team_satisfaction",
+      "name": "团队满意度调查",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "团队满意度调查是一种工程管理研究方法。评价成员对工作负荷、资源支持和协作机制的满意程度。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "团队满意度调查"
+    },
+    {
+      "id": "method_team_incentive",
+      "name": "团队激励机制设计",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "团队激励机制设计是一种工程管理研究方法。通过绩效目标、反馈机制和激励措施提升团队积极性和资源投入稳定性。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "团队激励机制设计"
+    },
+    {
+      "id": "method_duocengxianxing",
+      "name": "多层线性模型法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "多层线性模型法是一种可迁移到工程管理研究的跨学科方法，源自教育统计 / 组织研究。处理个人、团队、项目多层嵌套数据，分析个人行为与项目层面管理机制对绩效的共同影响。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：教育统计 / 组织研究 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从教育统计 / 组织研究迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "多层线性模型法"
+    },
+    {
+      "id": "method_anweiji",
+      "name": "安慰剂检验法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "安慰剂检验法是一种可迁移到工程管理研究的跨学科方法，源自政策评估。将优化措施的实施时间或实施对象人为替换，若虚假处理仍显著，则说明原结果可能存在其他干扰因素。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：政策评估 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从政策评估迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "安慰剂检验法"
+    },
+    {
+      "id": "method_shijiangongtongti",
+      "name": "实践共同体构建法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "实践共同体构建法是一种可迁移到工程管理研究的跨学科方法，源自知识管理 / 组织学习。围绕项目经理、测试、研发、供应商等群体建立经验分享和问题共创机制，用于促进跨项目知识复用。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：知识管理 / 组织学习 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从知识管理 / 组织学习迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "实践共同体构建法"
+    },
+    {
+      "id": "method_customer_satisfaction",
+      "name": "客户满意度评价",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "客户满意度评价是一种工程管理研究方法。通过问卷或访谈评价客户对交付质量、响应速度和问题解决效果的满意程度。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "客户满意度评价"
+    },
+    {
+      "id": "method_gongzuoriji",
+      "name": "工作日记研究法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "工作日记研究法是一种可迁移到工程管理研究的跨学科方法，源自组织行为学 / 管理心理学。要求项目成员连续记录每日关键任务、阻塞点、沟通等待和情绪压力，用于识别高频低可见度问题。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：组织行为学 / 管理心理学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从组织行为学 / 管理心理学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "工作日记研究法"
+    },
+    {
+      "id": "method_gongzuochongsu",
+      "name": "工作重塑法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "工作重塑法是一种可迁移到工程管理研究的跨学科方法，源自组织行为学。通过调整成员任务边界、协作关系和工作意义感，提升主动性和责任感，适合资源紧张或团队士气不足的项目。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：组织行为学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从组织行为学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "工作重塑法"
+    },
+    {
+      "id": "method_schedule_deviation",
+      "name": "工期偏差分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management"
+      ],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "工期偏差分析是一种通过对比计划工期与实际工期、识别偏差原因、评估偏差影响并提出纠偏措施的项目进度控制方法。常用工具包括里程碑对比、甘特图跟踪和挣值管理中的进度偏差指标。 待补充。",
+      "_card_name": "工期偏差分析"
+    },
+    {
+      "id": "method_pareto",
+      "name": "帕累托分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management",
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "帕累托分析法是一种工程管理研究方法。按成本超支贡献度排序，识别造成主要成本偏差的少数关键因素。 - 工程项目管理中的项目成本管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "帕累托分析法"
+    },
+    {
+      "id": "method_contingency_plan",
+      "name": "应急预案设计",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "应急预案设计是一种工程管理研究方法。针对高等级风险制定备用方案、资源预案和处置流程，降低风险冲击。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "应急预案设计"
+    },
+    {
+      "id": "method_guiyinfengge",
+      "name": "归因风格分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "归因风格分析法是一种可迁移到工程管理研究的跨学科方法，源自社会心理学。分析团队成员将项目问题归因于个人、流程、资源还是外部环境的倾向，判断责任推诿、低控制感或组织防御问题。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：社会心理学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从社会心理学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "归因风格分析法"
+    },
+    {
+      "id": "method_xinzhimoxing",
+      "name": "心智模型分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "心智模型分析法是一种可迁移到工程管理研究的跨学科方法，源自认知科学。比较项目经理、业务方、开发、测试或供应商对项目目标、边界、风险和责任的理解差异，定位协作误解来源。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：认知科学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从认知科学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "心智模型分析法"
+    },
+    {
+      "id": "method_xinlianquan",
+      "name": "心理安全建设法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "心理安全建设法是一种可迁移到工程管理研究的跨学科方法，源自组织行为学。通过无责复盘、风险提前暴露激励、开放反馈机制等方式，使成员敢于报告问题和提出异议。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：组织行为学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从组织行为学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "心理安全建设法"
+    },
+    {
+      "id": "method_qingjingjiaoben",
+      "name": "情景脚本设计法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "情景脚本设计法是一种可迁移到工程管理研究的跨学科方法，源自服务设计 / 用户研究。将典型项目场景转化为脚本，如需求变更、紧急上线、供应商延期等，明确角色动作、触发条件和处理路径。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：服务设计 / 用户研究 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从服务设计 / 用户研究迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "情景脚本设计法"
+    },
+    {
+      "id": "method_ganzhigongping",
+      "name": "感知公平诊断法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "感知公平诊断法是一种可迁移到工程管理研究的跨学科方法，源自组织心理学。分析团队成员对任务分配、资源投入、绩效评价和责任承担的公平感，适合发现士气下降、配合不足和执行阻力。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：组织心理学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从组织心理学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "感知公平诊断法"
+    },
+    {
+      "id": "method_cost_baseline",
+      "name": "成本基准管理法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "成本基准管理法是一种工程管理研究方法。建立分阶段预算、成本控制基线和预算调整机制，提高成本控制依据。 - 工程项目管理中的项目成本管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "成本基准管理法"
+    },
+    {
+      "id": "method_cost_flow",
+      "name": "成本控制流程优化法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management",
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "成本控制流程优化法是一种针对项目或组织成本管理流程进行系统性分析和改进的方法。通过流程梳理、成本动因分析、瓶颈识别和流程再造，优化成本控制节点，提升成本管理效率和精确度。 待补充。",
+      "_card_name": "成本控制流程优化法"
+    },
+    {
+      "id": "method_cpi_analysis",
+      "name": "成本绩效指数CPI分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "成本绩效指数CPI分析是一种工程管理研究方法。通过CPI评价单位成本投入形成的项目价值，验证成本管理效果。 - 工程项目管理中的项目成本管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "成本绩效指数CPI分析"
+    },
+    {
+      "id": "method_maturity_evaluation",
+      "name": "成熟度评价法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "成熟度评价法是一种工程管理研究方法。从制度化、标准化、协同化、持续改进等维度评价项目整合管理成熟度变化；适合管理优化类论文。 - 工程项目管理中的项目整合管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "成熟度评价法"
+    },
+    {
+      "id": "method_chengnuozhuangzhi",
+      "name": "承诺装置法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "承诺装置法是一种可迁移到工程管理研究的跨学科方法，源自行为经济学 / 心理学。让团队或责任人提前公开承诺关键交付、响应时限和风险反馈机制，以减少拖延和执行不确定性。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：行为经济学 / 心理学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从行为经济学 / 心理学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "承诺装置法"
+    },
+    {
+      "id": "method_skill_matrix",
+      "name": "技能矩阵分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "技能矩阵分析法是一种工程管理研究方法。对比任务需求与成员能力，发现能力缺口和岗位匹配不足。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "技能矩阵分析法"
+    },
+    {
+      "id": "method_skill_compliance",
+      "name": "技能达标率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "技能达标率分析是一种工程管理研究方法。统计关键岗位人员技能达标情况，验证培训和能力建设效果。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "技能达标率分析"
+    },
+    {
+      "id": "method_input_output",
+      "name": "投入产出分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "投入产出分析法是一种工程管理研究方法。比较成本投入与交付成果、收益或绩效改善之间的关系，评价成本优化价值。 - 工程项目管理中的项目成本管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "投入产出分析法"
+    },
+    {
+      "id": "method_indicator_evaluation",
+      "name": "指标评价法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "指标评价法是一种工程管理研究方法。构建目标一致性、计划完整性、变更控制有效性、协同效率等指标，评价整合管理水平变化。 - 工程项目管理中的项目整合管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "指标评价法"
+    },
+    {
+      "id": "method_evm",
+      "name": "挣值管理法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "挣值管理法是一种工程管理研究方法。通过PV、EV、AC、CV、CPI等指标识别成本绩效问题，适合数据较完整的项目。 - 工程项目管理中的项目成本管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "挣值管理法"
+    },
+    {
+      "id": "method_control_chart",
+      "name": "控制图分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "控制图分析法是一种工程管理研究方法。观察质量指标随时间变化是否稳定，用于验证质量过程是否受控。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "控制图分析法"
+    },
+    {
+      "id": "method_wenhuatanzehn",
+      "name": "文化探针法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "文化探针法是一种可迁移到工程管理研究的跨学科方法，源自设计研究。通过照片、便签、情境记录、微型任务等方式收集团队在真实工作情境中的感受和痛点，适合探索协作体验问题。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：设计研究 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从设计研究迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "文化探针法"
+    },
+    {
+      "id": "method_document_analysis",
+      "name": "文档分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management",
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "文档分析法是一种工程管理研究方法。分析项目章程、项目管理计划、会议纪要、变更记录、验收材料等，发现计划体系不完整、审批链条不清、目标分解不足等问题；适合形成证据链。 - 工程项目管理中的项目整合管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "文档分析法"
+    },
+    {
+      "id": "method_duandianhuigui",
+      "name": "断点回归法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "断点回归法是一种可迁移到工程管理研究的跨学科方法，源自经济学 / 政策评估。当项目管理措施以某个评分、规模、日期或阈值为准入条件时，比较阈值附近样本差异以评估措施效果。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：经济学 / 政策评估 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从经济学 / 政策评估迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "断点回归法"
+    },
+    {
+      "id": "method_expectation_management",
+      "name": "期望管理法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "期望管理法是一种工程管理研究方法。通过目标澄清、需求确认和阶段性反馈管理相关方预期，减少交付争议。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "期望管理法"
+    },
+    {
+      "id": "method_jizhisheji",
+      "name": "机制设计法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "机制设计法是一种可迁移到工程管理研究的跨学科方法，源自经济学 / 制度设计。围绕激励相容、信息披露和责任约束设计管理机制，适合解决多方协作中目标不一致、隐瞒风险或推诿责任问题。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：经济学 / 制度设计 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从经济学 / 制度设计迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "机制设计法"
+    },
+    {
+      "id": "method_power_interest_matrix",
+      "name": "权力—利益矩阵",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "权力—利益矩阵是一种工程管理研究方法。根据相关方权力和利益程度分类，判断重点管理对象和潜在阻力来源。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "权力—利益矩阵"
+    },
+    {
+      "id": "method_standardize_process",
+      "name": "标准化流程建设",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "标准化流程建设是一种工程管理研究方法。建立评审、测试、缺陷管理、验收等标准流程，提高质量活动一致性。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "标准化流程建设"
+    },
+    {
+      "id": "method_kuangjiafenxi",
+      "name": "框架分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "框架分析法是一种可迁移到工程管理研究的跨学科方法，源自政策研究 / 质性研究。先建立分析框架，再对项目文本和访谈资料进行矩阵化归类，适合在理论框架与经验材料之间建立对应关系。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：政策研究 / 质性研究 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从政策研究 / 质性研究迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "框架分析法"
+    },
+    {
+      "id": "method_checklist",
+      "name": "检查表法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "检查表法是一种基于预先设计的结构化检查清单进行数据收集和问题识别的工具方法。通过系统列出需要检查、验证或记录的项目，确保关键要素不被遗漏，常用于质量控制、安全检查和工作流程审计。 待补充。",
+      "_card_name": "检查表法"
+    },
+    {
+      "id": "method_fsQCA",
+      "name": "模糊集定性比较分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "模糊集定性比较分析法是一种可迁移到工程管理研究的跨学科方法，源自社会科学 / 复杂因果研究。分析多个条件组合如何共同导致项目成功或失败，适合样本量不大但案例差异明显的项目管理研究。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：社会科学 / 复杂因果研究 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从社会科学 / 复杂因果研究迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "模糊集定性比较分析法"
+    },
+    {
+      "id": "method_minzuzhi",
+      "name": "民族志研究法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "民族志研究法是一种可迁移到工程管理研究的跨学科方法，源自人类学 / 组织研究。通过长期或阶段性进入项目现场，观察团队会议、协作习惯、非正式沟通和实际执行行为，用于发现制度文本中看不到的隐性管理问题。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：人类学 / 组织研究 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从人类学 / 组织研究迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "民族志研究法"
+    },
+    {
+      "id": "method_comm_response_time",
+      "name": "沟通响应时间分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "沟通响应时间分析是一种工程管理研究方法。比较问题反馈、审批和决策的响应周期，验证沟通效率提升。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "沟通响应时间分析"
+    },
+    {
+      "id": "method_satisfaction_survey",
+      "name": "沟通满意度问卷",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "满意度问卷是一种工程管理研究方法。调查相关方对项目目标、沟通、交付和参与机制的满意程度。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "满意度问卷"
+    },
+    {
+      "id": "method_comm_matrix",
+      "name": "沟通矩阵法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management",
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "沟通矩阵法是一种工程管理研究方法。根据相关方类型和信息需求制定差异化沟通策略，提高沟通精准度。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "沟通矩阵法"
+    },
+    {
+      "id": "method_comm_plan",
+      "name": "沟通管理计划法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "沟通管理计划法是一种工程管理研究方法。明确沟通对象、内容、频率、渠道、责任人和反馈机制，规范项目信息传递。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "沟通管理计划法"
+    },
+    {
+      "id": "method_comm_path_analysis",
+      "name": "沟通路径分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "沟通路径分析法是一种工程管理研究方法。梳理信息从发起、传递到反馈的路径，发现沟通层级过多或责任不清问题。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "沟通路径分析法"
+    },
+    {
+      "id": "method_youxihua",
+      "name": "游戏化激励设计法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "游戏化激励设计法是一种可迁移到工程管理研究的跨学科方法，源自行为设计 / 教育技术。将积分、徽章、排行榜、阶段成就等机制用于任务完成、知识沉淀和风险上报，提升参与度和持续性。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：行为设计 / 教育技术 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从行为设计 / 教育技术迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "游戏化激励设计法"
+    },
+    {
+      "id": "method_rolling_plan",
+      "name": "滚动计划法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "滚动计划法是一种工程管理研究方法。近期计划详细、远期计划粗略，并随项目推进持续修正，适合需求变化较快的项目。 - 工程项目管理中的项目进度管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "滚动计划法"
+    },
+    {
+      "id": "method_satisfaction_compare",
+      "name": "满意度前后对比",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "满意度前后对比是一种工程管理研究方法。比较优化前后团队和相关方沟通满意度变化。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "满意度前后对比"
+    },
+    {
+      "id": "method_field_survey",
+      "name": "现场调查法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "process_optimization"
+      ],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "现场调查法是一种通过实地走访、观察、访谈和记录来收集第一手资料的研究方法。在工程管理中常用于项目现状的诊断、问题识别和需求调研，获取直接、真实的信息。 待补充。",
+      "_card_name": "现场调查法"
+    },
+    {
+      "id": "method_gantt_analysis",
+      "name": "甘特图分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "甘特图分析法是一种工程管理研究方法。用图形方式展示计划与实际进度差异，直观发现任务重叠、排期不合理和里程碑延期。 - 工程项目管理中的项目进度管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "甘特图分析法"
+    },
+    {
+      "id": "method_shengcunfenxi",
+      "name": "生存分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "生存分析法是一种可迁移到工程管理研究的跨学科方法，源自医学统计 / 可靠性研究。分析缺陷关闭、风险消除、任务完成或问题复发所需时间，比较优化前后事件发生速度。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：医学统计 / 可靠性研究 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从医学统计 / 可靠性研究迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "生存分析法"
+    },
+    {
+      "id": "method_acceptance_rate",
+      "name": "用户验收通过率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "验收通过率分析是一种工程管理研究方法。通过一次验收通过率、验收问题数量等指标评价质量管理成果。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "验收通过率分析"
+    },
+    {
+      "id": "method_liuyijiaocha",
+      "name": "留一法交叉验证",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "留一法交叉验证是一种可迁移到工程管理研究的跨学科方法，源自机器学习 / 统计建模。在样本量较少时轮流剔除一个项目或案例，检验评价模型、风险预测模型或分类结果是否稳定。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：机器学习 / 统计建模 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从机器学习 / 统计建模迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "留一法交叉验证"
+    },
+    {
+      "id": "method_stakeholder_engagement",
+      "name": "相关方参与计划",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "相关方参与计划是一种工程管理研究方法。根据不同相关方需求制定沟通、参与、反馈和决策机制，提高支持度。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "相关方参与计划"
+    },
+    {
+      "id": "method_stakeholder_satisfaction",
+      "name": "相关方满意度对比",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "相关方满意度对比是一种工程管理研究方法。比较优化前后关键相关方满意度变化，评价管理方案效果。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "相关方满意度对比"
+    },
+    {
+      "id": "method_stakeholder_identify",
+      "name": "相关方识别分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "相关方识别分析是一种工程管理研究方法。系统识别客户、用户、管理层、项目团队、供应商和监管方等相关方，发现遗漏对象。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "相关方识别分析"
+    },
+    {
+      "id": "method_shehuiguifan",
+      "name": "社会规范反馈法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "社会规范反馈法是一种可迁移到工程管理研究的跨学科方法，源自行为科学。将团队或个人的进度更新率、缺陷响应率、文档提交及时率与团队平均水平对比反馈，促进自我修正。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：行为科学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从行为科学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "社会规范反馈法"
+    },
+    {
+      "id": "method_zuzhichenmo",
+      "name": "组织沉默诊断法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "组织沉默诊断法是一种可迁移到工程管理研究的跨学科方法，源自组织行为学。识别成员不愿暴露风险、不敢质疑计划、不主动反馈问题的情形，适合分析项目预警失灵和风险上报不足。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：组织行为学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从组织行为学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "组织沉默诊断法"
+    },
+    {
+      "id": "method_jingyanquyang",
+      "name": "经验取样法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "经验取样法是一种可迁移到工程管理研究的跨学科方法，源自心理学。在项目执行过程中定期收集团队成员当下的压力、协作障碍、等待原因和任务中断情况，捕捉动态问题而非事后回忆。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：心理学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从心理学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "经验取样法"
+    },
+    {
+      "id": "method_defect_rate_compare",
+      "name": "缺陷率对比分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "缺陷率对比分析是一种工程管理研究方法。比较优化前后缺陷密度、严重缺陷数和缺陷关闭周期，验证质量改进效果。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "缺陷率对比分析"
+    },
+    {
+      "id": "method_capability_training",
+      "name": "能力提升与培训计划",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "能力提升与培训计划是一种工程管理研究方法。针对技能缺口制定培训、辅导或外部支持方案，提高团队交付能力。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "能力提升与培训计划"
+    },
+    {
+      "id": "method_scope_deviation_rate",
+      "name": "范围偏差率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "requirements_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "范围偏差率分析是一种工程管理研究方法。比较实际交付范围与计划范围的偏差，评价范围控制效果。 - 工程项目管理中的项目范围管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "范围偏差率分析"
+    },
+    {
+      "id": "method_scope_change_control",
+      "name": "范围变更控制法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "requirements_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "范围变更控制法是一种工程管理研究方法。设计变更评估和审批机制，对变更影响进行范围、进度、成本和质量联动评估。 - 工程项目管理中的项目范围管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "范围变更控制法"
+    },
+    {
+      "id": "method_xingdongxuexi",
+      "name": "行动学习法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "行动学习法是一种可迁移到工程管理研究的跨学科方法，源自教育学 / 管理发展。组织成员围绕真实项目难题开展小组反思、行动试验和经验沉淀，适合推动方案边实施边优化。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：教育学 / 管理发展 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从教育学 / 管理发展迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "行动学习法"
+    },
+    {
+      "id": "method_plan_completion_rate",
+      "name": "计划完成率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "计划完成率分析是一种工程管理研究方法。统计任务按期完成比例，评价进度计划执行效果。 - 工程项目管理中的项目进度管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "计划完成率分析"
+    },
+    {
+      "id": "method_renzhirenwu",
+      "name": "认知任务分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "认知任务分析法是一种可迁移到工程管理研究的跨学科方法，源自认知心理学 / 人因工程。拆解项目成员完成复杂任务时的判断步骤、信息需求和决策难点，适合识别流程设计过载、工具不友好或决策负担过重的问题。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：认知心理学 / 人因工程 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从认知心理学 / 人因工程迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "认知任务分析法"
+    },
+    {
+      "id": "method_renzhizuoye",
+      "name": "认知作业辅助设计法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "认知作业辅助设计法是一种可迁移到工程管理研究的跨学科方法，源自人因工程。设计检查清单、提示模板、决策辅助表和异常处理脚本，降低复杂任务中的遗漏、误判和认知负担。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：人因工程 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从人因工程迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "认知作业辅助设计法"
+    },
+    {
+      "id": "method_interview",
+      "name": "访谈法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management",
+        "cost_management",
+        "process_optimization",
+        "resource_management",
+        "schedule_management",
+        "stakeholder_management",
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "访谈法是一种工程管理研究方法。访谈项目经理、职能负责人、关键成员和客户代表，获取跨部门协调、决策机制、变更审批和整体管控中的真实问题；适合补充案例资料。 - 工程项目管理中的项目整合管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "访谈法"
+    },
+    {
+      "id": "method_tiaojiexiaoying",
+      "name": "调节效应检验法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "调节效应检验法是一种可迁移到工程管理研究的跨学科方法，源自心理学 / 管理学。检验项目复杂度、团队规模、管理支持等因素是否影响优化措施的效果，用于说明方案在何种条件下更有效。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：心理学 / 管理学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从心理学 / 管理学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "调节效应检验法"
+    },
+    {
+      "id": "method_beiyesi",
+      "name": "贝叶斯更新法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "贝叶斯更新法是一种可迁移到工程管理研究的跨学科方法，源自统计学 / 决策科学。将专家先验判断与项目运行数据结合，动态更新风险概率、延期概率或方案成功概率。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：统计学 / 决策科学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从统计学 / 决策科学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "贝叶斯更新法"
+    },
+    {
+      "id": "method_ram_analysis",
+      "name": "责任分配矩阵分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "责任分配矩阵分析法是一种工程管理研究方法。检查RACI或责任矩阵，发现职责不清、多人负责或无人负责的问题。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "责任分配矩阵分析法"
+    },
+    {
+      "id": "method_quality_stats",
+      "name": "质量数据统计分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "质量数据统计分析是一种工程管理研究方法。统计缺陷数、返工率、验收问题、客户投诉等数据，识别质量管理薄弱环节。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "质量数据统计分析"
+    },
+    {
+      "id": "method_quality_gate",
+      "name": "质量门禁机制",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "质量门禁机制是一种工程管理研究方法。在需求、设计、开发、测试、验收等阶段设置准入和准出标准，防止缺陷后移。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "质量门禁机制"
+    },
+    {
+      "id": "method_resource_optimize",
+      "name": "资源优化配置法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "资源优化配置法是一种工程管理研究方法。根据任务优先级、关键路径和人员能力重新配置资源，提高资源利用效率。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "资源优化配置法"
+    },
+    {
+      "id": "method_resource_utilization",
+      "name": "资源利用率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "资源利用率分析是一种工程管理研究方法。比较优化前后人员或设备利用率，判断资源配置是否更加合理。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "资源利用率分析"
+    },
+    {
+      "id": "method_resource_balance",
+      "name": "资源平衡法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "资源平衡法是一种工程管理研究方法。在不改变项目关键目标的前提下调整任务安排，缓解资源过载和冲突。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "资源平衡法"
+    },
+    {
+      "id": "method_resource_load",
+      "name": "资源负荷分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "资源负荷分析法是一种工程管理研究方法。分析人员、设备、资金和关键资源的占用情况，识别过载、闲置和冲突问题。 - 工程项目管理中的项目资源管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "资源负荷分析法"
+    },
+    {
+      "id": "method_trend_analysis",
+      "name": "趋势分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "趋势分析法是一种工程管理研究方法。观察项目多个周期内进度偏差变化趋势，判断改进措施是否持续有效。 - 工程项目管理中的项目进度管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "趋势分析法"
+    },
+    {
+      "id": "method_bianjieduixiang",
+      "name": "边界对象分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "边界对象分析法是一种可迁移到工程管理研究的跨学科方法，源自知识社会学 / 协同研究。分析需求文档、原型、计划表、接口规范等跨团队共享物是否能承载一致理解，用于发现跨部门协作断点。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：知识社会学 / 协同研究 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从知识社会学 / 协同研究迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "边界对象分析法"
+    },
+    {
+      "id": "method_process_compliance",
+      "name": "过程合规率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "过程合规率分析是一种工程管理研究方法。统计评审、测试、检查等活动按标准执行的比例，验证过程质量改善。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "过程合规率分析"
+    },
+    {
+      "id": "method_process_audit",
+      "name": "过程审计法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "过程审计法是一种工程管理研究方法。检查项目过程是否按制度执行，发现评审缺失、测试不足、质量门禁弱等问题。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "过程审计法"
+    },
+    {
+      "id": "method_guochengzhuizong",
+      "name": "过程追踪法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "过程追踪法是一种可迁移到工程管理研究的跨学科方法，源自政治学 / 案例研究。逐步追踪优化措施从实施到产生结果的中间证据链，验证措施、机制和结果之间是否存在连续逻辑。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：政治学 / 案例研究 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从政治学 / 案例研究迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "过程追踪法"
+    },
+    {
+      "id": "method_spi_analysis",
+      "name": "进度绩效指数SPI分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "进度绩效指数SPI分析是一种工程管理研究方法。基于挣值管理计算SPI，衡量项目实际进度相对计划进度的绩效变化。 - 工程项目管理中的项目进度管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "进度绩效指数SPI分析"
+    },
+    {
+      "id": "method_xuanzejiagou",
+      "name": "选择架构设计法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "选择架构设计法是一种可迁移到工程管理研究的跨学科方法，源自行为经济学。通过调整默认选项、提示顺序、表单结构和信息呈现方式，引导成员更容易做出符合项目目标的行为选择。 - 适用于工程项目管理中解决问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：行为经济学 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从行为经济学迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "选择架构设计法"
+    },
+    {
+      "id": "method_procurement_cycle",
+      "name": "采购周期对比分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "采购周期对比分析是一种工程管理研究方法。比较优化前后采购申请到到货或验收的周期变化。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "采购周期对比分析"
+    },
+    {
+      "id": "method_procurement_cost_saving",
+      "name": "采购成本节约率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "采购成本节约率分析是一种工程管理研究方法。比较预算价格、合同价格和实际采购成本，评价成本控制效果。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "采购成本节约率分析"
+    },
+    {
+      "id": "method_procurement_audit",
+      "name": "采购流程审计法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "采购流程审计法是一种工程管理研究方法。检查采购申请、询价、评审、审批、验收和付款流程，发现流程不合规或效率低问题。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "采购流程审计法"
+    },
+    {
+      "id": "method_procurement_standardize",
+      "name": "采购流程标准化",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "采购流程标准化是一种工程管理研究方法。规范采购申请、审批、验收和付款流程，提高采购效率和透明度。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "采购流程标准化"
+    },
+    {
+      "id": "method_procurement_plan",
+      "name": "采购计划优化法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "supply_chain_logistics"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "采购计划优化法是一种工程管理研究方法。根据项目进度和资源需求制定采购节奏，减少采购滞后对项目的影响。 - 工程项目管理中的项目采购管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "采购计划优化法"
+    },
+    {
+      "id": "method_milestone_plan",
+      "name": "里程碑计划法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "schedule_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "里程碑计划法是一种工程管理研究方法。设置阶段性交付节点和检查点，提高管理层对进度状态的控制能力。 - 工程项目管理中的项目进度管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "里程碑计划法"
+    },
+    {
+      "id": "method_satisfaction_survey2",
+      "name": "问卷满意度评价",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "beginner",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "问卷满意度评价是一种通过结构化问卷收集利益相关者对项目成果、服务质量或管理过程满意程度的评价方法。通过科学的量表设计、抽样调查和统计分析，获取定量化的满意度数据。 待补充。",
+      "_card_name": "问卷满意度评价"
+    },
+    {
+      "id": "method_wenjuandiaochafa",
+      "name": "问卷调查法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "quality_management",
+        "requirements_management",
+        "resource_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "问卷调查法是通过设计统一、标准化的问卷，向特定研究对象群体发放并回收，从而获取定量或定性信息的研究方法。该方法起源于20世纪初社会调查运动，后经拉扎斯菲尔德（Lazarsfeld）等学者在方法论上完善，现已成为工程管理领域收集一手数据、检验变量关系、测量潜变量的核心手段之一。 - 建设工程关键成功因素调研，识别影响项目绩效的多维度因子。\n- 装配式建筑推广障碍调查，从设计、生产、施工、政策等环节收集行业认知数据。\n- 工程风险认知与分配偏好测量，了解业主、承包商、咨询方对风险的感知差异。\n- 智能建造技术采纳意愿分析，基于技术接受模型（TAM）等理论框架收集用户态度数据。 1. **直接使用自编问卷而未经严格开发程序**：省略题项生成、专家评审与预试环节，导致量表信效度低。\n2. **样本量不足或代表性差**：仅收集几十份问卷便进行多元回归或SEM分析，或大量采用学生样本替代专业人员，缺乏外部效度。\n3. **忽略共同方法偏差的控制与检验**：所有变量均采用同一来源的 1. 必须明确定义研究总体并报告抽样方法与样本量的确定依据，不可仅以“发放问卷回收”一笔带过。\n2. 自行开发的量表须",
+      "_card_name": "问卷调查法"
+    },
+    {
+      "id": "method_issue_close_rate",
+      "name": "问题关闭率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "问题关闭率分析是一种工程管理研究方法。统计沟通问题或项目问题的按期关闭比例，评价沟通闭环效果。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "问题关闭率分析"
+    },
+    {
+      "id": "method_issue_closed_loop",
+      "name": "问题闭环管理法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "communication_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "问题闭环管理法是一种工程管理研究方法。建立问题登记、分派、处理、验证、关闭的闭环机制，减少沟通遗漏。 - 工程项目管理中的项目沟通管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "问题闭环管理法"
+    },
+    {
+      "id": "method_suijiduizhao",
+      "name": "随机对照试验法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "advanced",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "随机对照试验法是一种可迁移到工程管理研究的跨学科方法，源自实验经济学 / 医学统计。将团队、项目或流程单元随机分为试点组和对照组，比较新机制实施后的指标差异，适合条件允许的小范围试点。 - 适用于工程项目管理中验证问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：实验经济学 / 医学统计 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从实验经济学 / 医学统计迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "随机对照试验法"
+    },
+    {
+      "id": "method_yinxingzhishi",
+      "name": "隐性知识萃取法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "cross_discipline",
+      "summary": "隐性知识萃取法是一种可迁移到工程管理研究的跨学科方法，源自知识管理。从资深项目成员经验、历史复盘和非正式做法中提炼难以文档化的判断规则，用于发现制度缺口和经验依赖问题。 - 适用于工程项目管理中发现问题环节，特别适合需要创新方法论视角的研究。\n- 来源领域：知识管理 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界，包括为何从知识管理迁移到工程管理研究。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "隐性知识萃取法"
+    },
+    {
+      "id": "method_req_baseline",
+      "name": "需求基线管理法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "requirements_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "需求基线管理法是一种工程管理研究方法。建立需求确认、冻结、变更和版本管理机制，防止需求随意变动。 - 工程项目管理中的项目范围管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "需求基线管理法"
+    },
+    {
+      "id": "method_req_confirm_timeliness",
+      "name": "需求确认及时率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "stakeholder_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "需求确认及时率分析是一种工程管理研究方法。评价相关方是否按时完成需求确认、评审和验收，验证期望管理效果。 - 工程项目管理中的项目相关方管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "需求确认及时率分析"
+    },
+    {
+      "id": "method_req_coverage",
+      "name": "需求覆盖率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "requirements_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "需求覆盖率分析是一种工程管理研究方法。统计需求被设计、开发、测试和验收覆盖的比例，验证范围管理完整性。 - 工程项目管理中的项目范围管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "需求覆盖率分析"
+    },
+    {
+      "id": "method_requirement_interview",
+      "name": "需求访谈法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "requirements_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "需求访谈法是一种工程管理研究方法。访谈客户、业务方、产品经理和项目团队，识别需求边界不清、需求遗漏、需求反复变更等范围问题。 - 工程项目管理中的项目范围管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "需求访谈法"
+    },
+    {
+      "id": "method_req_trace_matrix",
+      "name": "需求追踪矩阵分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "requirements_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "需求追踪矩阵分析法是一种工程管理研究方法。分析需求、设计、开发、测试和验收之间是否一一对应，发现需求断链、漏测和交付偏差问题。 - 工程项目管理中的项目范围管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "需求追踪矩阵分析法"
+    },
+    {
+      "id": "method_project_charter",
+      "name": "项目章程优化法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "项目章程优化法是一种工程管理研究方法。重新明确项目目标、范围边界、关键里程碑、职责权限和治理机制；适合用于提出整合管理优化方案。 - 工程项目管理中的项目整合管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "项目章程优化法"
+    },
+    {
+      "id": "method_pm_plan_integration",
+      "name": "项目管理计划集成法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "项目管理计划集成法是一种工程管理研究方法。将范围、进度、成本、质量、风险、沟通等子计划统一纳入整体计划，减少各计划之间的不一致；适合用于系统性改进章节。 - 工程项目管理中的项目整合管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "项目管理计划集成法"
+    },
+    {
+      "id": "method_budget_decompose",
+      "name": "预算分解法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "预算分解法是一种工程管理研究方法。将总预算分解到工作包、责任部门和时间阶段，便于成本责任落实。 - 工程项目管理中的项目成本管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "预算分解法"
+    },
+    {
+      "id": "method_budget_exec_rate",
+      "name": "预算执行率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "cost_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "预算执行率分析是一种工程管理研究方法。比较预算与实际支出匹配程度，判断预算控制是否改善。 - 工程项目管理中的项目成本管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "预算执行率分析"
+    },
+    {
+      "id": "method_early_warning_accuracy",
+      "name": "预警准确率分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "预警准确率分析是一种工程管理研究方法。评价风险预警是否能提前识别真实风险事件，适合有预警数据的项目。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "预警准确率分析"
+    },
+    {
+      "id": "method_risk_occurrence_rate",
+      "name": "风险发生率对比",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "风险发生率对比是一种工程管理研究方法。比较优化前后风险事件发生频率，评价风险识别与预防效果。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "风险发生率对比"
+    },
+    {
+      "id": "method_risk_response",
+      "name": "风险应对策略法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "风险应对策略法是一种工程管理研究方法。针对风险制定规避、转移、减轻、接受等应对策略，提高风险可控性。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "风险应对策略法"
+    },
+    {
+      "id": "method_risk_loss_analysis",
+      "name": "风险损失程度分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "风险损失程度分析是一种工程管理研究方法。比较风险造成的进度、成本或质量损失变化，验证风险应对有效性。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "风险损失程度分析"
+    },
+    {
+      "id": "method_risk_checklist",
+      "name": "风险清单法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "风险清单法是一种工程管理研究方法。系统梳理项目中可能影响目标实现的技术、进度、成本、质量、外部环境等风险。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "风险清单法"
+    },
+    {
+      "id": "method_risk_matrix",
+      "name": "风险矩阵法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "discover"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "风险矩阵法是一种工程管理研究方法。从发生概率和影响程度两个维度评估风险等级，识别重点风险。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "风险矩阵法"
+    },
+    {
+      "id": "method_risk_level_change",
+      "name": "风险等级变化分析",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "风险等级变化分析是一种工程管理研究方法。比较改进前后风险矩阵中的高风险数量和风险等级分布。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "风险等级变化分析"
+    },
+    {
+      "id": "method_risk_raci",
+      "name": "风险责任矩阵法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "风险责任矩阵法是一种工程管理研究方法。明确每项风险的责任人、监控人和处理机制，避免风险无人负责。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "风险责任矩阵法"
+    },
+    {
+      "id": "method_risk_closed_loop",
+      "name": "风险闭环管理法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "风险闭环管理法是一种工程管理研究方法。建立风险识别、评估、应对、监控、复盘的闭环流程，形成持续风险管理机制。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "风险闭环管理法"
+    },
+    {
+      "id": "method_risk_early_warning",
+      "name": "风险预警机制",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "risk_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "风险预警机制是一种工程管理研究方法。设置风险指标、阈值和触发条件，实现风险提前发现和及时处理。 - 工程项目管理中的项目风险管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "风险预警机制"
+    },
+    {
+      "id": "method_acceptance_criteria",
+      "name": "验收标准细化法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "requirements_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "builtin",
+      "summary": "验收标准细化法是一种工程管理研究方法。将模糊需求转化为可验证的验收标准，减少交付争议；适合软件、工程和服务项目。 - 工程项目管理中的项目范围管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。",
+      "_card_name": "验收标准细化法"
+    },
+    {
+      "id": "method_custom_abc分类法",
+      "name": "ABC分类法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [
+        "来自方法知识库"
+      ],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "method_card",
+      "domains": [
+        "quality_management"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "user_created",
+      "summary": "待补充。 待补充。",
+      "_card_name": "ABC分类法"
+    }
+  ]
+}

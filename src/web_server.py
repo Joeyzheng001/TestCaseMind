@@ -14,6 +14,7 @@ import hashlib
 import html
 import io
 import json
+import logging
 import mimetypes
 import os
 import re
@@ -24,6 +25,7 @@ import threading
 import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple
 
@@ -85,11 +87,33 @@ MAX_JSON_BODY_BYTES = 2 * 1024 * 1024
 MAX_MULTIPART_BODY_BYTES = 50 * 1024 * 1024
 
 
+# ── Logging ────────────────────────────────────────────────
+LOG_DIR = PROJECT_ROOT / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
+logger = logging.getLogger("thesismind")
+logger.setLevel(logging.INFO)
+
+_fmt = logging.Formatter(
+    "%(asctime)s  %(levelname)-7s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+)
+_file_handler = RotatingFileHandler(
+    LOG_DIR / "server.log", maxBytes=5 * 1024 * 1024, backupCount=5, encoding="utf-8"
+)
+_file_handler.setFormatter(_fmt)
+logger.addHandler(_file_handler)
+
+_stdout_handler = logging.StreamHandler(sys.stdout)
+_stdout_handler.setFormatter(_fmt)
+logger.addHandler(_stdout_handler)
+
+
 class PayloadTooLarge(ValueError):
     """Raised when an HTTP request body exceeds endpoint limits."""
 
 
 def task_log(task_id: str, message: str) -> None:
+    logger.info("[task:%s] %s", task_id[:8] if task_id else "-", message)
     with TASK_LOCK:
         task = TASKS.get(task_id)
         if not task:
@@ -3861,7 +3885,7 @@ def _create_method_card(
         result = build_cards()
         rebuild_ok = result.get("status") == "ok"
     except Exception as exc:
-        print(f"[_create_method_card] build_cards failed: {exc}", file=sys.stderr)
+        logger.error("[_create_method_card] build_cards failed: %s", exc)
 
     if not rebuild_ok:
         # Direct insert fallback
@@ -3894,7 +3918,7 @@ def _create_method_card(
             conn.close()
             rebuild_ok = True
         except Exception as exc2:
-            print(f"[_create_method_card] direct insert also failed: {exc2}", file=sys.stderr)
+            logger.error("[_create_method_card] direct insert also failed: %s", exc2)
 
     if rebuild_ok:
         # Invalidate consistency engine cache
@@ -5917,9 +5941,9 @@ def _rebuild_cards_from_source() -> None:
     try:
         card_builder.METHODS_ROOT = PROJECT_ROOT / "cards" / "methods"
         result = card_builder.build_cards()
-        print(f"  卡片库重建: {result.get('cards_processed', 0)} 张卡片")
+        logger.info("卡片库重建: %s 张卡片", result.get('cards_processed', 0))
     except Exception as exc:
-        print(f"  卡片库重建失败: {exc}")
+        logger.error("卡片库重建失败: %s", exc)
     finally:
         card_builder.METHODS_ROOT = saved_methods_root
 
@@ -5940,12 +5964,12 @@ def main() -> None:
 
     ThreadingHTTPServer.allow_reuse_address = True
     server = ThreadingHTTPServer((args.host, args.port), ThesisMindHandler)
-    print(f"ThesisMind web app: http://{args.host}:{args.port}")
+    logger.info("ThesisMind web app: http://%s:%s", args.host, args.port)
 
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n关闭服务...")
+        logger.info("服务关闭")
 
 
 if __name__ == "__main__":

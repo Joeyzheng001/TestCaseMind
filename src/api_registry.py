@@ -131,12 +131,16 @@ OUTLINE_TASK_KIND = "outline"
 KB_INIT_TASK_KIND = "knowledge_base_init"
 CITATION_GENERATE_TASK_KIND = "citation_generate"
 PAPER_PIPELINE_TASK_KIND = "paper_pipeline"
+SCAN_VERIFY_TASK_KIND = "scan_verify_citations"
+PROPOSAL_TASK_KIND = "proposal"
 
 TASK_PERMISSION_BY_KIND = {
     OUTLINE_TASK_KIND: "outline",
     KB_INIT_TASK_KIND: "init_kb",
     CITATION_GENERATE_TASK_KIND: "citations",
     PAPER_PIPELINE_TASK_KIND: "paper_manager",
+    SCAN_VERIFY_TASK_KIND: "paper_manager",
+    PROPOSAL_TASK_KIND: "writing",
 }
 
 

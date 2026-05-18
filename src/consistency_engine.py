@@ -240,10 +240,12 @@ def merge_commitments_to_memory(
     if not isinstance(all_commitments, list):
         all_commitments = []
 
-    # 替换同章节的旧承诺
+    # 替换同小节的旧承诺（section 级别去重，支持同章内一致性校验）
+    full_key = section_key if section_key else chapter_key
     all_commitments = [
-        c for c in all_commitments if c.get("chapter") != chapter_key
+        c for c in all_commitments if c.get("section_key") != full_key
     ]
+    new_commitment["section_key"] = full_key
     if new_commitment["items"]:
         all_commitments.append(new_commitment)
 
@@ -298,43 +300,41 @@ def build_commitment_brief(memory: Dict[str, Any]) -> str:
     )
     lines = ["[一致性约束] 前文已做出的承诺，本章必须对齐："]
 
-    def _fmt_ch(ch: str) -> str:
-        """格式化章节标识，避免"第第一章章"重复。"""
-        if ch.startswith("第") and ch.endswith("章"):
-            return ch
-        if ch.startswith("第"):
-            return ch + "章"
-        return f"第{ch}章"
+    def _fmt_sk(sk: str) -> str:
+        """格式化小节标识，如 1.2.1。"""
+        if not sk:
+            return "?"
+        return sk
 
     quantities = summary.get("total_quantities", [])
     if quantities:
         lines.append("- 数量承诺：")
         for q in quantities:
-            lines.append(f"  {_fmt_ch(q.get('chapter', '?'))}: {q['raw']}")
+            lines.append(f"  小节{_fmt_sk(q.get('section_key', q.get('chapter', '?')))}: {q['raw']}")
 
     promised = summary.get("promised_methods", [])
     if promised:
-        lines.append("- 已承诺使用的方法（后续章节必须实际应用，不能只提名字）：")
+        lines.append("- 已承诺使用的方法（后续小节必须实际应用，不能只提名字）：")
         for m in promised:
-            lines.append(f"  {_fmt_ch(m.get('chapter', '?'))}: {m['method']}（明确承诺）")
+            lines.append(f"  小节{_fmt_sk(m.get('section_key', m.get('chapter', '?')))}: {m['method']}（明确承诺）")
 
     used = summary.get("used_methods", [])
     if used:
-        lines.append("- 前文已出现的方法（后续章节可复用，不作硬性要求）：")
+        lines.append("- 前文已出现的方法（后续小节可复用，不作硬性要求）：")
         for m in used:
-            lines.append(f"  {_fmt_ch(m.get('chapter', '?'))}: {m['method']}")
+            lines.append(f"  小节{_fmt_sk(m.get('section_key', m.get('chapter', '?')))}: {m['method']}")
 
     data_sources = summary.get("data_sources", [])
     if data_sources:
-        lines.append("- 数据承诺（后续章节的数据来源必须一致）：")
+        lines.append("- 数据承诺（后续小节的数据来源必须一致）：")
         for d in data_sources:
-            lines.append(f"  {_fmt_ch(d.get('chapter', '?'))}: {d['subject']}")
+            lines.append(f"  小节{_fmt_sk(d.get('section_key', d.get('chapter', '?')))}: {d['subject']}")
 
     definitions = summary.get("defined_terms", [])
     if definitions:
-        lines.append("- 术语定义承诺（后续章节必须使用相同定义）：")
+        lines.append("- 术语定义承诺（后续小节必须使用相同定义）：")
         for d in definitions:
-            lines.append(f"  {_fmt_ch(d.get('chapter', '?'))}: {d['term']} — {d['definition']}")
+            lines.append(f"  小节{_fmt_sk(d.get('section_key', d.get('chapter', '?')))}: {d['term']} — {d['definition']}")
 
     lines.append("")
     lines.append(
@@ -387,9 +387,9 @@ def _definition_similarity(def_a: str, def_b: str) -> float:
 
 
 def verify_commitments(
-    content: str, memory: Dict[str, Any], current_chapter: str
+    content: str, memory: Dict[str, Any], current_section_key: str
 ) -> Dict[str, Any]:
-    """检查当前章节内容是否覆盖了前文的承诺项。
+    """检查当前小节内容是否覆盖了前文的承诺项。
 
     承诺项分两级：
     - hard: 数量/数据/术语/明确承诺的方法 → 缺失即未闭合
@@ -403,8 +403,11 @@ def verify_commitments(
     definition_drifts: List[Dict[str, Any]] = []
 
     for chapter_block in commitments:
-        ch = chapter_block.get("chapter", "")
-        if ch == current_chapter:
+        sk = chapter_block.get("section_key", "")
+        # Skip self: exact match for section keys, prefix match for chapter keys
+        if sk == current_section_key:
+            continue
+        if sk.startswith(current_section_key + "."):
             continue
         for item in chapter_block.get("items", []):
             identifier = ""
@@ -444,7 +447,7 @@ def verify_commitments(
     return {
         "total_commitments": sum(
             len(c.get("items", [])) for c in commitments
-            if c.get("chapter") != current_chapter
+            if c.get("section_key") != current_section_key
         ),
         "resolved": len(resolved),
         "hard_unresolved": len(hard_unresolved),
@@ -456,27 +459,25 @@ def verify_commitments(
     }
 
 
-def build_unresolved_warning(memory: Dict[str, Any], current_chapter: str) -> str:
+def build_unresolved_warning(memory: Dict[str, Any], current_section_key: str) -> str:
     """生成未闭合承诺的警告文本。"""
     commitments: List[Dict[str, Any]] = memory.get("commitments", [])
     previous = [
-        c for c in commitments if c.get("chapter") != current_chapter
+        c for c in commitments
+        if c.get("section_key") != current_section_key
+        and not c.get("section_key", "").startswith(current_section_key + ".")
     ]
     if not previous:
         return ""
 
-    def _fmt_ch(ch: str) -> str:
-        if ch.startswith("第") and ch.endswith("章"):
-            return ch
-        if ch.startswith("第"):
-            return ch + "章"
-        return f"第{ch}章"
+    def _fmt_sk(sk: str) -> str:
+        return sk or "?"
 
-    # 收集所有前文章节的承诺项
+    # 收集所有前文的承诺项
     all_items = []
     for c in previous:
         for item in c.get("items", []):
-            all_items.append(f"  {_fmt_ch(c['chapter'])}: {item['raw']}")
+            all_items.append(f"  小节{_fmt_sk(c.get('section_key', '?'))}: {item['raw']}")
 
     if not all_items:
         return ""

@@ -97,7 +97,7 @@ def _set_run_font(run, font_name: str, size=None, bold=False):
     run.bold = bold
 
 
-def export_docx(outline: Dict[str, Any], drafts: Dict[str, str]) -> Path:
+def export_docx(outline: Dict[str, Any], drafts: Dict[str, str], citations: List[Dict[str, Any]] = None) -> Path:
     from docx import Document
     from docx.enum.text import WD_ALIGN_PARAGRAPH
     from docx.shared import Pt
@@ -143,6 +143,21 @@ def export_docx(outline: Dict[str, Any], drafts: Dict[str, str]) -> Path:
                 for run in paragraph.runs:
                     _set_run_font(run, "宋体", Pt(12))
 
+    # Append references
+    if citations:
+        ref_heading = document.add_heading("参考文献", level=1)
+        for run in ref_heading.runs:
+            _set_run_font(run, "黑体", bold=True)
+
+        for i, c in enumerate(citations):
+            formatted = c.get("formatted", "").strip()
+            if not formatted:
+                continue
+            para = document.add_paragraph(f"[{i+1}] {formatted}")
+            para.paragraph_format.line_spacing = 1.5
+            for run in para.runs:
+                _set_run_font(run, "宋体", Pt(10.5))
+
     document.save(path)
     return path
 
@@ -171,7 +186,7 @@ def _chinese_font_path() -> str:
     )
 
 
-def export_pdf(outline: Dict[str, Any], drafts: Dict[str, str]) -> Path:
+def export_pdf(outline: Dict[str, Any], drafts: Dict[str, str], citations: List[Dict[str, Any]] = None) -> Path:
     from fpdf import FPDF
 
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
@@ -221,6 +236,21 @@ def export_pdf(outline: Dict[str, Any], drafts: Dict[str, str]) -> Path:
                     continue
                 pdf.multi_cell(body_width, size * 1.55, para, align="L")
                 pdf.ln(1)
+
+    # Append references
+    if citations:
+        pdf.add_page()
+        pdf.set_font("CJK", "B", size=16)
+        pdf.multi_cell(body_width, 22, "参考文献", align="L")
+        pdf.ln(6)
+        pdf.set_font("CJK", "", size=9)
+        for i, c in enumerate(citations):
+            formatted = c.get("formatted", "").strip()
+            if not formatted:
+                continue
+            ref_line = f"[{i+1}] {formatted}"
+            pdf.multi_cell(body_width, 12, ref_line, align="L")
+            pdf.ln(1)
 
     pdf.output(path)
     return path

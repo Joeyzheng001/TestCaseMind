@@ -29,6 +29,12 @@ const state = {
   license: null,
 };
 
+// Per-subsection citation management state
+const citationPageState = {
+  activeDraftKey: null,
+  cardCache: {},
+};
+
 const DEFAULT_PROJECT_CONTEXT = `论文题目、研究方向、项目背景和论文思路请在「论文信息」页面自行填写。填写后生成的大纲和内容将更贴合你的实际研究。`;
 
 let _methodCatalogCache = null;
@@ -592,6 +598,8 @@ function resetWorkspaceView() {
   state.methodAssignments = { discover: new Set(), solve: new Set(), validate: new Set() };
   state.sectionCitations = {};
   state.paperCitations = [];
+  citationPageState.activeDraftKey = null;
+  citationPageState.cardCache = {};
   $("#svgPreview").innerHTML = "";
   $("#outlinePreview").innerHTML = "";
   $("#outlineLog").innerHTML = "";
@@ -689,6 +697,7 @@ async function loadConfig() {
   $("#providerInput").value = state.config.provider;
   $("#modelInput").value = state.config.model;
   $("#baseUrlInput").value = state.config.base_url || "";
+  $("#maxTokensInput").value = state.config.max_tokens || 4000;
   $("#apiKeyInput").placeholder = state.config.api_key_configured
     ? `已保存 ${state.config.api_key_preview}，留空不修改`
     : "请输入 API Key";
@@ -773,6 +782,10 @@ function updateLicenseUI() {
   const hasAdmin = features.includes("admin");
   const hasWorkflow = hasAll || features.includes("workflow");
   const hasAdvanced = hasAll || features.includes("advanced");
+  // Persist to state so gate checks in activeStep can access them
+  state.hasAdmin = hasAdmin;
+  state.hasAdvanced = hasAdvanced;
+  state.hasWorkflow = hasWorkflow;
 
   const advancedMenus = ["proposal", "ppt_proposal", "ppt_midterm", "ppt_defense"];
   const vipMenus = ["blind_review", "aigc_check", "aigc_reduce"];
@@ -1231,6 +1244,7 @@ async function saveConfig() {
       model: $("#modelInput").value.trim(),
       base_url: $("#baseUrlInput").value.trim(),
       api_key: $("#apiKeyInput").value.trim(),
+      max_tokens: parseInt($("#maxTokensInput").value) || 4000,
     }),
   });
   $("#apiKeyInput").value = "";
@@ -2046,6 +2060,85 @@ async function pollCitationTask(taskId, count) {
   setTimeout(() => pollCitationTask(taskId, count + 1), 1500);
 }
 
+// ── KB Init page citation generation ──
+
+function setKbCitationProgress(done, total, message = "") {
+  const box = $("#kbCitationProgress");
+  if (!box) return;
+  const percent = total ? Math.min(100, Math.max(0, Math.round((done / total) * 100))) : 0;
+  box.hidden = false;
+  const snail = $("#kbCitationSnail");
+  if (snail) snail.style.left = `calc(${percent}% - 18px)`;
+  const text = $("#kbCitationProgressText");
+  if (text) text.textContent = message || `正在生成引用 ${done}/${total}`;
+}
+
+function hideKbCitationProgress() {
+  const box = $("#kbCitationProgress");
+  if (box) box.hidden = true;
+}
+
+async function generateCitationsKb() {
+  const direction = selectedDirection();
+  const btn = $("#kbGenerateCitationsBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "生成中..."; }
+  $("#kbCitationStatus").textContent = "正在创建引用生成任务...";
+  const logEl = $("#kbCitationLog");
+  if (logEl) logEl.innerHTML = "";
+  try {
+    const expectedCount = Math.max(10, Math.min(150, Number(($("#kbCitationCount") && $("#kbCitationCount").value) || 100)));
+    const data = await api("/api/citations/generate", {
+      method: "POST",
+      body: JSON.stringify({
+        topic: $("#topicInput").value.trim(),
+        project_context: projectContextPayload(),
+        direction: direction.id,
+        direction_name: direction.name,
+        methods: selectedMethodNames(),
+        phase_methods: phaseMethodsPayload(),
+        expected_count: expectedCount,
+      }),
+    });
+    if (!data.task_id) throw new Error("未能创建引用生成任务");
+    pollCitationTaskKb(data.task_id, 0);
+  } catch (error) {
+    $("#kbCitationStatus").textContent = `引用生成失败：${error.message}`;
+    if (btn) { btn.disabled = false; btn.textContent = "AI生成引用"; }
+  }
+}
+
+async function pollCitationTaskKb(taskId, count) {
+  const data = await api(`/api/tasks/${taskId}`);
+  $("#kbCitationStatus").textContent = `${data.message || data.status} · ${Math.max(count, 1)} 次检查`;
+  renderTaskLog(data.logs || [], "#kbCitationLog");
+
+  const progress = data.progress || 0;
+  setKbCitationProgress(progress, 100, data.message || "正在生成引用...");
+
+  if (data.status === "done") {
+    const result = data.result || {};
+    state.citations = result.citations || [];
+    state.localCitations = result.local_citations || [];
+    state.llmCitations = result.llm_citations || [];
+    $("#kbCitationStatus").textContent = `${result.message || "引用已生成"} · 方向 ${result.direction_count || 0} 条 + 方法 ${result.local_count - (result.direction_count || 0)} 条 + LLM ${result.llm_count || 0} 条`;
+    setKbCitationProgress(100, 100, "引用生成完成");
+    setTimeout(hideKbCitationProgress, 4000);
+    const genBtn = $("#kbGenerateCitationsBtn");
+    if (genBtn) { genBtn.disabled = false; genBtn.textContent = "重新生成"; }
+    return;
+  }
+
+  if (data.status === "error") {
+    $("#kbCitationStatus").textContent = `引用生成失败：${data.message || "未知错误"}`;
+    hideKbCitationProgress();
+    const failBtn = $("#kbGenerateCitationsBtn");
+    if (failBtn) { failBtn.disabled = false; failBtn.textContent = "重试"; }
+    return;
+  }
+
+  setTimeout(() => pollCitationTaskKb(taskId, count + 1), 1500);
+}
+
 async function pollClassifyTask(taskId, count, btn) {
   const data = await api(`/api/tasks/${taskId}`);
   setCitationProgress(data.progress || 0, 100, data.message || "正在LLM分类...");
@@ -2374,6 +2467,10 @@ async function generateChapterSubsections(button) {
   await saveOutlineState();
   renderOutline();
   renderWritingList();
+  if (data.fallback) {
+    const chTitle = chapterDisplayTitle(data.chapter);
+    alert(`⚠️ 第${data.chapter.number}章「${chTitle}」三级目录 LLM 生成失败，已使用本地模板兜底。\n\n建议手动编辑三级标题后重新生成该章。`);
+  }
 }
 
 async function generateAllSubsectionsSerial() {
@@ -2401,6 +2498,9 @@ async function generateAllSubsectionsSerial() {
     renderOutline();
     renderWritingList();
     await saveOutlineState(`已生成 ${index + 1}/${state.outline.chapters.length} 章三级目录`);
+    if (data.fallback) {
+      $("#outlineStatus").textContent = `⚠️ 第${data.chapter.number}章 LLM 生成失败，已使用模板兜底——请手动重新生成该章`;
+    }
     setSubsectionProgress(index + 1, state.outline.chapters.length, `已完成 ${index + 1}/${state.outline.chapters.length}`);
   }
   button.disabled = false;
@@ -2526,45 +2626,62 @@ async function loadSectionCitations() {
 }
 
 function buildCitationSelector(draftKey) {
-  const items = state.citations || [];
+  const allItems = state.citations || [];
+  const selectedIds = state.sectionCitations[draftKey] || [];
   const box = document.createElement("div");
   box.setAttribute("data-cite-group", draftKey);
   box.style.cssText = "margin:4px 0 8px;border:1px solid #d8dde3;border-radius:4px;font-size:12px;";
 
-  if (!items.length) {
+  if (!allItems.length) {
     box.style.cssText += "padding:4px 8px;background:#fff3cd;font-size:11px;color:#856404;";
     box.textContent = "暂无引用文献，请先在引用页面添加引用清单";
     return box;
   }
 
-  const selected = state.sectionCitations[draftKey] || [];
+  // Build global index map: card_id -> 1-based number
+  const globalIdx = {};
+  allItems.forEach((item, i) => {
+    globalIdx[item.card_id] = i + 1;
+    if (item.id) globalIdx[item.id] = i + 1;
+  });
+
+  // Resolve selectedIds to global items with their global indices
+  const scopedItems = [];
+  for (const cid of selectedIds) {
+    const idx = allItems.findIndex(c => c.card_id === cid || c.id === cid);
+    if (idx >= 0) {
+      scopedItems.push({ item: allItems[idx], globalNum: idx + 1 });
+    }
+  }
+
+  if (!scopedItems.length) {
+    box.style.cssText += "padding:4px 8px;background:#fff8e1;font-size:11px;color:#946d00;";
+    box.textContent = "本小节尚未分配引用，请先到引用页面为当前小节添加引用";
+    return box;
+  }
 
   const head = document.createElement("div");
   head.className = "cite-head";
   head.style.cssText = "padding:4px 10px;color:#5a7a9a;background:#f6f9fc;font-size:12px;border-bottom:1px solid #eef2f6;";
-  head.textContent = `引用文献（已选 ${selected.length}/${items.length}）`;
-  const headSmall = document.createElement("small");
-  headSmall.style.cssText = "color:#999;font-weight:normal;";
-  headSmall.textContent = " — 勾选后扩写时引用";
-  head.appendChild(headSmall);
+  head.textContent = `引用文献（本小节已选 ${scopedItems.length} 条，全局共 ${allItems.length} 条）`;
   box.appendChild(head);
 
   const grid = document.createElement("div");
   grid.style.cssText = "padding:4px 10px;max-height:200px;overflow-y:auto;";
 
-  items.forEach((item, i) => {
+  scopedItems.forEach(({ item, globalNum }) => {
     const row = document.createElement("div");
     row.className = "cite-row";
     row.style.cssText = "display:flex;align-items:flex-start;gap:6px;padding:2px 0;min-width:0;";
 
     const cb = document.createElement("input");
     cb.type = "checkbox";
-    cb.value = item.id || `_idx_${i}`;
+    cb.value = item.card_id || item.id || `_idx_${globalNum - 1}`;
+    cb.checked = true;
     cb.setAttribute("data-cite-draft", draftKey);
     cb.style.cssText = "flex-shrink:0;margin-top:2px;width:13px;height:13px;";
-    if (selected.includes(item.id) || selected.includes(i)) cb.checked = true;
 
-    const text = `[${i + 1}] ${item.formatted || item.title || "(无)"}`;
+    const text = `[${globalNum}] ${item.formatted || item.title || "(无)"}`;
     const span = document.createElement("span");
     span.style.cssText = "flex:1;min-width:0;font-size:11px;color:#333;line-height:1.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
     span.textContent = text;
@@ -2599,16 +2716,12 @@ function bindCitationEvents() {
       });
       state.sectionCitations[draftKey] = ids;
       saveSectionCitations();
+      // Re-render the selector to reflect scoped view with global numbering
       const box = document.querySelector(`[data-cite-group="${CSS.escape(draftKey)}"]`);
       if (box) {
-        const head = box.querySelector(".cite-head");
-        if (head) {
-          head.textContent = `引用文献（已选 ${ids.length}/${(state.citations || []).length}）`;
-          const s = document.createElement("small");
-          s.style.cssText = "color:#999;font-weight:normal;";
-          s.textContent = " — 勾选后扩写时引用";
-          head.appendChild(s);
-        }
+        const newBox = buildCitationSelector(draftKey);
+        box.replaceWith(newBox);
+        bindCitationEvents();
       }
     });
   });
@@ -2654,6 +2767,12 @@ async function runWritingAction(button) {
   const citationIds = state.sectionCitations[draftKey] || [];
   const citationIndices = citationIds
     .map(id => {
+      // Try card_id match first (new format)
+      if (typeof id === "string" && !id.startsWith("_idx_")) {
+        const cardIdx = state.citations.findIndex(c => c.card_id === id);
+        if (cardIdx >= 0) return cardIdx;
+      }
+      // Fall back to legacy resolution
       const idx = state.citations.findIndex(c => c.id === id);
       if (idx >= 0) return idx;
       if (typeof id === "number") return id;
@@ -2672,6 +2791,7 @@ async function runWritingAction(button) {
         section: target,
         methods: selectedMethodNames(),
         section_prompt: sectionPrompt,
+        citations: state.citations,
         citation_indices: citationIndices,
       }),
     });
@@ -2776,7 +2896,7 @@ async function loadWorkspaceValue(key, defaultVal) {
 async function loadWorkspace() {
   const data = await api("/api/workspace");
   state.drafts = data.drafts || {};
-  state.citations = data.citations || [];
+  // state.citations is now managed via sectionCitations + aggregateSubsectionCitations()
   if (data.project_context) {
     const appr = $("#projectApproachInput");
     const bg = $("#projectBgInput");
@@ -3321,238 +3441,6 @@ async function runRiskScan() {
   }
 }
 
-// ============ 我是白痴模式 ============
-
-let snakeGame = null;
-
-function initSnakeGame() {
-  const canvas = $("#snakeCanvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const grid = 14;
-  let snake = [{x: 10, y: 10}];
-  let dir = {x: 1, y: 0};
-  let food = spawnFood();
-  let score = 0;
-  let running = true;
-  let timer = null;
-
-  function spawnFood() {
-    while (true) {
-      const f = {x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20)};
-      if (!snake.some((s) => s.x === f.x && s.y === f.y)) return f;
-    }
-  }
-
-  function step() {
-    if (!running) return;
-    const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
-    if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 || snake.some((s) => s.x === head.x && s.y === head.y)) {
-      running = false;
-      clearInterval(timer);
-      ctx.fillStyle = "#f87171"; ctx.font = "bold 18px monospace"; ctx.textAlign = "center";
-      ctx.fillText("GAME OVER", 140, 140);
-      ctx.fillStyle = "#aaa"; ctx.font = "12px monospace";
-      ctx.fillText(`得分: ${score} · 按R重来`, 140, 162);
-      return;
-    }
-    snake.unshift(head);
-    if (head.x === food.x && head.y === food.y) { score++; food = spawnFood(); }
-    else { snake.pop(); }
-    draw();
-  }
-
-  function draw() {
-    ctx.fillStyle = "#0f0f23"; ctx.fillRect(0, 0, 280, 280);
-    ctx.fillStyle = "#fbbf24"; ctx.fillRect(food.x * grid + 1, food.y * grid + 1, grid - 2, grid - 2);
-    snake.forEach((s, i) => {
-      ctx.fillStyle = i === 0 ? "#10b981" : "#34d399";
-      ctx.fillRect(s.x * grid + 1, s.y * grid + 1, grid - 2, grid - 2);
-    });
-    ctx.fillStyle = "#666"; ctx.font = "11px monospace"; ctx.textAlign = "right";
-    ctx.fillText(`🍎 ${score}`, 272, 16);
-  }
-
-  function setDir(dx, dy) {
-    if (dir.x === -dx && dir.y === -dy) return;
-    dir = {x: dx, y: dy};
-  }
-
-  document.addEventListener("keydown", function snakeKey(e) {
-    if ($("#idiotModal").hidden) return;
-    const map = {ArrowUp: [0,-1], ArrowDown: [0,1], ArrowLeft: [-1,0], ArrowRight: [1,0]};
-    const d = map[e.key];
-    if (d) { e.preventDefault(); setDir(d[0], d[1]); }
-    if (e.key === "r" || e.key === "R") { clearInterval(timer); snakeGame = initSnakeGame(); }
-  });
-
-  draw();
-  timer = setInterval(step, 100);
-  return { stop: () => { running = false; clearInterval(timer); } };
-}
-
-function openIdiotMode() {
-  const pageLabels = { setup:"基本配置", paper_info:"论文信息", methods:"方法论选择", framework:"研究框架", outline:"章节大纲", citations:"引用生成", writing:"章节写作", blind_review:"盲审检查", proposal:"开题报告", ppt_proposal:"开题PPT制作", ppt_midterm:"中期PPT制作", ppt_defense:"答辩PPT制作", table_generator:"表格生成器", aigc_check:"AIGC率评估", aigc_reduce:"AIGC降重", license:"许可证管理" };
-  const step = $$(".step.active")[0]?.dataset?.step || "setup";
-  $("#idiotPageLabel").textContent = pageLabels[step] || "当前页";
-  $("#idiotStatus").textContent = "正在分析需要完成的步骤...";
-  $("#idiotBar").style.width = "0%";
-  $("#idiotModal").hidden = false;
-  if (snakeGame) snakeGame.stop();
-  snakeGame = initSnakeGame();
-  runIdiotFlow(step);
-}
-
-function closeIdiotMode() {
-  $("#idiotModal").hidden = true;
-  if (snakeGame) { snakeGame.stop(); snakeGame = null; }
-}
-
-function idiotProgress(text, pct) {
-  $("#idiotStatus").textContent = text;
-  $("#idiotBar").style.width = Math.min(100, Math.max(0, pct)) + "%";
-}
-
-async function runIdiotFlow(step) {
-  try {
-    switch (step) {
-      case "setup": {
-        idiotProgress("正在测试模型连接...", 10);
-        await delay(600);
-        try { await testConnection(); } catch (e) {}
-        idiotProgress("正在保存配置...", 50);
-        await delay(400);
-        try { saveConfig(); } catch (e) {}
-        idiotProgress("配置完成！", 100);
-        break;
-      }
-      case "paper_info": {
-        idiotProgress("正在检查项目信息...", 10);
-        await delay(500);
-        // Auto-fill topic if empty
-        const topicEl = $("#topicInput");
-        if (topicEl && !topicEl.value.trim()) {
-          topicEl.value = (state.currentProjectId && state.currentProjectId !== "default")
-            ? state.currentProjectId : "";
-        }
-        // Init KB if not done
-        const kbBtn = $("#initKnowledgeBase");
-        if (kbBtn && !kbBtn.disabled) {
-          idiotProgress("正在初始化知识库...", 30);
-          try { await initKnowledgeBase(); } catch (e) {}
-        }
-        // Sync project context
-        try { await syncProjectContext(); } catch (e) {}
-        idiotProgress("论文信息设置完成！", 100);
-        break;
-      }
-      case "methods": {
-        idiotProgress("正在分析最佳方法论组合...", 15);
-        await delay(600);
-        // Select recommended methods for each phase
-        for (const phase of ["discover", "solve", "validate"]) {
-          state.activeMethodPhase = phase;
-          const dirId = (state.currentDirection || {}).id || "";
-          const phaseMethods = state.methods.filter((m) =>
-            (m.phases || []).includes(phase) && (m.domains || []).includes(dirId)
-          );
-          phaseMethods.slice(0, 3).forEach((m) => {
-            if (!state.methodAssignments[phase]) state.methodAssignments[phase] = new Set();
-            state.methodAssignments[phase].add(m.id);
-          });
-          // Also add a couple general methods
-          const general = state.methods.filter((m) =>
-            (m.phases || []).includes(phase) && !(m.domains || []).includes(dirId)
-          );
-          general.slice(0, 1).forEach((m) => state.methodAssignments[phase].add(m.id));
-        }
-        state.activeMethodPhase = "discover";
-        renderMethods();
-        idiotProgress("已自动选择推荐方法论（可手动调整）", 70);
-        await delay(600);
-        // Save methods
-        try {
-          await api("/api/methods/save", {
-            method: "POST",
-            body: JSON.stringify({ methods: selectedMethodNames(), phase_methods: phaseMethodsPayload() }),
-          });
-        } catch (e) {}
-        idiotProgress("方法论配置完成！点击下一步继续", 100);
-        break;
-      }
-      case "framework": {
-        idiotProgress("正在生成研究框架图...", 20);
-        await delay(400);
-        try { await generateFramework(); } catch (e) { idiotProgress("框架生成失败，请手动操作", 0); return; }
-        idiotProgress("框架图已生成！", 100);
-        break;
-      }
-      case "outline": {
-        idiotProgress("正在生成章节大纲...", 20);
-        await delay(300);
-        try { await generateOutline(); } catch (e) { idiotProgress("大纲生成失败", 0); return; }
-        await delay(1500);
-        // Wait for outline task to complete
-        for (let i = 0; i < 20; i++) {
-          if (state.outline?.chapters?.length) break;
-          await delay(2000);
-        }
-        if (state.outline?.chapters?.length) {
-          idiotProgress("正在生成三级目录...", 60);
-          try { await generateAllSubsectionsSerial(); } catch (e) {}
-        }
-        idiotProgress("大纲生成完成！", 100);
-        break;
-      }
-      case "citations": {
-        idiotProgress("正在检索和生成引用...", 20);
-        await delay(300);
-        try { await generateCitations(); } catch (e) { idiotProgress("引用生成失败", 0); return; }
-        await delay(2000);
-        idiotProgress("引用生成完成！", 100);
-        break;
-      }
-      case "writing": {
-        idiotProgress("即将串行扩写所有章节...", 10);
-        await delay(500);
-        try { await completeAllWritingSerial(); } catch (e) { idiotProgress("写作过程出错", 0); return; }
-        idiotProgress("所有章节扩写已启动！请耐心等待完成", 80);
-        break;
-      }
-      case "blind_review": {
-        idiotProgress("正在扫描盲审风险...", 20);
-        await delay(300);
-        try { await runRiskScan(); } catch (e) { idiotProgress("扫描失败", 0); return; }
-        idiotProgress("盲审风险扫描完成！", 100);
-        break;
-      }
-      case "proposal": {
-        idiotProgress("正在生成开题报告...", 20);
-        await delay(300);
-        try { await generateProposal(); } catch (e) { idiotProgress("生成失败", 0); return; }
-        idiotProgress("开题报告生成完成！", 100);
-        break;
-      }
-    }
-  } catch (e) {
-    idiotProgress(`出错：${e.message}`, 0);
-  }
-}
-
-function delay(ms) { return new Promise((r) => setTimeout(r, ms)); }
-
-function injectIdiotButtons() {
-  $$(".page .head-actions").forEach((actions) => {
-    if (actions.querySelector(".btn-idiot")) return;
-    const btn = document.createElement("button");
-    btn.className = "btn-idiot";
-    btn.textContent = "🤡 我是白痴";
-    btn.title = "让AI自动完成本页所有操作";
-    btn.addEventListener("click", openIdiotMode);
-    actions.appendChild(btn);
-  });
-}
-
 // Re-inject buttons after dynamic page rendering
 const _origActiveStep = activeStep;
 activeStep = function(id) {
@@ -3579,13 +3467,13 @@ activeStep = function(id) {
       } else if (vipMenus.includes(id) && !hasAll) {
         blocked = true;
         message = "此功能需要VIP版许可证";
-      } else if ((id === "kb_init") && !hasAdmin) {
+      } else if ((id === "kb_init") && !state.hasAdmin) {
         blocked = true;
         message = "此功能需要管理员许可证";
-      } else if (advancedMenus.includes(id) && !hasAdvanced) {
+      } else if (advancedMenus.includes(id) && !state.hasAdvanced) {
         blocked = true;
         message = "此功能需要畅想版及以上许可证";
-      } else if (!hasWorkflow) {
+      } else if (!state.hasWorkflow) {
         blocked = true;
         message = "此功能需要基础版及以上许可证";
       }
@@ -3631,16 +3519,35 @@ activeStep = function(id) {
       if (vipChev) vipChev.textContent = "▸";
     }
   }
-  setTimeout(injectIdiotButtons, 300);
+  // Admin submenu
+  const adminSubIds = ["kb_init", "paper_manager", "license"];
+  const adminSub = $("#adminSub");
+  const adminToggle = $("#adminToggle");
+  const adminChev = $("#adminChevron");
+  if (adminSub && adminToggle) {
+    if (adminSubIds.includes(id)) {
+      adminSub.hidden = false;
+      adminToggle.classList.add("active");
+      if (adminChev) adminChev.textContent = "▾";
+    } else {
+      adminSub.hidden = true;
+      adminToggle.classList.remove("active");
+      if (adminChev) adminChev.textContent = "▸";
+    }
+  }
 };
 
 function bindEvents() {
+  // Sidebar collapse toggle
+  if ($("#sidebarCollapseBtn")) {
+    $("#sidebarCollapseBtn").addEventListener("click", () => {
+      $$(".shell")[0]?.classList.toggle("sidebar-collapsed");
+    });
+  }
+
   $$("[data-next]").forEach((button) => {
     button.addEventListener("click", async () => {
       if ($$(".step.active")[0]?.dataset?.step === "paper_info") await saveProjectContext();
-      if (button.dataset.next === "writing") {
-        await bridgeChecklistToCitations();
-      }
       activeStep(button.dataset.next);
     });
   });
@@ -3707,11 +3614,6 @@ function bindEvents() {
   $("#closeNewProjectModal").addEventListener("click", closeNewProjectModal);
   $("#cancelNewProject").addEventListener("click", closeNewProjectModal);
   $("#confirmNewProject").addEventListener("click", createNewProject);
-  $("#closeIdiotModal").addEventListener("click", closeIdiotMode);
-  $("#closeIdiotDone").addEventListener("click", closeIdiotMode);
-  $("#idiotModal").addEventListener("click", (event) => {
-    if (event.target.id === "idiotModal") closeIdiotMode();
-  });
   $("#newProjectTopic").addEventListener("keydown", (event) => {
     if (event.key === "Enter") createNewProject();
     if (event.key === "Escape") closeNewProjectModal();
@@ -3720,6 +3622,7 @@ function bindEvents() {
   $("#saveConfig").addEventListener("click", saveConfig);
   $("#providerInput").addEventListener("change", onProviderChange);
   if ($("#initKnowledgeBase")) $("#initKnowledgeBase").addEventListener("click", initKnowledgeBase);
+  if ($("#kbGenerateCitationsBtn")) $("#kbGenerateCitationsBtn").addEventListener("click", generateCitationsKb);
   if ($("#continueLast")) $("#continueLast").addEventListener("click", () => activeStep("writing"));
   if ($("#servicesToggle")) $("#servicesToggle").addEventListener("click", () => {
     const sub = $("#servicesSub");
@@ -3744,6 +3647,19 @@ function bindEvents() {
       if (chev) chev.textContent = "▸";
     } else {
       $("#vipToggle").classList.add("active");
+      if (chev) chev.textContent = "▾";
+    }
+  });
+  if ($("#adminToggle")) $("#adminToggle").addEventListener("click", () => {
+    const sub = $("#adminSub");
+    const chev = $("#adminChevron");
+    if (!sub) return;
+    sub.hidden = !sub.hidden;
+    if (sub.hidden) {
+      $("#adminToggle").classList.remove("active");
+      if (chev) chev.textContent = "▸";
+    } else {
+      $("#adminToggle").classList.add("active");
       if (chev) chev.textContent = "▾";
     }
   });
@@ -3985,18 +3901,8 @@ function bindEvents() {
   $("#generatePptProposal").addEventListener("click", () => generatePpt("proposal"));
   $("#generatePptMidterm").addEventListener("click", () => generatePpt("midterm"));
   $("#generatePptDefense").addEventListener("click", () => generatePpt("defense"));
-  $("#snakeFloat").addEventListener("click", openSnakeGame);
   if ($("#runAigcCheck")) $("#runAigcCheck").addEventListener("click", runAigcCheck);
   if ($("#runAigcReduce")) $("#runAigcReduce").addEventListener("click", runAigcReduce);
-}
-
-function openSnakeGame() {
-  $("#idiotPageLabel").textContent = "摸鱼时间";
-  $("#idiotStatus").textContent = "方向键控制 · 吃到食物得分 · 按R重来";
-  $("#idiotBar").style.width = "0%";
-  $("#idiotModal").hidden = false;
-  if (snakeGame) snakeGame.stop();
-  snakeGame = initSnakeGame();
 }
 
 function startGenProgress(statusEl, barId) {
@@ -4040,7 +3946,7 @@ async function generateProposal() {
   const status = $("#proposalStatus");
   const result = $("#proposalResult");
   button.disabled = true;
-  button.textContent = "生成中…";
+  button.textContent = "排队中…";
   status.textContent = "";
   result.innerHTML = "";
   injectGenProgress("proposalResult", "genProposalBar");
@@ -4064,26 +3970,56 @@ async function generateProposal() {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    if (prog) prog.finish();
 
-    if (data.status === "ok") {
-      result.innerHTML = renderProposalMarkdown(data.content);
-      status.textContent = "生成完成";
-      $("#exportProposalMd").hidden = false;
-      $("#exportProposalDocx").hidden = false;
-      state._proposalContent = data.content;
-    } else {
-      result.innerHTML = `<div class="empty-state">生成失败：${escapeHtml(data.message || "未知错误")}</div>`;
-      status.textContent = "生成失败";
+    if (data.status !== "queued" || !data.task_id) {
+      if (prog) prog.finish();
+      result.innerHTML = `<div class="empty-state">启动失败：${escapeHtml(data.message || "未知错误")}</div>`;
+      status.textContent = "启动失败";
+      button.disabled = false;
+      button.textContent = "生成开题报告";
+      return;
     }
+
+    pollProposalTask(data.task_id, button, status, result, prog);
   } catch (error) {
     if (prog) prog.finish();
     result.innerHTML = `<div class="empty-state">请求失败：${escapeHtml(error.message)}</div>`;
     status.textContent = "请求失败";
-  } finally {
+    button.disabled = false;
+    button.textContent = "生成开题报告";
+  }
+}
+
+async function pollProposalTask(taskId, button, status, result, prog) {
+  const data = await api(`/api/tasks/${taskId}`);
+  const pct = data.progress || 0;
+  const msg = data.message || "";
+  const bar = $("#genProposalBar");
+  if (bar) bar.style.width = Math.min(95, pct) + "%";
+  button.textContent = `生成中 ${pct}%…`;
+  status.textContent = msg;
+
+  if (data.status === "done") {
+    if (prog) prog.finish();
+    const content = (data.result || {}).content || "";
+    state._proposalContent = content;
+    result.innerHTML = renderProposalMarkdown(content);
+    status.textContent = "生成完成（分三部分生成）";
+    $("#exportProposalMd").hidden = false;
+    $("#exportProposalDocx").hidden = false;
     button.disabled = false;
     button.textContent = "重新生成";
+    return;
   }
+  if (data.status === "error") {
+    if (prog) prog.finish();
+    result.innerHTML = `<div class="empty-state">生成失败：${escapeHtml(data.message || "未知错误")}</div>`;
+    status.textContent = "生成失败";
+    button.disabled = false;
+    button.textContent = "重新生成";
+    return;
+  }
+  setTimeout(() => pollProposalTask(taskId, button, status, result, prog), 2000);
 }
 
 function renderProposalMarkdown(md) {
@@ -4411,6 +4347,270 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// ============ Per-Subsection Citation Management ============
+
+function buildCitationOutline() {
+  const chapters = state.outline?.chapters || [];
+  const targetChapters = chapters.slice(0, 2);
+
+  return targetChapters.map((chapter, chapterIndex) => {
+    const sectionsHtml = (chapter.sections || []).map((section) => {
+      const subsections = (section.subsections || []);
+      if (!subsections.length) return "";
+      const subsHtml = subsections.map((subsection) => {
+        const draftKey = draftKeyFor(chapter, section, subsection);
+        const checklist = state.sectionCitations[draftKey] || [];
+        const title = cleanHeadingTitle(subsection.title, subsection.number);
+        const isActive = citationPageState.activeDraftKey === draftKey;
+        return `
+          <div class="cite-outline-row${isActive ? " active" : ""}" data-draft-key="${draftKey}">
+            <span class="cite-outline-num">${subsection.number}</span>
+            <span class="cite-outline-title" title="${escHtml(title)}">${escHtml(title)}</span>
+            <span class="cite-outline-count">${checklist.length} 篇引用</span>
+            <button class="ghost cite-manage-btn" data-draft-key="${draftKey}">引用管理</button>
+          </div>`;
+      }).join("");
+      return `
+        <div class="cite-outline-section">
+          <div class="cite-outline-section-head">
+            <strong>${section.number} ${escHtml(cleanHeadingTitle(section.title, section.number))}</strong>
+          </div>
+          ${subsHtml}
+        </div>`;
+    }).join("");
+
+    return `
+      <div class="cite-outline-chapter">
+        <h3>${chapterDisplayTitle(chapter)}</h3>
+        ${sectionsHtml}
+      </div>`;
+  }).join("");
+}
+
+function renderCitationOutline() {
+  const el = $("#citationOutline");
+  if (!el) return;
+  el.innerHTML = buildCitationOutline();
+
+  $$(".cite-manage-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const draftKey = btn.dataset.draftKey;
+      openCitationSubsectionPanel(draftKey);
+    });
+  });
+}
+
+function openCitationSubsectionPanel(draftKey) {
+  citationPageState.activeDraftKey = draftKey;
+
+  // Resolve subsection display name
+  let displayName = draftKey;
+  const chapters = state.outline?.chapters || [];
+  for (const ch of chapters) {
+    for (const sec of (ch.sections || [])) {
+      for (const sub of (sec.subsections || [])) {
+        if (draftKeyFor(ch, sec, sub) === draftKey) {
+          displayName = `${sub.number} ${cleanHeadingTitle(sub.title, sub.number)}`;
+        }
+      }
+    }
+  }
+
+  const titleEl = $("#citationSubsectionTitle");
+  if (titleEl) titleEl.textContent = `引用管理：${displayName}`;
+  const panel = $("#citationSubsectionPanel");
+  if (panel) panel.hidden = false;
+
+  // Reset library offset
+  libState.offset = 0;
+
+  renderScopedChecklist(draftKey);
+  loadLibrary();
+  renderCitationOutline();
+
+  // Scroll panel into view
+  panel?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function closeCitationSubsectionPanel() {
+  citationPageState.activeDraftKey = null;
+  const panel = $("#citationSubsectionPanel");
+  if (panel) panel.hidden = true;
+  renderCitationOutline();
+}
+
+function renderScopedChecklist(draftKey) {
+  const tbody = $("#scopedChecklistTableBody");
+  const emptyEl = $("#scopedChecklistEmpty");
+  const countEl = $("#scopedChecklistCount");
+  if (!tbody) return;
+
+  const cardIds = state.sectionCitations[draftKey] || [];
+  if (countEl) countEl.textContent = `(已选 ${cardIds.length} 条)`;
+
+  if (!cardIds.length) {
+    tbody.innerHTML = "";
+    if (emptyEl) emptyEl.hidden = false;
+    return;
+  }
+  if (emptyEl) emptyEl.hidden = true;
+
+  const cards = cardIds.map((cid) => {
+    let card = citationPageState.cardCache[cid];
+    if (!card) {
+      card = libState.library.find((c) => c.card_id === cid);
+    }
+    return card || { card_id: cid, formatted: `[未找到: ${cid}]`, ref_type: "", year: "", verified: 0, quality_score: 0 };
+  });
+
+  tbody.innerHTML = cards.map((c) => {
+    const labels = { "1": "已确认", "-2": "格式问题", "-1": "虚假", "0": "未校验" };
+    const cls = { "1": "lib-status-ok", "-2": "lib-status-warn", "-1": "lib-status-fake", "0": "lib-status-pend" };
+    const v = String(c.verified || 0);
+    const score = (c.quality_score || 0).toFixed(1);
+    return `<tr>
+      <td class="lib-cell-text" title="${escHtml(c.formatted || "")}">${escHtml((c.formatted || c.title || "").substring(0, 200))}</td>
+      <td>${escHtml(c.ref_type || "")}</td>
+      <td>${escHtml(String(c.year || ""))}</td>
+      <td><span class="${cls[v] || ""}">${labels[v] || "未校验"} ${score}</span></td>
+      <td class="lib-actions-cell">
+        <button class="ghost scoped-remove-btn" data-draft-key="${escHtml(draftKey)}" data-cardid="${escHtml(c.card_id)}">移除</button>
+      </td>
+    </tr>`;
+  }).join("");
+
+  tbody.querySelectorAll(".scoped-remove-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      removeFromSubsectionChecklist(btn.dataset.draftKey, btn.dataset.cardid);
+    });
+  });
+}
+
+function addToSubsectionChecklist(cardId) {
+  const draftKey = citationPageState.activeDraftKey;
+  if (!draftKey) return;
+
+  const card = libState.library.find((c) => c.card_id === cardId);
+  if (!card) return;
+
+  citationPageState.cardCache[cardId] = { ...card };
+
+  if (!state.sectionCitations[draftKey]) {
+    state.sectionCitations[draftKey] = [];
+  }
+  if (state.sectionCitations[draftKey].includes(cardId)) return;
+
+  state.sectionCitations[draftKey].push(cardId);
+  renderScopedChecklist(draftKey);
+  renderLibrary();
+  renderCitationOutline();
+  saveSectionCitations();
+}
+
+function removeFromSubsectionChecklist(draftKey, cardId) {
+  if (!state.sectionCitations[draftKey]) return;
+  state.sectionCitations[draftKey] = state.sectionCitations[draftKey].filter((id) => id !== cardId);
+  renderScopedChecklist(draftKey);
+  renderLibrary();
+  renderCitationOutline();
+  saveSectionCitations();
+}
+
+function clearSubsectionChecklist() {
+  const draftKey = citationPageState.activeDraftKey;
+  if (!draftKey) return;
+  state.sectionCitations[draftKey] = [];
+  renderScopedChecklist(draftKey);
+  renderLibrary();
+  renderCitationOutline();
+  saveSectionCitations();
+}
+
+async function aggregateSubsectionCitations() {
+  const allCardIds = new Set();
+  for (const cardIds of Object.values(state.sectionCitations)) {
+    if (Array.isArray(cardIds)) {
+      for (const cid of cardIds) allCardIds.add(cid);
+    }
+  }
+
+  if (!allCardIds.size) {
+    state.citations = [];
+    return;
+  }
+
+  // Check how many card_ids are unresolved
+  let unresolved = 0;
+  for (const cid of allCardIds) {
+    if (!citationPageState.cardCache[cid] && !libState.library.find((c) => c.card_id === cid)) {
+      unresolved++;
+    }
+  }
+
+  // Fetch all needed card_ids in one batch request (fast path)
+  if (unresolved > 0) {
+    try {
+      const data = await api("/api/citation-cards/batch", {
+        method: "POST",
+        body: JSON.stringify({ card_ids: [...allCardIds] }),
+      });
+      const cards = data.cards || [];
+      for (const c of cards) {
+        citationPageState.cardCache[c.card_id] = c;
+        unresolved--;
+      }
+    } catch (e) { /* ignore */ }
+    // Fallback: paginate if batch endpoint failed to resolve all
+    if (unresolved > 0) {
+      try {
+        const pageSize = 200;
+        let offset = 0;
+        let total = pageSize;
+        while (unresolved > 0 && offset < total) {
+          const data = await api(`/api/citation-cards?limit=${pageSize}&offset=${offset}`);
+          const cards = data.cards || [];
+          if (!cards.length) break;
+          total = data.total || 0;
+          for (const c of cards) {
+            if (allCardIds.has(c.card_id) && !citationPageState.cardCache[c.card_id]) {
+              citationPageState.cardCache[c.card_id] = c;
+              unresolved--;
+            }
+          }
+          offset += pageSize;
+        }
+      } catch (e) { /* ignore */ }
+    }
+  }
+
+  const uniqueCards = [];
+  for (const cid of allCardIds) {
+    let card = citationPageState.cardCache[cid];
+    if (!card) {
+      card = libState.library.find((c) => c.card_id === cid);
+    }
+    if (card) {
+      uniqueCards.push({
+        card_id: card.card_id,
+        formatted: card.formatted,
+        title: card.title,
+        authors: card.authors,
+        year: card.year,
+        type: card.ref_type || card.type,
+      });
+    }
+  }
+
+  state.citations = uniqueCards;
+
+  try {
+    await api("/api/citations/save", {
+      method: "POST",
+      body: JSON.stringify({ citations: state.citations }),
+    });
+  } catch (e) { /* ignore */ }
+}
+
 // ============ Citation Library + Checklist ============
 const libState = {
   library: [], total: 0, offset: 0, limit: 50,
@@ -4418,6 +4618,7 @@ const libState = {
   checklistIds: new Set(),
   customMethods: [],
   libDirection: "", libMethod: "", libKeyword: "", libVerified: "", libMinQuality: "0",
+  libType: "", libYear: "",
 };
 
 function libActiveFilters() {
@@ -4426,6 +4627,8 @@ function libActiveFilters() {
     method: libState.libMethod,
     keyword: libState.libKeyword,
     verified: libState.libVerified,
+    ref_type: libState.libType,
+    year: libState.libYear,
     min_quality: libState.libMinQuality,
     limit: libState.limit,
   };
@@ -4437,7 +4640,7 @@ async function loadLibrary() {
   const f = libActiveFilters();
   const params = new URLSearchParams({
     direction: f.direction, method: f.method, keyword: f.keyword,
-    verified: f.verified, min_quality: f.min_quality,
+    verified: f.verified, ref_type: f.ref_type, year: f.year, min_quality: f.min_quality,
     offset: String(libState.offset), limit: String(f.limit),
   });
   try {
@@ -4465,7 +4668,10 @@ function renderLibrary() {
     const cls = {'1':'lib-status-ok', '-2':'lib-status-warn', '-1':'lib-status-fake', '0':'lib-status-pend'};
     const v = String(c.verified || 0);
     const score = (c.quality_score || 0).toFixed(1);
-    const inChecklist = libState.checklistIds.has(c.card_id);
+    const activeDraftKey = citationPageState.activeDraftKey;
+    const inChecklist = activeDraftKey
+      ? (state.sectionCitations[activeDraftKey] || []).includes(c.card_id)
+      : libState.checklistIds.has(c.card_id);
     return `<tr>
       <td class="lib-cell-text" title="${escHtml(c.formatted || '')}">${escHtml((c.formatted || c.title || '').substring(0, 200))}</td>
       <td>${escHtml(c.ref_type || '')}</td>
@@ -4482,7 +4688,13 @@ function renderLibrary() {
   }).join("");
 
   tbody.querySelectorAll(".lib-add-btn").forEach(btn => {
-    btn.addEventListener("click", () => addToChecklist(btn.dataset.cardid));
+    btn.addEventListener("click", () => {
+      if (citationPageState.activeDraftKey) {
+        addToSubsectionChecklist(btn.dataset.cardid);
+      } else {
+        addToChecklist(btn.dataset.cardid);
+      }
+    });
   });
   tbody.querySelectorAll(".lib-edit-btn").forEach(btn => {
     btn.addEventListener("click", () => openLibraryEdit(btn.dataset.cardid));
@@ -4576,14 +4788,34 @@ async function saveChecklist() {
 async function loadChecklist() {
   try {
     const data = await api("/api/workspace");
-    const saved = data.paper_citations || [];
-    if (!saved.length) { renderChecklist(); return; }
-    libState.checklist = saved;
-    libState.checklistIds = new Set(saved.map(c => c.card_id));
-    renderChecklist();
+    const saved = data.section_citations || {};
+
+    // Load per-subsection checklists
+    const hasSectionData = Object.keys(saved).length > 0;
+    if (hasSectionData) {
+      for (const [draftKey, cardIds] of Object.entries(saved)) {
+        if (Array.isArray(cardIds) && cardIds.length) {
+          state.sectionCitations[draftKey] = [...cardIds];
+        }
+      }
+    }
+
+    // Migrate legacy global checklist if no per-subsection data exists
+    const legacy = data.paper_citations || [];
+    if (!hasSectionData && legacy.length) {
+      const legacyIds = legacy.map((c) => c.card_id).filter(Boolean);
+      if (legacyIds.length) {
+        state.sectionCitations["_legacy"] = legacyIds;
+        legacy.forEach((c) => {
+          if (c.card_id) citationPageState.cardCache[c.card_id] = c;
+        });
+      }
+    }
+
+    renderCitationOutline();
   } catch (e) {
     console.error("loadChecklist", e);
-    renderChecklist();
+    renderCitationOutline();
   }
 }
 
@@ -4649,11 +4881,94 @@ function openLibraryEdit(cardId) {
   };
 }
 
+// --- Add citation modal (paste-and-parse) ---
+
+function openAddCitationModal() {
+  $("#cmAddCitationText").value = "";
+  $("#cmAddCitationModal").hidden = false;
+  $("#cmAddCitationText").focus();
+}
+
+function closeAddCitationModal() {
+  $("#cmAddCitationModal").hidden = true;
+}
+
+async function submitAddCitation() {
+  const rawText = $("#cmAddCitationText").value.trim();
+  if (!rawText) {
+    alert("请粘贴引用文本");
+    return;
+  }
+  const btn = $("#cmAddCitationSubmit");
+  btn.disabled = true;
+  btn.textContent = "解析中...";
+  try {
+    const data = await api("/api/citation-cards/parse-and-add", {
+      method: "POST",
+      body: JSON.stringify({ raw_text: rawText }),
+    });
+    if (data.status === "ok") {
+      alert("成功添加 " + data.inserted + " 条引用");
+      closeAddCitationModal();
+      loadLibrary();
+    } else {
+      alert("解析失败：" + (data.message || "未知错误"));
+    }
+  } catch (e) {
+    alert("请求失败：" + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = "解析并添加";
+}
+
+// --- Scan-verify task polling ---
+
+async function pollScanVerifyTask(taskId, count, btn) {
+  const data = await api(`/api/tasks/${taskId}`);
+  setCitationProgress(data.progress || 0, 100, data.message || "正在扫描校验...");
+
+  if (data.status === "done") {
+    const r = data.result || {};
+    $("#citationStatus").textContent =
+      "扫描完成：确认 " + (r.confirmed || 0) + " 条，虚假 " + (r.fake || 0) + " 条，格式问题 " + (r.format_error || 0) + " 条";
+    setCitationProgress(100, 100, "扫描校验完成");
+    setTimeout(hideCitationProgress, 8000);
+    if (btn) { btn.disabled = false; btn.textContent = "扫描校验"; }
+    loadLibrary();
+    return;
+  }
+  if (data.status === "error") {
+    $("#citationStatus").textContent = "扫描失败：" + (data.message || "未知错误");
+    hideCitationProgress();
+    if (btn) { btn.disabled = false; btn.textContent = "扫描校验"; }
+    return;
+  }
+  setTimeout(() => pollScanVerifyTask(taskId, count + 1, btn), 2000);
+}
+
 // --- Event bindings ---
 
 function bindLibraryEvents() {
   // Generate citations
   $("#generateCitationsBtn")?.addEventListener("click", () => generateCitations());
+
+  // Add citation (paste-and-parse)
+  $("#addCitationBtn")?.addEventListener("click", () => openAddCitationModal());
+
+  // Scan-verify unverified citations
+  $("#scanVerifyBtn")?.addEventListener("click", async () => {
+    const btn = $("#scanVerifyBtn");
+    btn.disabled = true;
+    btn.textContent = "扫描中...";
+    try {
+      const data = await api("/api/citation-cards/scan-verify", { method: "POST", body: "{}" });
+      pollScanVerifyTask(data.task_id, 0, btn);
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = "扫描校验";
+      alert("扫描任务创建失败：" + e.message);
+    }
+  });
 
   // LLM classify
   $("#classifyCitationsBtn")?.addEventListener("click", async () => {
@@ -4670,17 +4985,20 @@ function bindLibraryEvents() {
     }
   });
 
-  // Checklist: clear all
-  $("#checklistClearAll").addEventListener("click", () => {
-    if (!libState.checklist.length) return;
-    if (confirm("确定清空整个引用清单？已选中的引用将返回引用库。")) {
-      libState.checklist = [];
-      libState.checklistIds.clear();
-      renderChecklist();
-      renderLibrary();
-      saveChecklist();
-    }
-  });
+  // Checklist: clear all (legacy, now handled per-subsection via #scopedClearChecklist)
+  const checklistClearAll = $("#checklistClearAll");
+  if (checklistClearAll) {
+    checklistClearAll.addEventListener("click", () => {
+      if (!libState.checklist.length) return;
+      if (confirm("确定清空整个引用清单？已选中的引用将返回引用库。")) {
+        libState.checklist = [];
+        libState.checklistIds.clear();
+        renderChecklist();
+        renderLibrary();
+        saveChecklist();
+      }
+    });
+  }
 
   // Library filters — store values, don't auto-query
   $("#libDirectionFilter").addEventListener("change", () => {
@@ -4711,6 +5029,14 @@ function bindLibraryEvents() {
 
   $("#libVerifiedFilter").addEventListener("change", () => {
     libState.libVerified = $("#libVerifiedFilter").value;
+  });
+
+  $("#libTypeFilter").addEventListener("change", () => {
+    libState.libType = $("#libTypeFilter").value;
+  });
+
+  $("#libYearFilter").addEventListener("input", () => {
+    libState.libYear = $("#libYearFilter").value.trim();
   });
 
   $("#libMinQuality").addEventListener("change", () => {
@@ -4745,6 +5071,17 @@ function bindLibraryEvents() {
   $("#cmEditModal").addEventListener("click", (e) => {
     if (e.target === $("#cmEditModal")) $("#cmEditModal").hidden = true;
   });
+
+  // Add citation modal controls
+  $("#cmAddCitationClose").addEventListener("click", closeAddCitationModal);
+  $("#cmAddCitationCancel").addEventListener("click", closeAddCitationModal);
+  $("#cmAddCitationSubmit").addEventListener("click", submitAddCitation);
+  $("#cmAddCitationModal").addEventListener("click", (e) => {
+    if (e.target === $("#cmAddCitationModal")) closeAddCitationModal();
+  });
+  $("#cmAddCitationText").addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeAddCitationModal();
+  });
 }
 
 // Override: load library when entering citations page
@@ -4754,12 +5091,19 @@ activeStep = function(id) {
   if (id === "citations") {
     populateDirectionDropdown();
     populateMethodDropdown();
-    loadChecklist();
+    loadChecklist().then(() => {
+      renderCitationOutline();
+      // Wire scoped panel events
+      const closeBtn = $("#citationSubsectionClose");
+      if (closeBtn) closeBtn.onclick = closeCitationSubsectionPanel;
+      const clearBtn = $("#scopedClearChecklist");
+      if (clearBtn) clearBtn.onclick = clearSubsectionChecklist;
+    });
     loadLibrary();
   }
   if (id === "writing" && state.outline) {
-    loadCitationsFromWorkspace().then(() => {
-      loadSectionCitations().then(() => renderWritingList());
+    loadSectionCitations().then(() => {
+      aggregateSubsectionCitations().then(() => renderWritingList());
     });
   }
 };
@@ -4781,7 +5125,6 @@ async function init() {
   await loadMethods();
   await loadWorkspace();
   window._saveFramework = saveFrameworkToWorkspace;
-  injectIdiotButtons();
 }
 
 init().catch((error) => {

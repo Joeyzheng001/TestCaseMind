@@ -499,7 +499,11 @@ def _card_row_to_dict(row: Any) -> Dict[str, Any]:
     d = dict(row)
     for field in ["methods_json", "theory_tags_json"]:
         val = d.get(field)
-        d[field.replace("_json", "")] = json.loads(val) if isinstance(val, str) else (val or [])
+        parsed = json.loads(val) if isinstance(val, str) else (val or [])
+        # Filter out internal sentinel for "LLM checked, no methods found"
+        if isinstance(parsed, list):
+            parsed = [x for x in parsed if x != "__none__"]
+        d[field.replace("_json", "")] = parsed
         del d[field]
     return d
 
@@ -557,3 +561,283 @@ def get_citations_without_methods(
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
     return rows
+
+
+def get_citations_without_methods_enriched(
+    limit: int = 500, offset: int = 0, db_path: Optional[Path] = None
+) -> List[Dict[str, Any]]:
+    """Get unclassified citation cards with enriched data for LLM classification.
+
+    Includes: card_id, title, direction_label, source_section, paper_abstract.
+    """
+    path = db_path or PAPER_DB_PATH
+    if not path.exists():
+        return []
+    conn = sqlite3.connect(str(path))
+    conn.row_factory = sqlite3.Row
+    cur = conn.execute(
+        "SELECT cc.card_id, cc.title, cc.direction_label, cc.source_section, "
+        "p.abstract AS paper_abstract "
+        "FROM citation_cards cc "
+        "LEFT JOIN papers p ON cc.paper_id = p.doc_id "
+        "WHERE cc.methods_json = '[]' OR cc.methods_json IS NULL "
+        "ORDER BY cc.quality_score DESC "
+        "LIMIT ? OFFSET ?",
+        (limit, offset),
+    )
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return rows
+
+
+# ── Method keyword index for pre-filtering ──
+
+_method_keyword_index: Optional[Dict[str, List[str]]] = None
+_direction_method_candidates: Optional[Dict[str, List[Dict[str, Any]]]] = None
+
+
+def _load_method_registry() -> List[Dict[str, Any]]:
+    """Load all methods from cards.sqlite3 with their names, aliases, domains, phases."""
+    cards_db = PROJECT_ROOT / "knowledge_base" / "cards.sqlite3"
+    if not cards_db.exists():
+        return []
+    conn = sqlite3.connect(str(cards_db))
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(
+        "SELECT name, aliases, domains, phase, category FROM cards"
+    ).fetchall()
+    conn.close()
+    result = []
+    for r in rows:
+        result.append({
+            "name": r["name"],
+            "aliases": json.loads(r["aliases"]) if r["aliases"] else [],
+            "domains": json.loads(r["domains"]) if r["domains"] else [],
+            "phase": json.loads(r["phase"]) if r["phase"] else [],
+            "category": r["category"],
+        })
+    return result
+
+
+def build_method_keyword_index() -> Dict[str, List[str]]:
+    """Build a keyword→method mapping from the method registry.
+
+    Each method name and its aliases become search keywords.
+    Returns {method_name: [keyword1, keyword2, ...]}.
+    """
+    global _method_keyword_index
+    if _method_keyword_index is not None:
+        return _method_keyword_index
+
+    methods = _load_method_registry()
+    index: Dict[str, List[str]] = {}
+    for m in methods:
+        keywords = [m["name"]]
+        for alias in m["aliases"]:
+            if alias and alias != m["name"]:
+                keywords.append(alias)
+        # Generate short-form keywords by stripping common suffixes
+        for kw in list(keywords):
+            for suffix in ["循环", "管理", "方法", "法", "分析", "模型", "体系",
+                           "理论", "技术", "工具", "图", "表", "矩阵", "评价",
+                           "评估", "优化", "设计"]:
+                if kw.endswith(suffix) and len(kw) > len(suffix) + 1:
+                    short = kw[:-len(suffix)]
+                    if short not in keywords:
+                        keywords.append(short)
+        index[m["name"]] = keywords
+    _method_keyword_index = index
+    return index
+
+
+def build_direction_method_candidates() -> Dict[str, List[Dict[str, Any]]]:
+    """Build direction→relevant methods mapping for LLM prompt context.
+
+    Returns {direction_id: [{name, aliases, phase}, ...]}.
+    """
+    global _direction_method_candidates
+    if _direction_method_candidates is not None:
+        return _direction_method_candidates
+
+    methods = _load_method_registry()
+    candidates: Dict[str, List[Dict[str, Any]]] = {}
+
+    # Domain-specific methods
+    for m in methods:
+        for domain in m["domains"]:
+            if domain not in candidates:
+                candidates[domain] = []
+            candidates[domain].append({
+                "name": m["name"],
+                "aliases": m["aliases"][:3] if m["aliases"] else [],
+                "phase": m["phase"],
+            })
+
+    # Universal methods (no domain) — add to all directions
+    universal = []
+    for m in methods:
+        if not m["domains"]:
+            universal.append({
+                "name": m["name"],
+                "aliases": m["aliases"][:3] if m["aliases"] else [],
+                "phase": m["phase"],
+            })
+
+    for domain in list(candidates.keys()):
+        candidates[domain].extend(universal)
+
+    _direction_method_candidates = candidates
+    return candidates
+
+
+def _direction_label_to_id(label: str) -> Optional[str]:
+    """Convert Chinese direction label to domain ID."""
+    for k, v in DIRECTION_MAP.items():
+        if v == label:
+            return k
+    return None
+
+
+def get_method_candidates_for_direction(direction_label: str) -> List[Dict[str, Any]]:
+    """Get relevant method candidates for a given research direction."""
+    candidates = build_direction_method_candidates()
+    domain_id = _direction_label_to_id(direction_label)
+    if domain_id and domain_id in candidates:
+        return candidates[domain_id]
+    # Fallback: return all universal methods + all domain methods
+    all_methods = []
+    seen = set()
+    for domain_methods in candidates.values():
+        for m in domain_methods:
+            if m["name"] not in seen:
+                seen.add(m["name"])
+                all_methods.append(m)
+    return all_methods
+
+
+def keyword_prefilter_citations(
+    max_cards: Optional[int] = None, db_path: Optional[Path] = None
+) -> int:
+    """Fast keyword-based pre-classification of citation titles.
+
+    Scans unclassified citation titles against method name keywords.
+    If a title contains a method keyword, the method is assigned directly
+    without LLM call.
+
+    Returns: number of citations classified.
+    """
+    path = db_path or PAPER_DB_PATH
+    if not path.exists():
+        return 0
+
+    index = build_method_keyword_index()
+    if not index:
+        return 0
+
+    conn = sqlite3.connect(str(path))
+    conn.row_factory = sqlite3.Row
+
+    # Get unclassified citations
+    limit_clause = f"LIMIT {int(max_cards)}" if max_cards else ""
+    rows = conn.execute(
+        f"SELECT card_id, title FROM citation_cards "
+        f"WHERE methods_json = '[]' OR methods_json IS NULL "
+        f"ORDER BY quality_score DESC "
+        f"{limit_clause}"
+    ).fetchall()
+
+    total_updated = 0
+    for row in rows:
+        card_id = row["card_id"]
+        title = row["title"] or ""
+        matched_methods = []
+
+        for method_name, keywords in index.items():
+            for kw in keywords:
+                if len(kw) >= 3 and kw in title:
+                    matched_methods.append(method_name)
+                    break  # one keyword match per method is enough
+
+        if matched_methods:
+            # Deduplicate: remove shorter names if longer variant matched
+            # e.g., if both "六西格玛DMAIC" and "六西格玛管理" matched, keep both
+            conn.execute(
+                "UPDATE citation_cards SET methods_json = ? WHERE card_id = ?",
+                (json.dumps(matched_methods, ensure_ascii=False), card_id),
+            )
+            total_updated += 1
+
+    conn.commit()
+    conn.close()
+    return total_updated
+
+
+# ── Scan-verify helpers ──
+
+def count_unverified_citations(db_path: Optional[Path] = None) -> int:
+    """Count citation cards where verified = 0."""
+    path = db_path or PAPER_DB_PATH
+    if not path.exists():
+        return 0
+    conn = sqlite3.connect(str(path))
+    count = conn.execute(
+        "SELECT COUNT(*) FROM citation_cards WHERE verified = 0"
+    ).fetchone()[0]
+    conn.close()
+    return count
+
+
+def get_unverified_citations_rich(
+    limit: int = 100, offset: int = 0, db_path: Optional[Path] = None
+) -> List[Dict[str, Any]]:
+    """Fetch unverified citation cards with all fields needed for LLM scan-verify."""
+    path = db_path or PAPER_DB_PATH
+    if not path.exists():
+        return []
+    conn = sqlite3.connect(str(path))
+    conn.row_factory = sqlite3.Row
+    cur = conn.execute(
+        "SELECT card_id, formatted, title, authors, year, ref_type, language, "
+        "direction_id, direction_label, source_section, source_paper_title "
+        "FROM citation_cards "
+        "WHERE verified = 0 "
+        "ORDER BY quality_score DESC "
+        "LIMIT ? OFFSET ?",
+        (limit, offset),
+    )
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return rows
+
+
+def update_card_verified(
+    card_id: str,
+    verified: int,
+    verification_note: str = "",
+    methods: Optional[List[str]] = None,
+    theories: Optional[List[str]] = None,
+    direction_id: str = "",
+    direction_label: str = "",
+    db_path: Optional[Path] = None,
+) -> None:
+    """Atomically update verification status, methods, theories, and direction."""
+    path = db_path or PAPER_DB_PATH
+    if not path.exists():
+        return
+    conn = sqlite3.connect(str(path))
+    conn.execute(
+        "UPDATE citation_cards SET verified = ?, verification_note = ?, "
+        "methods_json = ?, theory_tags_json = ?, direction_id = ?, direction_label = ? "
+        "WHERE card_id = ?",
+        (
+            verified,
+            verification_note,
+            json.dumps(methods or [], ensure_ascii=False),
+            json.dumps(theories or [], ensure_ascii=False),
+            direction_id,
+            direction_label,
+            card_id,
+        ),
+    )
+    conn.commit()
+    conn.close()

@@ -5,12 +5,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ThesisMind 论文辅助工作台</title>
-  <link rel="stylesheet" href="/styles.css?v=28" />
+  <link rel="stylesheet" href="/styles.css?v=32" />
 </head>
 
 <body>
   <main class="shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="收起菜单">◂</button>
       <div class="brand">
         <img class="brand-mark" src="/logo.png" alt="ThesisMind" />
         <div>
@@ -43,10 +44,13 @@
         <button class="step sub-item" data-step="aigc_check">AIGC率评估</button>
         <button class="step sub-item" data-step="aigc_reduce">AIGC降重</button>
       </nav>
-      <nav class="steps" aria-label="管理工具">
-        <button class="step" data-step="kb_init"><span>📚</span>知识库初始化</button>
-        <button class="step" data-step="paper_manager"><span>📄</span>论文管理</button>
-        <button class="step" data-step="license"><span>🔑</span>许可证管理</button>
+      <nav class="steps" aria-label="管理">
+        <button class="step admin-toggle" id="adminToggle"><span>10</span>管理员权限 <span class="chevron" id="adminChevron">▸</span></button>
+      </nav>
+      <nav class="services-sub" id="adminSub" hidden>
+        <button class="step sub-item" data-step="kb_init">知识库初始化</button>
+        <button class="step sub-item" data-step="paper_manager">论文管理</button>
+        <button class="step sub-item" data-step="license">许可证管理</button>
       </nav>
       <div class="license-badge" id="licenseBadge" title="点击管理许可证">
         <span class="license-dot" id="licenseDot"></span>
@@ -88,6 +92,10 @@
           <label class="field">
             <span>Base URL</span>
             <input id="baseUrlInput" placeholder="例如 https://api.deepseek.com/anthropic" />
+          </label>
+          <label class="field" style="max-width:200px">
+            <span>Max Tokens（输出上限）</span>
+            <input id="maxTokensInput" type="number" min="500" max="16000" step="500" value="4000" />
           </label>
           <label class="field">
             <span>API Key</span>
@@ -273,13 +281,17 @@
       <section class="panel page" id="citations">
         <div class="page-head compact">
           <div>
-            <p class="eyebrow">引用清单与引用库</p>
-            <h2>从引用库中选取论文参考文献</h2>
+            <p class="eyebrow">引用生成</p>
+            <h2>按小节管理引用文献</h2>
           </div>
-          <span class="save-tip" id="citationStatus"></span>
+          <div class="head-actions">
+            <button class="primary" id="generateCitationsBtn">AI生成引用</button>
+            <button class="primary" id="addCitationBtn">添加引用</button>
+            <button class="ghost" id="classifyCitationsBtn">LLM分类</button>
+            <button class="ghost" id="scanVerifyBtn">扫描校验</button>
+            <span class="save-tip" id="citationStatus"></span>
+          </div>
         </div>
-
-        <!-- Hidden generation infrastructure (used by idiot flow) -->
         <div id="citationProgress" class="serial-progress" hidden>
           <div class="snail-track">
             <div class="snail" id="citationSnailRunner" aria-hidden="true">
@@ -293,102 +305,129 @@
         <div id="citationLog" class="task-log" hidden></div>
         <div id="citationList" class="citation-list" hidden></div>
 
-        <!-- ===== TOP: 引用清单 ===== -->
-        <div class="library-section" id="checklistSection">
-          <div class="library-head">
-            <h3>&#x1F4CB; 引用清单 <span id="checklistCount"></span></h3>
-            <div class="library-actions">
-              <button class="primary" id="generateCitationsBtn">生成引用</button>
-              <button class="ghost" id="classifyCitationsBtn">LLM分类</button>
-              <button class="ghost" id="checklistClearAll">清空清单</button>
-            </div>
-          </div>
-          <div class="library-table-wrap">
-            <table class="library-table">
-              <thead>
-                <tr>
-                  <th>引用内容</th>
-                  <th class="lib-col-type">类型</th>
-                  <th class="lib-col-year">年份</th>
-                  <th class="lib-col-status">状态/质量</th>
-                  <th class="lib-col-actions">操作</th>
-                </tr>
-              </thead>
-              <tbody id="checklistTableBody"></tbody>
-            </table>
-          </div>
-          <div class="library-empty" id="checklistEmpty">尚未添加引用。请从下方引用库中选择并添加。</div>
-        </div>
+        <!-- ===== TOP: 章节大纲树（仅第一、二章） ===== -->
+        <div class="citation-outline" id="citationOutline"></div>
 
-        <!-- ===== BOTTOM: 引用库 ===== -->
-        <div class="library-section" id="librarySection">
-          <div class="library-head">
-            <h3>&#x1F4DA; 引用库 <span id="libraryCount"></span></h3>
-            <div class="library-actions"></div>
+        <!-- ===== BOTTOM: 按小节的引用管理面板 ===== -->
+        <div class="citation-subsection-panel" id="citationSubsectionPanel" hidden>
+          <div class="citation-subsection-head">
+            <h3 id="citationSubsectionTitle">引用管理</h3>
+            <button class="ghost" id="citationSubsectionClose">收起</button>
           </div>
-          <div class="lib-toolbar">
-            <div class="lib-toolbar-row">
-              <label class="lib-field">
-                <span>研究方向</span>
-                <select id="libDirectionFilter">
-                  <option value="">全部</option>
-                </select>
-              </label>
-              <label class="lib-field">
-                <span>方法论</span>
-                <div class="lib-method-wrap">
-                  <select id="libMethodFilter">
+          <!-- Scoped checklist for active subsection -->
+          <div class="library-section" id="scopedChecklistSection">
+            <div class="library-head">
+              <h3>&#x1F4CB; 本小节引用清单 <span id="scopedChecklistCount"></span></h3>
+              <div class="library-actions">
+                <button class="ghost" id="scopedClearChecklist">清空此小节清单</button>
+              </div>
+            </div>
+            <div class="library-table-wrap">
+              <table class="library-table">
+                <thead>
+                  <tr>
+                    <th>引用内容</th>
+                    <th class="lib-col-type">类型</th>
+                    <th class="lib-col-year">年份</th>
+                    <th class="lib-col-status">状态/质量</th>
+                    <th class="lib-col-actions">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="scopedChecklistTableBody"></tbody>
+              </table>
+            </div>
+            <div class="library-empty" id="scopedChecklistEmpty">尚未为此小节添加引用。请从下方引用库中选择并添加。</div>
+          </div>
+          <!-- Library search (scoped context) -->
+          <div class="library-section" id="librarySection">
+            <div class="library-head">
+              <h3>&#x1F4DA; 引用库 <span id="libraryCount"></span></h3>
+              <div class="library-actions"></div>
+            </div>
+            <div class="lib-toolbar">
+              <div class="lib-toolbar-row">
+                <label class="lib-field">
+                  <span>研究方向</span>
+                  <select id="libDirectionFilter">
                     <option value="">全部</option>
                   </select>
-                  <input id="libCustomMethodInput" placeholder="自定义…" />
-                  <button class="ghost" id="libAddCustomMethod" type="button">+</button>
-                </div>
-              </label>
-              <label class="lib-field">
-                <span>关键词</span>
-                <input id="libKeywordFilter" placeholder="标题/正文…" />
-              </label>
-              <label class="lib-field lib-field-sm">
-                <span>校验状态</span>
-                <select id="libVerifiedFilter">
-                  <option value="">全部</option>
-                  <option value="1">已确认</option>
-                  <option value="-2">格式错误</option>
-                  <option value="-1">虚假</option>
-                  <option value="0">未校验</option>
-                </select>
-              </label>
-              <label class="lib-field lib-field-sm">
-                <span>最低质量</span>
-                <input id="libMinQuality" type="number" min="0" max="1" step="0.1" value="0" />
-              </label>
-              <label class="lib-field lib-field-sm">
-                <span>每页</span>
-                <select id="libLimit">
-                  <option value="20">20</option>
-                  <option value="50" selected>50</option>
-                  <option value="100">100</option>
-                </select>
-              </label>
-              <button class="primary" id="libSearch">查询</button>
+                </label>
+                <label class="lib-field">
+                  <span>方法论</span>
+                  <div class="lib-method-wrap">
+                    <select id="libMethodFilter">
+                      <option value="">全部</option>
+                    </select>
+                    <input id="libCustomMethodInput" placeholder="自定义…" />
+                    <button class="ghost" id="libAddCustomMethod" type="button">+</button>
+                  </div>
+                </label>
+                <label class="lib-field">
+                  <span>关键词</span>
+                  <input id="libKeywordFilter" placeholder="标题/正文…" />
+                </label>
+                <label class="lib-field lib-field-sm">
+                  <span>类型</span>
+                  <select id="libTypeFilter">
+                    <option value="">全部</option>
+                    <option value="期刊文章">期刊文章</option>
+                    <option value="学位论文">学位论文</option>
+                    <option value="会议论文">会议论文</option>
+                    <option value="图书">图书</option>
+                    <option value="标准">标准</option>
+                    <option value="报告">报告</option>
+                    <option value="专利">专利</option>
+                    <option value="报纸">报纸</option>
+                    <option value="电子资源">电子资源</option>
+                    <option value="其他">其他</option>
+                  </select>
+                </label>
+                <label class="lib-field lib-field-sm">
+                  <span>年份</span>
+                  <input id="libYearFilter" placeholder="如 2024" style="width:80px" />
+                </label>
+                <label class="lib-field lib-field-sm">
+                  <span>校验状态</span>
+                  <select id="libVerifiedFilter">
+                    <option value="">全部</option>
+                    <option value="1">已确认</option>
+                    <option value="-2">格式错误</option>
+                    <option value="-1">虚假</option>
+                    <option value="0">未校验</option>
+                  </select>
+                </label>
+                <label class="lib-field lib-field-sm">
+                  <span>最低质量</span>
+                  <input id="libMinQuality" type="number" min="0" max="1" step="0.1" value="0" />
+                </label>
+                <label class="lib-field lib-field-sm">
+                  <span>每页</span>
+                  <select id="libLimit">
+                    <option value="20">20</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                  </select>
+                </label>
+                <button class="primary" id="libSearch">查询</button>
+              </div>
             </div>
+            <div class="library-table-wrap">
+              <table class="library-table">
+                <thead>
+                  <tr>
+                    <th>引用内容</th>
+                    <th class="lib-col-type">类型</th>
+                    <th class="lib-col-year">年份</th>
+                    <th class="lib-col-status">状态/质量</th>
+                    <th class="lib-col-actions">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="libraryTableBody"></tbody>
+              </table>
+            </div>
+            <div class="cm-pagination" id="libraryPagination"></div>
+            <div class="library-empty" id="libraryEmpty" hidden>没有匹配的引用卡片</div>
           </div>
-          <div class="library-table-wrap">
-            <table class="library-table">
-              <thead>
-                <tr>
-                  <th>引用内容</th>
-                  <th class="lib-col-type">类型</th>
-                  <th class="lib-col-year">年份</th>
-                  <th class="lib-col-status">状态/质量</th>
-                  <th class="lib-col-actions">操作</th>
-                </tr>
-              </thead>
-              <tbody id="libraryTableBody"></tbody>
-            </table>
-          </div>
-          <div class="cm-pagination" id="libraryPagination"></div>
-          <div class="library-empty" id="libraryEmpty" hidden>没有匹配的引用卡片</div>
         </div>
 
         <div class="actions split">
@@ -618,6 +657,34 @@
           <span class="save-tip" id="initKbStatus"></span>
         </div>
         <div id="initKbLog" class="task-log"></div>
+
+        <hr style="margin: 32px 0 20px; border-color: var(--line);" />
+        <div class="page-head compact">
+          <div>
+            <p class="eyebrow">引用管理</p>
+            <h2>LLM 引用生成</h2>
+          </div>
+        </div>
+        <p class="hint">基于当前论文方向和方法论，自动检索并生成学术引用文献。</p>
+        <div class="actions">
+          <label class="lib-field">
+            <span>期望数量</span>
+            <input id="kbCitationCount" type="number" min="10" max="150" value="100" style="width:100px" />
+          </label>
+          <button class="primary" id="kbGenerateCitationsBtn">AI生成引用</button>
+          <span class="save-tip" id="kbCitationStatus"></span>
+        </div>
+        <div id="kbCitationProgress" class="serial-progress" hidden>
+          <div class="snail-track">
+            <div class="snail" id="kbCitationSnail" aria-hidden="true">
+              <span class="snail-shell"></span>
+              <span class="snail-body"></span>
+              <span class="snail-eye"></span>
+            </div>
+          </div>
+          <div class="serial-progress-text" id="kbCitationProgressText">准备生成引用</div>
+        </div>
+        <div id="kbCitationLog" class="task-log" hidden></div>
       </section>
 
       <section class="panel page" id="paper_manager">
@@ -784,33 +851,6 @@
     <button class="chat-bubble" id="chatBubble" title="打开论文助手" hidden>💬</button>
   </main>
 
-  <!-- 我是白痴模态框 -->
-  <div class="modal-backdrop" id="idiotModal" hidden>
-    <section class="modal idiot-modal">
-      <div class="modal-head">
-        <div>
-          <p class="eyebrow">🤡 自动模式</p>
-          <h3>正在帮你完成「<span id="idiotPageLabel">当前页</span>」的所有步骤</h3>
-        </div>
-        <button class="ghost icon-button" id="closeIdiotModal" type="button">×</button>
-      </div>
-      <div class="idiot-body">
-        <div class="idiot-progress">
-          <div class="idiot-status" id="idiotStatus">准备中...</div>
-          <div class="idiot-bar-track"><div class="idiot-bar-fill" id="idiotBar"></div></div>
-        </div>
-        <div class="idiot-game-area">
-          <p class="idiot-game-label">等待时来一局贪吃蛇 🐍</p>
-          <canvas id="snakeCanvas" width="280" height="280"></canvas>
-          <p class="idiot-game-hint">方向键控制 · 吃到食物得分</p>
-        </div>
-      </div>
-      <div class="actions split">
-        <button class="ghost" id="closeIdiotDone" type="button">关闭（任务继续后台运行）</button>
-      </div>
-    </section>
-  </div>
-
   <div class="modal-backdrop" id="tableModal" hidden>
     <section class="modal table-modal">
       <div class="modal-head">
@@ -922,8 +962,32 @@
     </section>
   </div>
 
-  <button class="snake-float" id="snakeFloat" title="等累了？来一局贪吃蛇 🐍">🐍</button>
-  <script src="/app.js?v=48" defer></script>
+  <!-- 添加引用模态框（粘贴解析） -->
+  <div class="modal-backdrop" id="cmAddCitationModal" hidden>
+    <section class="modal cm-add-citation-modal">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">添加引用</p>
+          <h3>粘贴引用文本自动解析</h3>
+        </div>
+        <button class="ghost icon-button" id="cmAddCitationClose" type="button">&times;</button>
+      </div>
+      <div class="form-grid">
+        <label class="field wide">
+          <span>引用文本（支持 GB/T 7714 / APA / MLA 等格式，多条用空行分隔）</span>
+          <textarea id="cmAddCitationText" rows="8" placeholder="粘贴完整引用文本..."></textarea>
+        </label>
+      </div>
+      <div class="actions split">
+        <span class="hint">支持多格式自动识别。多条引用请用空行分隔。</span>
+        <div>
+          <button class="ghost" id="cmAddCitationCancel" type="button">取消</button>
+          <button class="primary" id="cmAddCitationSubmit" type="button">解析并添加</button>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="/app.js?v=59" defer></script>
 </body>
 
 </html>

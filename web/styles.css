@@ -72,7 +72,50 @@ button {
   border-radius: 22px;
   overflow-y: auto;
   overflow-x: hidden;
+  transition: width 0.25s ease, padding 0.25s ease, border-radius 0.25s ease;
 }
+
+/* ── Sidebar collapse ── */
+
+.sidebar-collapse-btn {
+  position: absolute;
+  top: 18px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: transform 0.25s ease, right 0.25s ease;
+  padding: 0;
+  line-height: 1;
+}
+.sidebar-collapse-btn:hover { color: var(--text); border-color: var(--line-strong); }
+
+.shell.sidebar-collapsed { grid-template-columns: 50px minmax(0, 1fr); }
+.shell.sidebar-collapsed .sidebar {
+  padding: 20px 8px;
+  overflow: hidden;
+}
+.shell.sidebar-collapsed .sidebar-collapse-btn {
+  right: 12px;
+  transform: rotate(180deg);
+}
+.shell.sidebar-collapsed .brand,
+.shell.sidebar-collapsed .steps,
+.shell.sidebar-collapsed .services-sub,
+.shell.sidebar-collapsed .license-badge { display: none; }
+
+/* ── end sidebar collapse ── */
+
+/* rest of sidebar styles unchanged */
 
 .brand {
   display: flex;
@@ -155,11 +198,13 @@ button {
 }
 
 .services-toggle,
-.vip-toggle {
+.vip-toggle,
+.admin-toggle {
   width: 100%;
 }
 .services-toggle .chevron,
-.vip-toggle .chevron {
+.vip-toggle .chevron,
+.admin-toggle .chevron {
   display: inline;
   width: auto;
   height: auto;
@@ -177,6 +222,7 @@ button {
   gap: 4px;
   padding: 2px 0 0 0;
 }
+.services-sub[hidden] { display: none; }
 .sub-item {
   font-size: 12px !important;
   height: 32px !important;
@@ -1322,17 +1368,20 @@ textarea:focus {
   font-weight: 800;
 }
 
-.chapter-head input {
+.chapter-head input[data-kind="chapter"] {
   height: 36px;
   border: 0;
   background: transparent;
   font-weight: 800;
+  flex: 1;
+  min-width: 200px;
 }
 
 .chapter-title-input {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
   min-width: 0;
 }
 
@@ -2485,32 +2534,6 @@ textarea:focus {
   accent-color: var(--primary);
 }
 
-/* ============ 我是白痴模态框 ============ */
-.idiot-modal { max-width: 520px; }
-.idiot-body { display: flex; flex-direction: column; gap: 18px; }
-.idiot-progress { display: flex; flex-direction: column; gap: 8px; }
-.idiot-status { font-size: 14px; color: var(--text); min-height: 20px; }
-.idiot-bar-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
-.idiot-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), #7c3aed); border-radius: 4px; transition: width 0.3s; }
-.idiot-game-area { background: #1a1a2e; border-radius: 12px; padding: 14px; text-align: center; }
-.idiot-game-label { color: #aaa; font-size: 12px; margin-bottom: 8px; }
-.idiot-game-hint { color: #666; font-size: 11px; margin-top: 6px; }
-#snakeCanvas { display: block; margin: 0 auto; border: 2px solid #333; border-radius: 6px; background: #0f0f23; }
-
-/* Idiot button in page heads */
-.btn-idiot {
-  font-size: 13px;
-  padding: 6px 14px;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  color: #92400e;
-  border: 1px solid #fbbf24;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-.btn-idiot:hover { background: linear-gradient(135deg, #fde68a, #fcd34d); transform: scale(1.03); }
-
 /* ============ Citation Maintenance Page ============ */
 /* --- Merged Citation Library (generate + pending + library) --- */
 
@@ -2769,30 +2792,6 @@ textarea:focus {
   color: #333;
   line-height: 1.6;
   word-break: break-all;
-}
-
-/* ---------- Floating snake button ---------- */
-.snake-float {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #18324d;
-  border: 2px solid #8eb6dc;
-  font-size: 22px;
-  cursor: pointer;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.35;
-  transition: opacity 0.2s, transform 0.2s;
-}
-.snake-float:hover {
-  opacity: 1;
-  transform: scale(1.1);
 }
 
 /* ---------- Generation progress bar ---------- */
@@ -3194,5 +3193,112 @@ textarea:focus {
   padding: 0 14px;
   font-size: 12px;
   margin-right: 8px;
+}
+
+/* ---------- Citation outline tree (citations page) ---------- */
+.citation-outline {
+  margin-bottom: 16px;
+}
+.cite-outline-chapter {
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: var(--panel-2);
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+.cite-outline-chapter h3 {
+  font-size: 14px;
+  color: var(--primary-strong);
+  margin: 0 0 8px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.cite-outline-section {
+  margin-bottom: 2px;
+}
+.cite-outline-section-head {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 4px 0 2px 8px;
+}
+.cite-outline-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px 5px 24px;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+.cite-outline-row:hover {
+  background: rgba(31, 123, 215, 0.06);
+}
+.cite-outline-row.active {
+  background: #e8f0fe;
+  border-left: 3px solid var(--primary);
+  padding-left: 21px;
+}
+.cite-outline-num {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 40px;
+}
+.cite-outline-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+.cite-outline-count {
+  color: var(--green);
+  font-size: 11px;
+  min-width: 52px;
+  text-align: right;
+  font-weight: 500;
+}
+.cite-manage-btn {
+  font-size: 11px !important;
+  padding: 2px 10px !important;
+  min-width: auto !important;
+  height: 26px !important;
+  border: 1px solid var(--primary) !important;
+  color: var(--primary) !important;
+  border-radius: 3px !important;
+}
+.cite-manage-btn:hover {
+  background: var(--primary) !important;
+  color: #fff !important;
+}
+
+/* ---------- Per-subsection citation panel ---------- */
+.citation-subsection-panel {
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  margin-bottom: 16px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.citation-subsection-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+}
+.citation-subsection-head h3 {
+  font-size: 13px;
+  margin: 0;
+  color: var(--primary-strong);
+}
+.citation-subsection-panel .library-section {
+  margin: 0;
+  border: none;
+  border-bottom: 1px solid var(--line);
+}
+.citation-subsection-panel .library-section:last-of-type {
+  border-bottom: none;
 }
 

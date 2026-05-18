@@ -18,6 +18,7 @@ class LLMConfig:
     base_url: Optional[str]
     model: str
     auth_mode: str
+    max_tokens: int = 4000
 
 
 def load_llm_config(api_key: Optional[str] = None) -> LLMConfig:
@@ -31,6 +32,7 @@ def load_llm_config(api_key: Optional[str] = None) -> LLMConfig:
         or os.getenv("MODEL_ID")
         or "claude-opus-4-1"
     )
+    max_tokens = int(os.getenv("LLM_MAX_TOKENS", "4000"))
 
     return LLMConfig(
         provider=provider,
@@ -39,6 +41,7 @@ def load_llm_config(api_key: Optional[str] = None) -> LLMConfig:
         base_url=base_url,
         model=model,
         auth_mode=auth_mode,
+        max_tokens=max_tokens,
     )
 
 

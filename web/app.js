@@ -800,29 +800,17 @@ function updateLicenseUI() {
     }
   });
 
-  // 增值服务 submenu — no trial bypass
+  // 增值服务 — 畅享版及以上才显示
   const servicesToggle = $("#servicesToggle");
-  if (servicesToggle) {
-    if (!hasAdvanced) {
-      servicesToggle.classList.add("gated");
-      servicesToggle.title = "需要畅想版及以上许可证";
-    } else {
-      servicesToggle.classList.remove("gated");
-      servicesToggle.title = "";
-    }
-  }
+  const servicesSub = $("#servicesSub");
+  if (servicesToggle) servicesToggle.hidden = !hasAdvanced;
+  if (servicesSub) servicesSub.hidden = !hasAdvanced;
 
-  // VIP toggle — no trial bypass
+  // VIP — VIP版才显示
   const vipToggle = $("#vipToggle");
-  if (vipToggle) {
-    if (!hasAll) {
-      vipToggle.classList.add("gated");
-      vipToggle.title = "需要VIP版许可证";
-    } else {
-      vipToggle.classList.remove("gated");
-      vipToggle.title = "";
-    }
-  }
+  const vipSub = $("#vipSub");
+  if (vipToggle) vipToggle.hidden = !hasAll;
+  if (vipSub) vipSub.hidden = !hasAll;
 
   // Update license page
   const tierIcon = $("#licenseTierIcon");

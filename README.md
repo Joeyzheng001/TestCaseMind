@@ -2,59 +2,195 @@
 
 ThesisMind 是一个本地优先的论文辅助工作台，面向工程管理、项目管理、质量管理、风险管理、成本管理、流程优化等方向的硕士论文写作场景。
 
-系统把论文从“选题和项目背景”到“方法论选择、研究框架、章节大纲、引用生成、章节写作、开题材料、盲审风险检查”的流程串成一个可运行的本地 Web 应用，并配套 Python Agent、技能库、知识库索引、文档转换、引用卡片和商业许可证控制。
+## 为什么比直接和 LLM 聊天写出的论文质量更高？
 
-## 特点
+直接跟大模型聊天写论文有一个根本性问题：**LLM 没有记忆，也不对你写过的内容负责。** 你在第 1 章承诺"本文将通过问卷调查收集数据"，写到第 3 章时模型可能已经忘了这件事，直接跳到案例分析。你让它引用参考文献，它编造一个看起来格式正确的 `[12]`，但你的引用池里一共才 8 条。
 
-- 本地优先：知识库、草稿、引用卡片、向量索引、导出文件默认都在本机。
-- 面向论文流程：不是通用聊天工具，而是围绕工程管理类论文的真实写作路径设计。
-- 方法论驱动：按“发现问题 / 解决问题 / 验证问题”组织方法卡片和章节逻辑。
-- 知识库增强：支持 PDF、DOCX、Markdown 资料转换、入库、检索和引用卡片生成。
-- 页面级技能：不同页面加载对应的写作引导 skill，减少泛泛而谈。
-- 商业授权：支持免费试用、基础版、畅想版、VIP 版、管理员版的功能分层。
+ThesisMind 不是聊天工具。它是一个**数据一致性引擎**，在 LLM 之上构建了一套结构化的约束、验证和记忆系统，确保论文从第一章到第六章逻辑自洽、方法可追溯、引用真实存在。
 
-## 功能概览
+以下是支撑这套引擎的核心架构设计。
 
-| 模块 | 能力 |
-| --- | --- |
-| 基本配置 | 配置 Anthropic 兼容大模型服务、Base URL、模型名和 API Key |
-| 论文信息 | 维护论文题目、研究方向、项目背景、论文思路和项目记忆 |
-| 方法论选择 | 扫描本地方法论资料，按三阶段分配研究方法 |
-| 研究框架 | 生成论文技术路线图、SVG 框架图和 Mermaid 源码 |
-| 章节大纲 | 生成六章式论文目录，支持字数分配和章节调整 |
-| 引用生成 | 从本地论文库、引用卡片和 LLM 补充中生成参考文献 |
-| 章节写作 | 对章节进行扩写、重写、保存草稿和一致性检查 |
-| 增值服务 | 生成开题报告、开题/中期/答辩 PPT、论文表格 |
-| VIP 服务 | 盲审风险检查、AIGC 率评估、AIGC 降重 |
-| 管理工具 | 知识库初始化、论文入库、许可证管理 |
+### 1. 承诺-验证机制：前文说过的，后文必须兑现
+
+这是整个系统最重要的设计。LLM 聊天中，"一致性"完全依赖模型的上下文窗口和 prompt 引导，本质上是概率性的。ThesisMind 的 `consistency_engine.py` 把一致性变成了确定性检查。
+
+**每写完一节，系统会从正文中提取结构化承诺：**
+
+| 承诺类型 | 提取方式 | 示例 |
+| --- | --- | --- |
+| 数量承诺 | 正则匹配 "N 个 {主体}" | "6 个核心问题"、"3 个维度" |
+| 方法承诺 | 匹配承诺句式 + 方法名（从 `cards.sqlite3` 动态加载） | "本文采用层次分析法" |
+| 数据承诺 | 匹配数据相关表达 | "发放 50 份问卷"、"抽取 30 个样本" |
+| 定义承诺 | 匹配术语定义句式 | "X 是指 Y" |
+
+这些承诺被持久化到工作区，成为**下游章节的硬约束**。写第 3 章时，系统会在 prompt 中注入：
+
+```text
+[一致性约束] 前文已做出的承诺，本章必须对齐：
+- 数量承诺：已识别 6 个核心问题 → 第 3 章必须逐一回应
+- 已承诺使用的方法：层次分析法 → 第 3 章必须实际应用
+- 数据承诺：50 份问卷 → 必须体现数据来源
+- 术语定义：第 1 章对"供应链韧性"的定义 → 不得重新定义
+```
+
+写完后再反向验证——没兑现的承诺会被标记为 `hard_unresolved` 并警告用户。
+
+**对比直接聊天：** 你需要自己在上下文里翻找、手动记住每一个承诺，然后在写后面章节时反复提醒模型。TextMind 把这些变成了自动化的双向校验。
+
+### 2. 方法注册表：所有方法名从数据库动态加载
+
+几乎所有 LLM 论文工具都有一个隐蔽的问题：**方法名是硬编码的**。系统告诉你"可以用层次分析法"，但"层次分析法"这个字符串写死在 prompt 模板里，跟你的领域知识库没有任何关系。
+
+ThesisMind 的 `method_registry.py` 从 `cards.sqlite3` 中动态加载全部方法卡片，包括：
+
+- **规范名称和别名映射**："AHP"、"层次分析法"、"层级分析法" 统一映射到同一方法
+- **阶段归属**：每个方法属于发现问题 / 解决问题 / 验证问题中的哪个阶段，确保不会把"FMEA"分配去写现状分析
+- **领域适配**：质量管理方向的方法池和风险管理的不同，系统根据你的研究方向自动筛选
+- **方法间关系**：`pairs_with`（推荐搭配）、`requires`（前置依赖）、`conflicts_with`（互斥）
+
+这套注册表在一致性引擎、方法论选择、引用生成、章节写作四个模块中共享，确保**方法的定义、使用场景、操作步骤在所有章节中保持一致**。
+
+**对比直接聊天：** 模型可能在不同章节用不同术语描述同一个方法，或者把方法分配到了语义不通的章节。
+
+### 3. 引用两阶段验证：入库前真伪校验 + 生成后存在性检查
+
+这是解决 LLM"编造引用"问题的双重保险。
+
+**阶段一：入库前真伪校验。** 每一张引用卡片在进入 `citation_cards` 表之前，系统会调用 LLM 验证"作者 + 标题 + 期刊"组合是否为真实学术文献。结果分为三类：
+
+- `verified`：验证通过，进入引用池
+- `format_error`：格式损坏，标记但不删除
+- `fake`：判定为虚构，直接丢弃，永不进入引用池
+
+同时计算 7 维质量评分（文献类型、字段完整度、基础性、方法相关性、长度、时效性、噪音），低分卡片在引用生成时被降权。
+
+**阶段二：生成后存在性检查。** 每写完一节，`consistency_engine.py` 的 `verify_citations()` 解析正文中所有 `[N]` 标记（支持范围 `[1-3]`、混合 `[2,5]`、中文破折号），逐一核查：
+
+- 正确引用的索引
+- 应该出现但未出现的索引（missing）
+- 出现了但不在预期列表中的索引（unknown）
+- **超过引用池大小的索引号（fabricated）——这是 LLM 编造引用的典型特征**
+
+**对比直接聊天：** 模型可以给你一个看起来完全正确的 `[23]`，而你的参考文献只到 18。你不会立刻发现，导师会。
+
+### 4. 知识库锚定：生成内容是检索来的，不是幻想来的
+
+ThesisMind 的每一步生成都以本地知识库检索结果为基础，而非完全依赖 LLM 的参数记忆。
+
+**大纲生成**：不从零生成章节结构。而是：
+
+1. 用研究方向检索向量库中相似论文的大纲
+2. 加载领域模板中的章节命名模式
+3. 结合项目背景和已选方法论
+4. LLM 在这些真实材料之上做结构化，不做凭空创造
+
+**章节写作**：每一次 `local_expand()` 调用都注入：
+
+- 从向量库检索的主题相关文献片段
+- 已选方法的方法卡片完整内容（定义、适用场景、操作步骤）
+- 前文累积的一致性承诺
+- 编号的引用列表
+
+**对比直接聊天：** 你粘贴的资料在对话滚出上下文窗口后就"丢失"了。ThesisMind 的检索机制确保相关信息始终出现在 prompt 中。
+
+### 5. 累积式论文记忆：越写越了解你的论文
+
+`thesis_memory` 是一个随写作流程增长的结构化记忆字典，不是 LLM 的上下文窗口。
+
+初始状态只包含项目配置（题目、方向、背景）。每保存一次草稿，`update_memory_from_draft()` 从中提取并累积：
+
+- 问题列表（识别了哪些核心问题）
+- 解决方案设计（提出了什么方案）
+- 评价指标体系（用了哪些指标）
+- 术语表（定义了哪些术语，定义是什么）
+- 各章节摘要
+
+这解决了"写到第五章，模型忘了一二三四章写了什么"的问题。LLM 的上下文窗口是有限的，但 `thesis_memory` 是持久化的，而且只保留结构化摘要，不会撑爆窗口。
+
+**对比直接聊天：** 你需要把前面所有章节复制粘贴到 prompt 里，而且模型可能关注了错误的内容。
+
+### 6. 跨章节全量编译检查
+
+全部章节写完后，`compile_thesis()` 把所有草稿拼接起来，逐章运行完整的承诺验证。结果汇总为 `chapter_consistency` 报告，包括每章有多少未解决的硬承诺、软承诺、定义漂移。
+
+这不是"让 LLM 帮你检查一下"——LLM 擅长在检查任务中说"看起来没问题"。这是程序化的规则匹配，没通过就是没通过。
+
+### 7. 方法卡片的结构化注入
+
+方法卡片不只是"告诉 LLM 有这个方法的名称"。每张卡片包含 28 个 frontmatter 字段和 14 个正文节段（方法定位、定义、适用场景、操作步骤、示例表达、生成约束等）。`inject_policy` 控制在不同阶段注入哪些内容、多少 token：
+
+- 大纲规划阶段：只注入方法名和适用章节
+- 章节写作阶段：注入完整操作步骤和约束
+- 风险检查阶段：注入常见误用模式
+
+这保证了方法在论文中的应用是**学术规范的**，而不是 LLM 凭记忆自由发挥的。
+
+---
+
+## 论文写作流程
+
+系统把论文写作串成 7 步流程，每一步都建立在上述数据一致性架构之上：
+
+| 步骤 | 功能 | 一致性机制 |
+| --- | --- | --- |
+| 01 基本配置 | 配置 LLM 服务连接 | - |
+| 02 论文信息 | 题目、研究方向、项目背景 | 设置 `thesis_memory` 初始上下文 |
+| 03 方法论选择 | 从知识库扫描可用方法，按三阶段分配 | 方法注册表 + 阶段归属校验 |
+| 04 研究框架 | 生成技术路线图和 SVG 框架图 | 方法-阶段映射 + 领域模板 |
+| 05 章节大纲 | 六章式目录 + 字数分配 + 章节调整 | 知识库检索相似大纲 + 领域模板 |
+| 06 引用生成 | 从知识库、引用卡片和 LLM 补充中生成参考文献 | 真伪验证 + 质量评分 + 去重 + 中英平衡 |
+| 07 章节写作 | 逐节扩写、重写、保存草稿 | **核心：承诺提取→传播→验证 + 引用存在性检查 + 跨章编译** |
+
+### 增值服务
+
+基础 7 步流程之外，系统还提供从开题到答辩的完整交付材料生成：
+
+**开题报告** — 基于论文信息、方法论选择和研究框架，自动生成结构化开题报告，包括选题背景、研究现状、研究内容与方法、技术路线、预期成果等章节。
+
+**答辩 PPT** — 支持开题答辩、中期检查、毕业答辩三个阶段的 PPT 自动生成，内容从论文草稿中提取要点，按答辩逻辑组织。
+
+**论文表格** — 自动从正文中提取指标体系、数据结果、对比分析等内容，生成规范的学术表格。
+
+### 盲审风险检查
+
+`risk_checker.py` 实现了一套**基于规则的盲审风险扫描系统**，不依赖 LLM 判断，而是用结构化规则匹配发现论文中的潜在问题：
+
+- **方法误用检测**：例如超过 3 种方法却未说明必要性、使用 AHP 却缺少一致性检验报告
+- **数据缺陷检测**：样本量不足、缺乏专家信息、数据来源不明确
+- **规范问题检测**：参考文献过旧、章节逻辑断裂、创新点表述模糊
+- **方法关联风险**：通过 `card_risk_relations` 表将风险卡片与具体方法绑定，只扫描你实际使用的方法相关的风险
+
+### AIGC 检测与降重
+
+针对学位论文 AIGC 检测趋严的现状，内置 AIGC 率评估和降重工具：
+
+- **AIGC 率预估**：分析文本的语言模式特征，识别高概率的 AI 生成段落
+- **智能降重**：在保持学术严谨性和原意不变的前提下，改写高 AIGC 标记段落，降低被检测风险
+- 降重过程不改变引用标记、术语定义和方法描述，与一致性引擎联动
+
+---
 
 ## 快速开始
 
-建议使用 Python 3.10+。
+Python 3.10+ 推荐。
 
 ```bash
-cd /Users/Joey/Agents/ThesisMind
+git clone <repo-url>
+cd ThesisMind
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 ```
 
-编辑 `.env`，配置一个 Anthropic 兼容接口。DeepSeek 兼容端点示例：
+编辑 `.env`，配置 Anthropic 兼容接口（支持 DeepSeek、MiniMax、智谱等兼容端点）：
 
 ```env
-LLM_PROVIDER=deepseek
 ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
 ANTHROPIC_MODEL=deepseek-v4-pro
 MODEL_ID=deepseek-v4-pro
 ANTHROPIC_AUTH_MODE=api_key
 ANTHROPIC_API_KEY=your_api_key_here
-```
-
-验证环境：
-
-```bash
-python verify.py
 ```
 
 启动 Web 工作台：
@@ -63,74 +199,49 @@ python verify.py
 python src/web_server.py --host 127.0.0.1 --port 8765
 ```
 
-访问：
+访问 `http://127.0.0.1:8765`。
 
-```text
-http://127.0.0.1:8765
-```
-
-命令行 Agent：
-
-```bash
-python -m src.agent_loop
-```
-
-## 推荐使用流程
-
-1. 在“基本配置”页面配置模型连接，并开始免费试用或激活许可证。
-2. 在“论文信息”页面填写论文题目、研究方向、项目背景和论文思路。
-3. 在“方法论选择”页面扫描知识库，选择发现、解决、验证阶段的方法。
-4. 生成研究框架，确认技术路线图与章节逻辑是否一致。
-5. 生成章节大纲，调整章节标题、三级目录和字数分配。
-6. 生成参考文献，优先使用本地知识库中可追溯的真实文献。
-7. 在“章节写作”页面逐节扩写和重写，并保存草稿。
-8. 使用开题报告、PPT、表格、盲审检查、AIGC 检测等扩展能力完成交付材料。
+---
 
 ## 项目结构
 
 ```text
 ThesisMind/
 ├── src/
-│   ├── web_server.py       # 本地 Web 服务和 API
-│   ├── agent_loop.py       # 工具调用式论文 Agent
-│   ├── tools.py            # 框架、大纲、引用、文件、格式检查等工具
-│   ├── license_manager.py  # 许可证签发、验签和功能分层
-│   ├── vector_store.py     # SQLite 本地向量库
-│   ├── paper_store.py      # 论文和引用卡片结构化存储
-│   ├── paper_pipeline.py   # 论文入库流水线
-│   ├── document_converter.py
-│   ├── skill_loader.py
+│   ├── web_server.py          # Web 服务和 API
+│   ├── consistency_engine.py  # 承诺提取、传播、验证、引用检查
+│   ├── method_registry.py     # 方法名注册表，从数据库动态加载
+│   ├── method_context.py      # 方法卡片分阶段注入
+│   ├── vector_store.py        # SQLite 本地向量库 + 检索
+│   ├── paper_store.py         # 论文元数据和引用卡片结构化存储
+│   ├── paper_pipeline.py      # 论文入库流水线
+│   ├── card_builder.py        # 方法卡片构建和校验
+│   ├── kb_manager.py          # 知识库元数据管理和大纲索引
+│   ├── domain_templates.py    # 领域模板生成和加载
+│   ├── risk_checker.py        # 基于规则的盲审风险扫描
+│   ├── agent_loop.py          # 命令行 Agent
+│   ├── tools.py               # 框架、大纲、引用、格式检查等工具
+│   ├── document_converter.py  # PDF/DOCX 文档转换
+│   ├── skill_loader.py        # 技能文件加载
 │   └── ...
-├── web/                    # Web 工作台前端
-├── skills/                 # Agent 技能和页面引导
-├── knowledge_base/         # 本地知识库，默认不提交到 git
-├── cards/                  # 方法卡和风险卡源数据，默认不提交到 git
-├── assets_enc/             # 加密资产包
-├── docs/                   # 架构、产品、商业和许可证文档
-├── tools/                  # 绘图等辅助脚本
-├── output/                 # 工作区状态、导出文件、临时索引
-├── license_cli.py          # 推荐使用的许可证 CLI
-├── verify.py               # 环境和基础功能验证
+├── web/                       # Web 工作台前端
+├── skills/                    # Agent 技能和页面引导
+├── knowledge_base/            # 本地知识库
+│   ├── cards.sqlite3          # 方法卡和风险卡数据库
+│   ├── papers.sqlite3         # 论文元数据和引用卡片
+│   ├── vector_store.sqlite3   # 本地向量索引
+│   └── templates/             # 领域模板
+├── docs/                      # 架构、产品文档
+├── output/                    # 工作区状态和导出文件
+├── verify.py                  # 环境验证
 └── requirements.txt
 ```
 
-## 核心数据
-
-| 路径 | 说明 |
-| --- | --- |
-| `knowledge_base/references/` | 原始论文、方法论资料和模板资料 |
-| `knowledge_base/references/converted/` | 转换后的 Markdown 文本 |
-| `knowledge_base/vector_store.sqlite3` | 本地向量索引 |
-| `knowledge_base/papers.sqlite3` | 论文元数据和引用卡片数据库 |
-| `knowledge_base/cards.sqlite3` | 方法卡和风险卡数据库 |
-| `output/workspace.sqlite3` | Web 工作台状态、项目和草稿 |
-| `output/` | 导出的 docx、pdf、pptx、svg、报告等文件 |
-
-`knowledge_base/`、`cards/`、`output/` 包含用户资料或核心资产，默认由 `.gitignore` 忽略。
+---
 
 ## Skills
 
-`skills/` 下的 Markdown 文件由 `src/skill_loader.py` 解析，可注入 Agent 或页面助手。
+`skills/` 下的 Markdown 文件由 `src/skill_loader.py` 解析，注入 Agent 或页面助手。
 
 | Skill | 作用 |
 | --- | --- |
@@ -141,138 +252,3 @@ ThesisMind/
 | `DOCUMENT_CONVERSION.md` | PDF/DOCX 转 Markdown 的入库规则 |
 | `PAGE_*.md` | Web 页面级引导 |
 | `problem-diagnosis.md` | 现状诊断章节的问题识别方法 |
-
-## 知识库初始化
-
-Web 页面中可以通过“知识库初始化”触发完整流程，也可以用 Python 调用底层能力：
-
-```bash
-python -c "from src.vector_store import build_index; print(build_index(source_dirs=['knowledge_base', 'skills'], reset=True))"
-```
-
-知识库流程大致为：
-
-```text
-原始 PDF/DOCX/Markdown
-    -> 文档转换与清洗
-    -> 分类和元数据提取
-    -> 方法论/引用/章节结构识别
-    -> SQLite 结构化存储
-    -> 本地向量索引
-    -> 写作和引用生成时检索
-```
-
-扫描版 PDF 当前不会自动 OCR。没有可提取文本时，应先进行 OCR 再入库。
-
-## 许可证
-
-当前代码实现 5 级授权：
-
-| 等级 | 标识 | 有效期 | 权限 |
-| --- | --- | --- | --- |
-| 免费试用 | `trial/free` | 3 天 | 基础工作流 |
-| 基础版 | `basic` | 1 年 | 01-07 基础论文流程 |
-| 畅想版 | `pro` | 2 年 | 基础流程 + 开题/PPT/表格等增值服务 |
-| VIP 版 | `vip` | 2 年 | 全部用户功能 |
-| 管理员版 | `admin` | 10 年 | 全部功能 + 知识库初始化 + 许可证管理 |
-
-常用命令：
-
-```bash
-python license_cli.py status
-python license_cli.py trial-start
-python license_cli.py trial-check
-python license_cli.py activate "TM-..."
-python license_cli.py validate "TM-..."
-python license_cli.py remove
-```
-
-许可证使用 Ed25519 非对称签名：
-
-- 客户端只配置 `THESISMIND_LICENSE_PUBLIC_KEY`，用于离线验签。
-- 签发环境才配置 `THESISMIND_LICENSE_PRIVATE_KEY`，用于生成 License Code。
-- 不要把私钥放进客户机器、源码仓库、`.env.example` 或交付包。
-- 旧版 HMAC 兼容仅在显式设置 `THESISMIND_LICENSE_KEY` 时启用，默认没有源码内置密钥。
-
-签发示例：
-
-```bash
-export THESISMIND_LICENSE_PRIVATE_KEY="base64url_raw_private_key"
-python license_cli.py generate --type basic --email user@example.com
-python license_cli.py generate --type vip --email user@example.com --machine-id 123456789
-```
-
-客户端验签配置：
-
-```bash
-export THESISMIND_LICENSE_PUBLIC_KEY="base64url_raw_public_key"
-```
-
-更多细节见 [License Code 系统](docs/license/LICENSE_CODE_SYSTEM.md)。
-
-## 加密资产
-
-明文知识库和卡片是核心资产。交付时可以用 `encrypt_assets.py` 生成加密资产包：
-
-```bash
-python encrypt_assets.py --secret your_asset_key
-```
-
-运行时 `src.asset_crypto.AssetStore` 会从 `assets_enc/manifest.json` 读取密文清单，并把资产解密到临时目录。默认密钥来源：
-
-1. `THESISMIND_ASSET_KEY`
-2. 机器 ID 派生值
-
-正式分发建议使用独立资产密钥，并配合许可证状态控制资产解密。
-
-## 开发与验证
-
-语法检查：
-
-```bash
-python -m py_compile src/license_manager.py src/web_server.py src/agent_loop.py
-```
-
-系统验证：
-
-```bash
-python verify.py
-```
-
-本地 API smoke test：
-
-```bash
-python src/web_server.py --host 127.0.0.1 --port 8765
-curl http://127.0.0.1:8765/api/config
-```
-
-`src/tools.py` 中的 `run_command` 默认关闭。只有显式设置下面的变量后，Agent 才能使用少量白名单命令：
-
-```bash
-ENABLE_RUN_COMMAND=true
-```
-
-## 安全注意
-
-- `.env` 可能保存真实 API Key，已经被 `.gitignore` 忽略，不要提交。
-- 本地 Web 服务默认绑定 `127.0.0.1`；暴露到局域网或公网前，应增加认证、TLS 和反向代理访问控制。
-- 服务端已对已映射的 `/api/` 功能接口做许可证校验，前端菜单隐藏不是唯一边界。
-- 本地离线许可证无法阻止用户直接修改源码。强商业部署应叠加服务端激活、吊销列表、设备限额、发布包完整性校验。
-- `knowledge_base/` 和 `cards/` 默认是明文资产目录，交付包应优先使用 `assets_enc/`。
-
-## 已知改进方向
-
-- `src/web_server.py` 仍是单文件服务，后续应拆分为路由层、服务层、存储层和 LLM 适配层。
-- `docs/license/LICENSE_COMMERCIAL.md` 中仍有早期商业条款口径，技术授权以 `LICENSE_CODE_SYSTEM.md` 和当前代码为准。
-- 自动化测试还需要覆盖 license 验签、API gating、知识库流水线、Web 前端关键流程。
-- 当前向量索引是轻量本地实现，生产部署可替换为 bge、gte、text2vec 等本地 embedding 模型。
-
-## 文档入口
-
-- [架构设计](docs/architecture/ARCHITECTURE.md)
-- [项目目录结构](docs/architecture/PROJECT_STRUCTURE.md)
-- [数据结构](docs/architecture/DATA_STRUCTURES.md)
-- [快速开始](docs/product/QUICKSTART.md)
-- [License Code 系统](docs/license/LICENSE_CODE_SYSTEM.md)
-- [商业许可协议](docs/license/LICENSE_COMMERCIAL.md)
-

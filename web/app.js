@@ -70,6 +70,7 @@ async function api(path, options = {}) {
 }
 
 const CHAT_BUBBLE_TIPS = {
+  welcome: "第一次使用？我带你了解系统",
   setup: "需要帮助配置AI模型？点我聊聊",
   paper_info: "论文题目或方向定不下来？问我",
   methods: "不确定选哪些方法论？让我帮你分析",
@@ -95,7 +96,7 @@ function activeStep(id) {
   }
   const chatTitle = $("#chatFloatTitle");
   if (chatTitle) {
-    const labels = { setup:"配置引导", paper_info:"论文信息引导", methods:"方法论引导", framework:"框架引导", outline:"大纲引导", citations:"引文引导", writing:"写作引导", blind_review:"盲审引导", proposal:"开题报告引导", ppt_proposal:"开题PPT制作", ppt_midterm:"中期PPT制作", ppt_defense:"答辩PPT制作", table_generator:"表格生成器", aigc_check:"AIGC率评估", aigc_reduce:"AIGC降重" };
+    const labels = { welcome:"欢迎首页", setup:"配置引导", paper_info:"论文信息引导", methods:"方法论引导", framework:"框架引导", outline:"大纲引导", citations:"引文引导", writing:"写作引导", blind_review:"盲审引导", proposal:"开题报告引导", ppt_proposal:"开题PPT制作", ppt_midterm:"中期PPT制作", ppt_defense:"答辩PPT制作", table_generator:"表格生成器", aigc_check:"AIGC率评估", aigc_reduce:"AIGC降重" };
     chatTitle.textContent = labels[id] || "论文助手";
   }
   if (id === "license") updateLicenseUI();
@@ -219,13 +220,20 @@ function normalizeDraftContent(text, target = null) {
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
     const bare = cleanHeadingTitle(line, number);
-    const looksLikeHeading =
-      /^第[一二三四五六七八九十\d]+章/.test(line) ||
-      /^\d+(?:\.\d+){1,3}\s+\S{2,80}$/.test(line) ||
+    const looksLikeCurrentHeading =
       (number && line.startsWith(number)) ||
       (title && bare === title);
-    if (index < 5 && looksLikeHeading) {
+    const looksLikeChapterHeading =
+      /^第[一二三四五六七八九十\d]+章/.test(line);
+    // Only strip echo of the CURRENT section heading (e.g. "1.4.2 论文章节安排"),
+    // never strip chapter headings like "第1章" which are legitimate content.
+    if (index < 3 && looksLikeCurrentHeading) {
       continue;
+    }
+    if (index < 3 && looksLikeChapterHeading && !looksLikeCurrentHeading) {
+      if (index === 0 || (index === 1 && cleaned.length === 0)) {
+        continue;
+      }
     }
     if (line && cleaned[cleaned.length - 1] === line) continue;
     cleaned.push(line);
@@ -689,7 +697,7 @@ async function switchProject(projectId) {
 
 async function loadConfig() {
   state.config = await api("/api/config");
-  $("#modelBadge").textContent = state.config.model;
+  updateModelBadge();
   $("#providerInput").value = state.config.provider;
   $("#modelInput").value = state.config.model;
   $("#baseUrlInput").value = state.config.base_url || "";
@@ -702,6 +710,19 @@ async function loadConfig() {
   }
   refreshDirectionDisplay();
   populateModalDirection();
+}
+
+function updateModelBadge() {
+  const badge = $("#modelBadge");
+  if (!badge || !state.config) return;
+  const providerNames = {
+    deepseek: "DeepSeek", minimax: "MiniMax", moonshot: "Moonshot", zhipu: "智谱",
+    qwen: "通义千问", bytedance: "豆包", anthropic: "Anthropic", openai: "OpenAI",
+    openai_compatible: "兼容接口"
+  };
+  const provider = providerNames[state.config.provider] || state.config.provider || "";
+  const model = state.config.model || "";
+  badge.innerHTML = `<span class="mb-dot"></span><span class="mb-name">${escHtml(model)}</span>${provider ? `<span>@${escHtml(provider)}</span>` : ""}`;
 }
 
 const PROVIDER_PRESETS = {
@@ -724,6 +745,7 @@ function onProviderChange() {
   if (preset.model) {
     $("#modelInput").value = preset.model;
     $("#modelBadge").textContent = preset.model;
+    updateModelBadge();
   }
 }
 
@@ -1448,17 +1470,11 @@ async function generateModalTable() {
       state._lastGeneratedTable = data.table;
       const container = $("#tableModalResultContent");
       if (container) {
-        let html = data.table.replace(/### (.+)/g, "<h4>$1</h4>");
-        html = html.replace(/\|(.+)\|/g, (match) => {
-          if (match.indexOf("---") >= 0) return "</thead><tbody>";
-          const cells = match.split("|").filter(c => c.trim());
-          const tag = container.innerHTML.indexOf("<tbody>") < 0 ? "th" : "td";
-          return "<tr>" + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join("") + "</tr>";
-        });
-        container.innerHTML = "<table><thead>" + html + "</tbody></table>";
+        container.innerHTML = markdownTableToHtml(data.table);
       }
       $("#tableModalResult").hidden = false;
       $("#insertModalTableBtn").hidden = false;
+      $("#exportTableExcelBtn").hidden = false;
     } else {
       alert("生成失败: " + (data.message || "未知错误"));
     }
@@ -1468,6 +1484,146 @@ async function generateModalTable() {
     btn.disabled = false;
     btn.textContent = "生成表格";
   }
+}
+
+function markdownTableToHtml(md) {
+  // Extract title (### heading) if present
+  let title = "";
+  let tableMd = md;
+  const titleMatch = md.match(/^### (.+)$/m);
+  if (titleMatch) {
+    title = `<h4>${escHtml(titleMatch[1])}</h4>`;
+    tableMd = md.replace(/^### .+\n?/m, "").trim();
+  }
+
+  // Split into lines, skip empty lines before/after table
+  const lines = tableMd.split("\n").filter(l => l.trim() && l.includes("|"));
+  if (lines.length < 2) return title + "<p>无法解析表格</p>";
+
+  // Detect separator line (e.g. |---|---|)
+  let sepIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^\|[\s\-:]+\|/.test(lines[i])) { sepIdx = i; break; }
+  }
+
+  let headerCells = [];
+  let bodyLines = [];
+  if (sepIdx > 0) {
+    headerCells = parseTableRow(lines[0]);
+    bodyLines = lines.slice(sepIdx + 1);
+  } else if (sepIdx === 0) {
+    // No header row
+    bodyLines = lines.slice(1);
+  } else {
+    // No separator found, treat all as body
+    bodyLines = lines;
+  }
+
+  let html = title + "<table>";
+  if (headerCells.length) {
+    html += "<thead><tr>" + headerCells.map(c => `<th>${c}</th>`).join("") + "</tr></thead>";
+  }
+  html += "<tbody>";
+  for (const line of bodyLines) {
+    const cells = parseTableRow(line);
+    if (cells.length) {
+      html += "<tr>" + cells.map(c => `<td>${c}</td>`).join("") + "</tr>";
+    }
+  }
+  html += "</tbody></table>";
+  return html;
+}
+
+function parseTableRow(line) {
+  // Split by |, handle leading/trailing pipes
+  let trimmed = line.trim();
+  if (trimmed.startsWith("|")) trimmed = trimmed.slice(1);
+  if (trimmed.endsWith("|")) trimmed = trimmed.slice(0, -1);
+  return trimmed.split("|").map(c => c.trim());
+}
+
+function extractTablePreviews(draftText) {
+  if (!draftText) return { previews: [], textWithoutTables: draftText || "" };
+  const lines = draftText.split("\n");
+  const tableBlocks = [];
+  let block = [];
+  let inTable = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const isPipeLine = /^\|.+\|$/.test(trimmed);
+    if (isPipeLine) {
+      if (!inTable) {
+        inTable = true;
+        block = [];
+      }
+      block.push(trimmed);
+    } else {
+      if (inTable) {
+        if (block.length >= 2) {
+          tableBlocks.push(block.join("\n"));
+        }
+        block = [];
+        inTable = false;
+      }
+    }
+  }
+  if (inTable && block.length >= 2) {
+    tableBlocks.push(block.join("\n"));
+  }
+
+  const previews = tableBlocks.map(md => markdownTableToHtml(md));
+
+  let textWithoutTables = draftText;
+  for (const md of tableBlocks) {
+    textWithoutTables = textWithoutTables.replace(md, "");
+  }
+  textWithoutTables = textWithoutTables.replace(/\n{3,}/g, "\n\n").trim();
+
+  return { previews, textWithoutTables };
+}
+
+function exportTableExcel() {
+  if (!state._lastGeneratedTable) return;
+  const md = state._lastGeneratedTable;
+
+  // Find table lines
+  const lines = md.split("\n").filter(l => l.includes("|"));
+  if (lines.length < 2) return;
+
+  // Remove separator lines
+  const dataLines = lines.filter(l => !/^\|[\s\-:]+\|/.test(l));
+
+  // Convert to CSV with BOM for Excel Chinese support
+  const rows = dataLines.map(line => {
+    let trimmed = line.trim();
+    if (trimmed.startsWith("|")) trimmed = trimmed.slice(1);
+    if (trimmed.endsWith("|")) trimmed = trimmed.slice(0, -1);
+    return trimmed.split("|").map(c => {
+      const v = c.trim();
+      // Escape CSV: quote if contains comma, quote, or newline
+      if (v.includes(",") || v.includes('"') || v.includes("\n")) {
+        return '"' + v.replace(/"/g, '""') + '"';
+      }
+      return v;
+    }).join(",");
+  });
+
+  const BOM = "﻿";
+  const csv = BOM + rows.join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+
+  // Extract title for filename
+  let filename = "表格导出";
+  const titleMatch = md.match(/^### (.+)$/m);
+  if (titleMatch) filename = titleMatch[1];
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function insertModalTable() {
@@ -2002,6 +2158,11 @@ async function generateAllSubsectionsSerial() {
 }
 
 function renderWritingList() {
+  // Sync actual word counts from loaded drafts before rendering
+  Object.entries(state.drafts).forEach(([key, content]) => {
+    if (content) updateOutlineWordsFromDraft(key, content);
+  });
+
   const chapters = state.outline?.chapters || [];
   const content = chapters
     .map((chapter, chapterIndex) => {
@@ -2035,6 +2196,7 @@ function renderWritingList() {
               </div>
               <textarea class="section-prompt" data-prompt-key="${draftKey}" placeholder="可选：填写本小节扩写/重写的补充要求，例如必须加入数据表、强调PDCA三轮迭代、避免分列式写法等。"></textarea>
               <div data-cite-dk="${draftKey}"></div>
+              <div class="table-preview" data-table-preview="${draftKey}"></div>
               <textarea class="inline-draft" data-draft-key="${draftKey}" placeholder="本小节扩写内容会出现在这里，可编辑后保存。">${draft}</textarea>
             </div>
           `;
@@ -2057,6 +2219,13 @@ function renderWritingList() {
     .join("");
 
   $("#writingList").innerHTML = content + renderCitationSummary();
+
+  $$("#writingList .table-preview").forEach((preview) => {
+    const dk = preview.dataset.tablePreview;
+    const draft = state.drafts[dk] || "";
+    const { previews } = extractTablePreviews(draft);
+    preview.innerHTML = previews.join("");
+  });
 
   $$("#writingList button").forEach((button) => {
     if (button.dataset.action === "save-draft") {
@@ -2937,7 +3106,7 @@ async function runRiskScan() {
 const _origActiveStep = activeStep;
 activeStep = function(id) {
   // License gate check before navigation
-  if (id !== "setup" && id !== "license") {
+  if (id !== "welcome" && id !== "setup" && id !== "license") {
     const lic = state.license;
     if (lic) {
       const features = lic.features || [];
@@ -3256,6 +3425,7 @@ function bindEvents() {
   $("#closeTableModal")?.addEventListener("click", () => { $("#tableModal").hidden = true; });
   $("#cancelTableModal")?.addEventListener("click", () => { $("#tableModal").hidden = true; });
   $("#generateModalTableBtn")?.addEventListener("click", generateModalTable);
+  $("#exportTableExcelBtn")?.addEventListener("click", exportTableExcel);
   $("#insertModalTableBtn")?.addEventListener("click", insertModalTable);
   // Drag-and-drop for table upload
   const tableZone = $("#tableUploadZone");
@@ -4440,6 +4610,13 @@ async function init() {
   bindEvents();
   bindLibraryEvents();
   initChatDrag();
+
+  // Brand click → welcome page
+  const brand = $("#brandHome");
+  if (brand) brand.addEventListener("click", () => activeStep("welcome"));
+
+  activeStep("welcome");
+
   loadProjectContext();
   await loadProjects();
   await loadConfig();

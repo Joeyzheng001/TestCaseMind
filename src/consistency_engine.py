@@ -309,32 +309,52 @@ def build_commitment_brief(memory: Dict[str, Any]) -> str:
     quantities = summary.get("total_quantities", [])
     if quantities:
         lines.append("- 数量承诺：")
+        seen_q = set()
         for q in quantities:
-            lines.append(f"  小节{_fmt_sk(q.get('section_key', q.get('chapter', '?')))}: {q['raw']}")
+            key = q.get("raw", "")
+            if key not in seen_q:
+                seen_q.add(key)
+                lines.append(f"  小节{_fmt_sk(q.get('section_key', q.get('chapter', '?')))}: {q['raw']}")
 
     promised = summary.get("promised_methods", [])
     if promised:
         lines.append("- 已承诺使用的方法（后续小节必须实际应用，不能只提名字）：")
+        seen_m = set()
         for m in promised:
-            lines.append(f"  小节{_fmt_sk(m.get('section_key', m.get('chapter', '?')))}: {m['method']}（明确承诺）")
+            key = m.get("method", "")
+            if key not in seen_m:
+                seen_m.add(key)
+                lines.append(f"  小节{_fmt_sk(m.get('section_key', m.get('chapter', '?')))}: {m['method']}（明确承诺）")
 
     used = summary.get("used_methods", [])
     if used:
         lines.append("- 前文已出现的方法（后续小节可复用，不作硬性要求）：")
+        seen_u = set()
         for m in used:
-            lines.append(f"  小节{_fmt_sk(m.get('section_key', m.get('chapter', '?')))}: {m['method']}")
+            key = m.get("method", "")
+            if key not in seen_u and key not in seen_m:
+                seen_u.add(key)
+                lines.append(f"  小节{_fmt_sk(m.get('section_key', m.get('chapter', '?')))}: {m['method']}")
 
     data_sources = summary.get("data_sources", [])
     if data_sources:
         lines.append("- 数据承诺（后续小节的数据来源必须一致）：")
+        seen_ds = set()
         for d in data_sources:
-            lines.append(f"  小节{_fmt_sk(d.get('section_key', d.get('chapter', '?')))}: {d['subject']}")
+            key = d.get("subject", "")
+            if key not in seen_ds:
+                seen_ds.add(key)
+                lines.append(f"  小节{_fmt_sk(d.get('section_key', d.get('chapter', '?')))}: {d['subject']}")
 
     definitions = summary.get("defined_terms", [])
     if definitions:
         lines.append("- 术语定义承诺（后续小节必须使用相同定义）：")
+        seen_d = set()
         for d in definitions:
-            lines.append(f"  小节{_fmt_sk(d.get('section_key', d.get('chapter', '?')))}: {d['term']} — {d['definition']}")
+            key = d.get("term", "")
+            if key not in seen_d:
+                seen_d.add(key)
+                lines.append(f"  小节{_fmt_sk(d.get('section_key', d.get('chapter', '?')))}: {d['term']} — {d['definition']}")
 
     lines.append("")
     lines.append(

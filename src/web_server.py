@@ -593,7 +593,7 @@ def _generate_method_summaries_via_llm(method_names: List[str]) -> Dict[str, str
             client, provider, config,
             system="",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=2048,
+            max_tokens=_token_budget(config, "tiny"),
         )
         text = _llm_response_text(response, provider)
         match = re.search(r"\{[\s\S]*\}", text)
@@ -1289,7 +1289,7 @@ JSON 结构：
                 client, provider, config,
                 system="你是工程管理硕士论文研究方法与理论框架评审专家，擅长判断方法适用阶段。",
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=2200,
+                max_tokens=_token_budget(config, "small"),
             )
             raw = _extract_json_object(_llm_response_text(response, provider))
         except Exception:
@@ -3119,24 +3119,19 @@ _INDUSTRY_FILTER_KEYWORDS: List[str] = [
 def _filter_references_by_topic(
     topic: str, references: List[Dict[str, Any]], limit: int = 3
 ) -> List[Dict[str, Any]]:
-    """过滤掉与用户选题行业明显不符的知识库资料。"""
-    topic_lower = topic.lower()
-    # 如果用户选题本身包含汽车/新能源等词，不过滤
-    user_has_industry = any(kw in topic for kw in _INDUSTRY_FILTER_KEYWORDS)
-
+    """Filter out knowledge base references whose industry keywords don't match the user's topic."""
     filtered = []
     for ref in references:
         title = str(ref.get("title", ""))
         content = str(ref.get("content", ""))
         combined = title + content
-        # 检查该资料是否引入用户未提及的行业
-        if not user_has_industry:
-            has_mismatched = any(
-                kw in combined and kw not in topic
-                for kw in _INDUSTRY_FILTER_KEYWORDS
-            )
-            if has_mismatched:
-                continue
+        # Filter out references that mention industries NOT in the user's topic
+        mismatched = [
+            kw for kw in _INDUSTRY_FILTER_KEYWORDS
+            if kw in combined and kw not in topic
+        ]
+        if mismatched:
+            continue
         filtered.append(ref)
         if len(filtered) >= limit:
             break
@@ -3430,7 +3425,7 @@ JSON 结构：
         client, provider, config,
         system="你是工程管理硕士论文大纲设计专家，擅长结合本地案例论文和研究方法生成可落地的章节结构。",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=1400,
+        max_tokens=_token_budget(config, "small"),
     )
     if task_id:
         task_log(
@@ -3557,6 +3552,23 @@ def _llm_response_text(response: Any, provider: str) -> str:
     return _response_text(response)
 
 
+def _token_budget(config: Any = None, preset: str = "default") -> int:
+    """Return per-call token budget derived from the global config max_tokens."""
+    if config is None:
+        config = load_llm_config()
+    base = int(getattr(config, "max_tokens", 4000) or 4000)
+    ratios = {
+        "test": 0.025,       # ~100 tokens (just "连接成功")
+        "tiny": 0.15,        # ~600 tokens (classification labels)
+        "small": 0.35,       # ~1400 tokens (subsections, outlines)
+        "default": 0.5,      # ~2000 tokens (expand, rewrite, scan)
+        "large": 0.8,        # ~3200 tokens (card content, full chapters)
+        "max": 1.0,          # full config value
+    }
+    ratio = ratios.get(preset, 0.5)
+    return max(50, int(base * ratio))
+
+
 def _build_llm_client_and_provider(config: Any = None) -> tuple:
     if config is None:
         config = load_llm_config()
@@ -3667,7 +3679,7 @@ def _test_llm_connection() -> Dict[str, Any]:
             client, provider, config,
             system="你是一个测试助手。",
             messages=[{"role": "user", "content": "请回复'连接成功'。"}],
-            max_tokens=50,
+            max_tokens=_token_budget(config, "test"),
         )
         text = _llm_response_text(response, provider)
         return {
@@ -3821,7 +3833,7 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
             client, provider, config,
             system=system,
             messages=api_messages,
-            max_tokens=1200,
+            max_tokens=_token_budget(config, "default"),
             tools=_chat_tools_schema() if use_tools else None,
         )
 
@@ -3857,7 +3869,7 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
                 client, provider, config,
                 system=system,
                 messages=api_messages,
-                max_tokens=1200,
+                max_tokens=_token_budget(config, "default"),
             )
             text = _llm_response_text(response2, provider)
         else:
@@ -4011,7 +4023,7 @@ def _run_proposal_task(task_id: str, payload: Dict[str, Any]) -> None:
             (
                 3,
                 "【三、所要解决的主要问题及研究途径与方法】",
-                "- 明确列出要解决的核心问题（3-5个）\n- 阐述研究途径和主要方法，说明方法选择理由\n- 给出预期技术路线或研究思路\n- 最后放置完整参考文献列表（所有文献按编号排列）",
+                "- 明确列出要解决的核心问题（3-5个）\n- 阐述研究途径和主要方法，说明方法选择理由\n- 给出全文六章的章节安排（每章1-2句话概括，从第一章到第六章全部描述，不得只写其中几章）\n- 最后放置完整参考文献列表（所有文献按编号排列）",
             ),
         ]
 
@@ -4425,7 +4437,7 @@ def _supplement_method(payload: Dict[str, Any]) -> Dict[str, Any]:
             client, provider, config,
             system="你是研究方法论专家，输出结构化、学术化、可操作的方法卡内容。",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=3000,
+            max_tokens=_token_budget(config, "large"),
         )
         card_content = _llm_response_text(response, provider)
 
@@ -4572,14 +4584,22 @@ def clean_generated_content(text: str, section: Dict[str, Any] | None = None) ->
     output = []
     for index, line in enumerate(lines):
         bare = re.sub(r"^\d+(?:\.\d+){1,3}\s+", "", line).strip()
-        looks_like_heading = (
-            bool(re.match(r"^第[一二三四五六七八九十\d]+章", line))
-            or bool(re.match(r"^\d+(?:\.\d+){1,3}\s+\S{2,80}$", line))
-            or bool(number and line.startswith(number))
+        looks_like_current_heading = (
+            bool(number and line.startswith(number))
             or bool(title and bare == title)
         )
-        if index < 5 and looks_like_heading:
+        looks_like_other_heading = (
+            bool(re.match(r"^第[一二三四五六七八九十\d]+章", line))
+            or bool(re.match(r"^\d+(?:\.\d+){1,3}\s+\S{2,80}$", line))
+        )
+        # Only strip the first few lines matching the current section heading;
+        # don't strip content headings like "第N章" (important for chapter arrangement)
+        if index < 3 and looks_like_current_heading:
             continue
+        if index < 3 and looks_like_other_heading and not looks_like_current_heading:
+            # Only strip if it's the very first non-empty line (LLM echo of prompt title)
+            if index == 0 or (index == 1 and not output):
+                continue
         if line and output and output[-1] == line:
             continue
         output.append(line)
@@ -4634,7 +4654,7 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
         stage="chapter_generation",
         max_cards=4,
     )
-    query = f"{topic} {chapter.get('title', '')} {title} {methods}"
+    query = f"{topic} {title}"
 
     raw_refs = search_knowledge_base(query, limit=8).get("results", [])
     references = _filter_references_by_topic(topic, raw_refs, limit=4)
@@ -4680,11 +4700,32 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
     client, provider = _build_llm_client_and_provider(config)
 
     task = "重写并优化" if rewrite else "扩写"
+
+    # Build full chapter summary for context (helps with chapter-arrangement sections)
+    outline = load_workspace_value("outline")
+    chapter_summary = ""
+    chapter_arrangement_hint = ""
+    if outline:
+        ch_lines = []
+        for ch in outline.get("chapters", []):
+            ch_num = ch.get("number", "")
+            ch_title = ch.get("title", "")
+            ch_lines.append(f"第{ch_num}章 {ch_title}")
+        if ch_lines:
+            chapter_summary = "论文完整章节结构：\n" + "\n".join(ch_lines)
+    if chapter_summary and ("章节安排" in title or "论文结构" in title):
+        chapter_arrangement_hint = (
+            "重要：本小节是章节安排总览，必须逐一概述以下全部章节（每章1-2句话），"
+            "不得跳过任何一章，不得只写其中几章。\n"
+        )
+
     prompt = f"""请为工程管理硕士论文生成章节内容。
 
 论文主题：{topic}
 项目背景与论文思路：
 {project_context[:3200] or "用户未填写。"}
+
+{chapter_summary}
 
 当前章节：{chapter.get("title", "")}
 当前小节：{section.get("number", "")} {title}
@@ -4703,6 +4744,7 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
 
 {method_context}
 
+{chapter_arrangement_hint}
 要求：
 1. 使用正式、克制、学术化的中文表达。
 2. 围绕本小节展开，不要写成整章综述。
@@ -4723,7 +4765,7 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
             client, provider, config,
             system="你是专业的工程管理硕士论文写作助手，擅长质量管理、风险管理、流程优化和项目管理论文写作。",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=1800,
+            max_tokens=_token_budget(config, "default"),
         )
         content = clean_generated_content(_llm_response_text(response, provider), section)
         consistency = verify_commitments(content, memory, section_number)
@@ -5307,7 +5349,7 @@ def reduce_aigc_rate(payload: Dict[str, Any]) -> Dict[str, Any]:
                     client, provider, config,
                     system="",
                     messages=[{"role": "user", "content": prompt}],
-                    max_tokens=2048,
+                    max_tokens=_token_budget(config, "default"),
                 )
                 rewritten = _llm_response_text(response, provider).strip()
 
@@ -5364,7 +5406,7 @@ def generate_subsections(payload: Dict[str, Any]) -> Dict[str, Any]:
             client, provider, config,
             system="你是工程管理硕士论文目录设计助手。",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=1200,
+            max_tokens=_token_budget(config, "small"),
         )
         raw = _extract_json_object(_llm_response_text(response, provider))
         sections = raw.get("sections", [])

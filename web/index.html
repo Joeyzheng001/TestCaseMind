@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ThesisMind 论文辅助工作台</title>
-  <link rel="stylesheet" href="/styles.css?v=33" />
+  <link rel="stylesheet" href="/styles.css?v=35" />
   <link rel="stylesheet" href="/admin.css?v=1" />
 </head>
 
@@ -13,7 +13,7 @@
   <main class="shell">
     <aside class="sidebar" id="sidebar">
       <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="收起菜单">◂</button>
-      <div class="brand">
+      <div class="brand" id="brandHome" title="返回首页">
         <img class="brand-mark" src="/logo.png" alt="ThesisMind" />
         <div>
           <h1>ThesisMind</h1>
@@ -21,7 +21,7 @@
         </div>
       </div>
       <nav class="steps" aria-label="工作流">
-        <button class="step active" data-step="setup"><span>01</span>基本配置</button>
+        <button class="step" data-step="setup"><span>01</span>基本配置</button>
         <button class="step" data-step="paper_info"><span>02</span>论文信息</button>
         <button class="step" data-step="methods"><span>03</span>方法论选择</button>
         <button class="step" data-step="framework"><span>04</span>研究框架</button>
@@ -55,7 +55,87 @@
     <div class="model-badge" id="modelBadge" title="当前模型">读取中</div>
 
     <section class="workspace">
-      <section class="panel page active" id="setup">
+      <section class="panel page active" id="welcome">
+        <div class="welcome-hero">
+          <h2 class="welcome-title">写论文，最怕的不是写不出来<br>而是<strong>写出来的前后矛盾、引用造假</strong></h2>
+          <p class="welcome-subtitle">ThesisMind 不是在跟你聊天。它在你的论文背后运行一套<strong>承诺-验证引擎</strong>，确保第一章做出的每一个承诺，在第六章之前都被兑现。</p>
+        </div>
+
+        <div class="welcome-features">
+          <div class="wfc-card">
+            <div class="wfc-icon">&#x1F504;</div>
+            <h3>承诺-验证闭环</h3>
+            <p>每写完一节，系统从正文中自动提取数量、方法、数据、定义四类承诺。写下游章节时，未兑现的承诺会变成硬约束注入 prompt，写完后再反向校验。前文说过的，后文必须兑现。</p>
+          </div>
+          <div class="wfc-card">
+            <div class="wfc-icon">&#x1F4E6;</div>
+            <h3>动态方法注册表</h3>
+            <p>所有方法名、别名、阶段归属、领域适配从 <code>cards.sqlite3</code> 数据库动态加载，杜绝硬编码。"AHP" 和 "层次分析法" 被映射为同一方法，在所有章节中保持一致。</p>
+          </div>
+          <div class="wfc-card">
+            <div class="wfc-icon">&#x2705;</div>
+            <h3>引用双重验证</h3>
+            <p>入库前：LLM 验证作者+标题+期刊是否为真实文献，虚构的直接丢弃。生成后：程序检测正文中的 <code>[N]</code> 标记，发现超过引用池大小的编号立即告警 — 这是 LLM 编造引用的典型特征。</p>
+          </div>
+          <div class="wfc-card">
+            <div class="wfc-icon">&#x1F4DA;</div>
+            <h3>知识库锚定生成</h3>
+            <p>大纲不凭空创造 — 从向量库检索相似论文的真实结构。章节内容注入方法卡片的完整操作步骤和约束。你的文献资料不会在上下文窗口滚出后"消失"。</p>
+          </div>
+          <div class="wfc-card">
+            <div class="wfc-icon">&#x1F9E0;</div>
+            <h3>累积式论文记忆</h3>
+            <p><code>thesis_memory</code> 随写作流程持续增长：问题列表、方案设计、指标体系、术语定义、章节摘要。不是 LLM 的上下文窗口 — 是持久化的结构化记忆，越写越了解你的论文。</p>
+          </div>
+          <div class="wfc-card">
+            <div class="wfc-icon">&#x1F50D;</div>
+            <h3>跨章节全量编译检查</h3>
+            <p>全部写完后，系统把所有草稿拼接起来逐章验证。不是"让 LLM 帮你检查一下" — 是程序化的规则匹配，没通过就是没通过。</p>
+          </div>
+        </div>
+
+        <div class="welcome-flow">
+          <h3>论文写作流程</h3>
+          <div class="welcome-steps">
+            <div class="wstep"><span>01</span>基本配置</div>
+            <div class="wstep-arrow">→</div>
+            <div class="wstep"><span>02</span>论文信息</div>
+            <div class="wstep-arrow">→</div>
+            <div class="wstep"><span>03</span>方法论选择</div>
+            <div class="wstep-arrow">→</div>
+            <div class="wstep"><span>04</span>研究框架</div>
+            <div class="wstep-arrow">→</div>
+            <div class="wstep"><span>05</span>章节大纲</div>
+            <div class="wstep-arrow">→</div>
+            <div class="wstep"><span>06</span>引用生成</div>
+            <div class="wstep-arrow">→</div>
+            <div class="wstep"><span>07</span>章节写作</div>
+          </div>
+          <p class="welcome-flow-hint">每一步都建立在数据一致性架构之上，从方法论选择到最终章节编译，系统性保障论文质量。</p>
+        </div>
+
+        <div class="welcome-advanced">
+          <div class="welcome-advanced-item">
+            <h3>增值服务</h3>
+            <p>开题报告自动生成 · 开题/中期/答辩 PPT · 论文表格智能生成</p>
+          </div>
+          <div class="welcome-advanced-item">
+            <h3>盲审风险检查</h3>
+            <p>基于规则的自动化扫描：方法误用、数据缺陷、规范问题、方法关联风险 — 不是 LLM 的"看起来没问题"</p>
+          </div>
+          <div class="welcome-advanced-item">
+            <h3>AIGC 检测与降重</h3>
+            <p>AIGC 率预估 + 智能降重，改写过程不改变引用标记和术语定义，与一致性引擎联动</p>
+          </div>
+        </div>
+
+        <div class="welcome-cta">
+          <p>LLM 可以帮你写出读起来通顺的句子，但<strong>只有一套结构化的约束系统</strong>能保证这些句子在整篇论文的尺度上依然自洽。</p>
+          <button class="primary welcome-start-btn" data-next="setup">开始使用</button>
+        </div>
+      </section>
+
+      <section class="panel page" id="setup">
         <div class="page-head">
           <div>
             <p class="eyebrow">论文辅助工具</p>
@@ -232,18 +312,8 @@
         <div class="page-head compact">
           <div>
             <p class="eyebrow">章节大纲</p>
-            <h2>选择字数并生成可编辑大纲</h2>
+            <h2>生成可编辑大纲</h2>
           </div>
-          <label class="word-select">
-            <span>论文字数</span>
-            <select id="wordCount">
-              <option value="30000">3 万字</option>
-              <option value="40000">4 万字</option>
-              <option value="50000" selected>5 万字</option>
-              <option value="60000">6 万字</option>
-              <option value="80000">8 万字</option>
-            </select>
-          </label>
         </div>
         <div id="subsectionProgress" class="serial-progress" hidden>
           <div class="snail-track">
@@ -255,13 +325,27 @@
           </div>
           <div class="serial-progress-text" id="subsectionProgressText">准备生成三级目录</div>
         </div>
-        <div class="actions">
-          <button class="primary" id="generateOutline">生成大纲</button>
-          <button class="ghost" id="generateAllSubsections">一键生成三级目录</button>
-          <button class="ghost" id="saveOutline">保存大纲</button>
-          <button class="ghost" id="downloadOutline" disabled>下载 Markdown</button>
-          <span class="word-summary" id="wordSummary">预计 0 字 · 实际 0 字</span>
-          <span class="save-tip" id="outlineStatus"></span>
+        <div class="outline-toolbar">
+          <div class="ot-main">
+            <button class="primary" id="generateOutline">生成大纲</button>
+            <button class="ghost" id="generateAllSubsections">一键生成三级目录</button>
+          </div>
+          <div class="ot-meta">
+            <button class="ghost" id="saveOutline">保存大纲</button>
+            <button class="ghost" id="downloadOutline" disabled>下载 Markdown</button>
+            <label class="word-select-inline">
+              <span>论文字数</span>
+              <select id="wordCount">
+                <option value="30000">3 万</option>
+                <option value="40000">4 万</option>
+                <option value="50000" selected>5 万</option>
+                <option value="60000">6 万</option>
+                <option value="80000">8 万</option>
+              </select>
+            </label>
+            <span class="word-summary" id="wordSummary">预计 0 字 · 实际 0 字</span>
+            <span class="save-tip" id="outlineStatus"></span>
+          </div>
         </div>
         <div id="outlineLog" class="task-log"></div>
         <div id="outlinePreview" class="outline-preview"></div>
@@ -713,7 +797,8 @@
       <div class="actions split">
         <button class="ghost" id="cancelTableModal" type="button">取消</button>
         <div>
-          <button class="ghost" id="insertModalTableBtn" hidden>插入到小节</button>
+          <button class="ghost" id="exportTableExcelBtn" hidden>导出 Excel</button>
+          <button class="ghost" id="insertModalTableBtn" hidden>插入论文</button>
           <button class="primary" id="generateModalTableBtn">生成表格</button>
         </div>
       </div>
@@ -826,7 +911,7 @@
       </div>
     </section>
   </div>
-  <script src="/app.js?v=60" defer></script>
+  <script src="/app.js?v=63" defer></script>
   <script src="/admin.js?v=1" defer></script>
 </body>
 

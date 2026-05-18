@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Tuple, Union
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -18,6 +18,79 @@ TEMPLATE_CANDIDATES = [
     PROJECT_ROOT / "knowledge_base/references/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).docx",
     PROJECT_ROOT / "knowledge_base/references/3.0 论文格式docx.docx",
 ]
+
+
+_MD_TABLE_ROW_RE = re.compile(r"^\|.+\|$")
+
+
+def _parse_markdown_table(lines: List[str]) -> Tuple[List[str], List[str], List[List[str]]]:
+    """Parse a markdown table from lines. Returns (headers, alignments, rows)."""
+    raw = [line.strip() for line in lines if line.strip()]
+    if len(raw) < 2:
+        return [], [], []
+
+    def _cells(line: str) -> List[str]:
+        s = line.strip()
+        if s.startswith("|"):
+            s = s[1:]
+        if s.endswith("|"):
+            s = s[:-1]
+        return [c.strip() for c in s.split("|")]
+
+    def _parse_align(cell: str) -> str:
+        cell = cell.strip().strip(":-")
+        if cell.startswith(":") and cell.endswith(":"):
+            return "center"
+        elif cell.endswith(":"):
+            return "right"
+        return "left"
+
+    headers = _cells(raw[0])
+    aligns = [_parse_align(c) for c in raw[1].split("|") if c.strip() and c.strip().replace("-", "").replace(":", "") == ""]
+    if not aligns:
+        aligns = ["left"] * len(headers)
+    while len(aligns) < len(headers):
+        aligns.append("left")
+    rows = [_cells(r) for r in raw[2:]]
+    return headers, aligns[:len(headers)], rows
+
+
+def _split_content_segments(text: str) -> List[Dict[str, Any]]:
+    """Split text into segments of type 'text' or 'table'. Each segment is {type, data}."""
+    if not text:
+        return []
+    lines = text.splitlines()
+    segments = []
+    buf = []
+    table_lines = []
+
+    def _flush_text():
+        nonlocal buf
+        content = "\n".join(buf).strip()
+        if content:
+            segments.append({"type": "text", "data": content})
+        buf = []
+
+    def _flush_table():
+        nonlocal table_lines
+        headers, aligns, rows = _parse_markdown_table(table_lines)
+        if headers:
+            segments.append({"type": "table", "data": {"headers": headers, "aligns": aligns, "rows": rows}})
+        table_lines = []
+
+    for line in lines:
+        if _MD_TABLE_ROW_RE.match(line.strip()):
+            _flush_text()
+            table_lines.append(line)
+        else:
+            if table_lines:
+                _flush_table()
+            buf.append(line)
+
+    if table_lines:
+        _flush_table()
+    _flush_text()
+    return segments
 
 
 def clean_heading(title: str, number: str = "") -> str:
@@ -136,12 +209,47 @@ def export_docx(outline: Dict[str, Any], drafts: Dict[str, str], citations: List
             for run in paragraph.runs:
                 _set_run_font(run, "黑体", bold=True)
         else:
-            for part in re.split(r"\n{2,}", text):
-                paragraph = document.add_paragraph(part.strip())
-                paragraph.paragraph_format.first_line_indent = Pt(24)
-                paragraph.paragraph_format.line_spacing = 1.5
-                for run in paragraph.runs:
-                    _set_run_font(run, "宋体", Pt(12))
+            segments = _split_content_segments(text)
+            for seg in segments:
+                if seg["type"] == "table":
+                    tbl = seg["data"]
+                    headers = tbl["headers"]
+                    aligns = tbl["aligns"]
+                    rows = tbl["rows"]
+                    if not headers:
+                        continue
+                    ncols = len(headers)
+                    docx_table = document.add_table(rows=1 + len(rows), cols=ncols)
+                    docx_table.style = "Table Grid"
+                    # Header row
+                    for ci, hdr in enumerate(headers):
+                        cell = docx_table.rows[0].cells[ci]
+                        cell.text = ""
+                        run = cell.paragraphs[0].add_run(hdr)
+                        _set_run_font(run, "宋体", Pt(10.5), bold=True)
+                        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    # Data rows
+                    for ri, row in enumerate(rows):
+                        for ci, val in enumerate(row):
+                            cell = docx_table.rows[ri + 1].cells[ci]
+                            cell.text = ""
+                            run = cell.paragraphs[0].add_run(val)
+                            _set_run_font(run, "宋体", Pt(10.5))
+                            if ci < len(aligns):
+                                if aligns[ci] == "center":
+                                    cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                                elif aligns[ci] == "right":
+                                    cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                    # Add spacing after table
+                    spacer = document.add_paragraph("")
+                    spacer.paragraph_format.line_spacing = Pt(6)
+                else:
+                    for part in re.split(r"\n{2,}", seg["data"]):
+                        paragraph = document.add_paragraph(part.strip())
+                        paragraph.paragraph_format.first_line_indent = Pt(24)
+                        paragraph.paragraph_format.line_spacing = 1.5
+                        for run in paragraph.runs:
+                            _set_run_font(run, "宋体", Pt(12))
 
     # Append references
     if citations:
@@ -184,6 +292,40 @@ def _chinese_font_path() -> str:
         "Linux: sudo apt install fonts-noto-cjk\n"
         "Windows: 系统自带宋体/微软雅黑"
     )
+
+
+def _draw_pdf_table(pdf, headers: List[str], aligns: List[str], rows: List[List[str]], body_width: float) -> None:
+    """Draw a formatted table in the PDF document."""
+    ncols = len(headers)
+    if ncols == 0:
+        return
+    col_w = body_width / ncols
+    line_h = 5.5
+    font_size = 8
+
+    estimated_h = (len(rows) + 1) * (line_h + 2) + 4
+    if pdf.get_y() + estimated_h > pdf.h - pdf.b_margin:
+        pdf.add_page()
+
+    x0 = pdf.l_margin
+
+    def _draw_row(cells, bold=False):
+        pdf.set_font("CJK", "B" if bold else "", size=font_size)
+        y = pdf.get_y()
+        for ci in range(ncols):
+            cell_text = cells[ci] if ci < len(cells) else ""
+            if len(cell_text) > 80:
+                cell_text = cell_text[:77] + "..."
+            pdf.set_xy(x0 + ci * col_w, y)
+            a = aligns[ci][0].upper() if ci < len(aligns) else "L"
+            pdf.cell(col_w, line_h + 2, cell_text, border=1, align=a)
+        pdf.set_xy(x0, y + line_h + 2)
+
+    _draw_row(headers, bold=True)
+    for row in rows:
+        _draw_row(row)
+
+    pdf.ln(4)
 
 
 def export_pdf(outline: Dict[str, Any], drafts: Dict[str, str], citations: List[Dict[str, Any]] = None) -> Path:
@@ -230,12 +372,18 @@ def export_pdf(outline: Dict[str, Any], drafts: Dict[str, str], citations: List[
             pdf.multi_cell(body_width - indent, size * 1.2, text)
         else:
             pdf.set_font("CJK", "", size=size)
-            for paragraph in re.split(r"\n{2,}", text):
-                para = paragraph.strip()
-                if not para:
-                    continue
-                pdf.multi_cell(body_width, size * 1.55, para, align="L")
-                pdf.ln(1)
+            segments = _split_content_segments(text)
+            for seg in segments:
+                if seg["type"] == "table":
+                    tbl = seg["data"]
+                    _draw_pdf_table(pdf, tbl["headers"], tbl["aligns"], tbl["rows"], body_width)
+                else:
+                    for paragraph in re.split(r"\n{2,}", seg["data"]):
+                        para = paragraph.strip()
+                        if not para:
+                            continue
+                        pdf.multi_cell(body_width, size * 1.55, para, align="L")
+                        pdf.ln(1)
 
     # Append references
     if citations:

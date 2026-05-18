@@ -3279,6 +3279,15 @@ def _llm_create_message(
     tools: Any = None,
     disable_thinking: bool = False,
 ) -> Any:
+    # 记录完整提示词到日志
+    logger.info(
+        "LLM call → %s/%s | max_tokens=%s | system=%.120s",
+        provider, config.model, max_tokens, (system or "").replace("\n", " ")
+    )
+    for i, msg in enumerate(messages):
+        content = msg.get("content", "")
+        logger.info("LLM prompt [msg %s/%s]:\n%s", i + 1, len(messages), content)
+
     if provider == "openai":
         api_messages: List[Dict[str, str]] = []
         if system:

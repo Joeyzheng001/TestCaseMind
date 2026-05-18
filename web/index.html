@@ -5,7 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ThesisMind 论文辅助工作台</title>
-  <link rel="stylesheet" href="/styles.css?v=32" />
+  <link rel="stylesheet" href="/styles.css?v=33" />
+  <link rel="stylesheet" href="/admin.css?v=1" />
 </head>
 
 <body>
@@ -43,14 +44,6 @@
         <button class="step sub-item" data-step="blind_review">盲审检查</button>
         <button class="step sub-item" data-step="aigc_check">AIGC率评估</button>
         <button class="step sub-item" data-step="aigc_reduce">AIGC降重</button>
-      </nav>
-      <nav class="steps" aria-label="管理">
-        <button class="step admin-toggle" id="adminToggle"><span>10</span>管理员权限 <span class="chevron" id="adminChevron">▸</span></button>
-      </nav>
-      <nav class="services-sub" id="adminSub" hidden>
-        <button class="step sub-item" data-step="kb_init">知识库初始化</button>
-        <button class="step sub-item" data-step="paper_manager">论文管理</button>
-        <button class="step sub-item" data-step="license">许可证管理</button>
       </nav>
       <div class="license-badge" id="licenseBadge" title="点击管理许可证">
         <span class="license-dot" id="licenseDot"></span>
@@ -286,9 +279,7 @@
           </div>
           <div class="head-actions">
             <button class="primary" id="generateCitationsBtn">AI生成引用</button>
-            <button class="primary" id="addCitationBtn">添加引用</button>
             <button class="ghost" id="classifyCitationsBtn">LLM分类</button>
-            <button class="ghost" id="scanVerifyBtn">扫描校验</button>
             <span class="save-tip" id="citationStatus"></span>
           </div>
         </div>
@@ -644,109 +635,6 @@
         </div>
       </section>
 
-      <section class="panel page" id="kb_init">
-        <div class="page-head compact">
-          <div>
-            <p class="eyebrow">系统管理</p>
-            <h2>知识库初始化</h2>
-          </div>
-        </div>
-        <p class="hint">扫描知识库目录，构建向量索引。首次使用或更换论文库后需要运行。</p>
-        <div class="actions">
-          <button class="primary" id="initKnowledgeBase" type="button">开始初始化</button>
-          <span class="save-tip" id="initKbStatus"></span>
-        </div>
-        <div id="initKbLog" class="task-log"></div>
-
-        <hr style="margin: 32px 0 20px; border-color: var(--line);" />
-        <div class="page-head compact">
-          <div>
-            <p class="eyebrow">引用管理</p>
-            <h2>LLM 引用生成</h2>
-          </div>
-        </div>
-        <p class="hint">基于当前论文方向和方法论，自动检索并生成学术引用文献。</p>
-        <div class="actions">
-          <label class="lib-field">
-            <span>期望数量</span>
-            <input id="kbCitationCount" type="number" min="10" max="150" value="100" style="width:100px" />
-          </label>
-          <button class="primary" id="kbGenerateCitationsBtn">AI生成引用</button>
-          <span class="save-tip" id="kbCitationStatus"></span>
-        </div>
-        <div id="kbCitationProgress" class="serial-progress" hidden>
-          <div class="snail-track">
-            <div class="snail" id="kbCitationSnail" aria-hidden="true">
-              <span class="snail-shell"></span>
-              <span class="snail-body"></span>
-              <span class="snail-eye"></span>
-            </div>
-          </div>
-          <div class="serial-progress-text" id="kbCitationProgressText">准备生成引用</div>
-        </div>
-        <div id="kbCitationLog" class="task-log" hidden></div>
-      </section>
-
-      <section class="panel page" id="paper_manager">
-        <div class="page-head compact">
-          <div>
-            <p class="eyebrow">系统管理</p>
-            <h2>论文管理</h2>
-          </div>
-          <button class="ghost" id="refreshPapers">刷新列表</button>
-        </div>
-
-        <div class="paper-upload-zone" id="paperUploadZone">
-          <div class="paper-upload-inner">
-            <p class="paper-upload-icon">📁</p>
-            <p class="paper-upload-label">拖拽 PDF / DOCX 至此，或点击选择文件</p>
-            <p class="paper-upload-hint">上传后将自动转换为 Markdown 格式</p>
-            <input type="file" id="paperFileInput" accept=".pdf,.docx,.doc" hidden />
-            <button class="ghost" id="paperUploadBtn">选择文件并上传</button>
-          </div>
-          <span class="save-tip" id="paperUploadTip"></span>
-        </div>
-
-        <div class="paper-list-section">
-          <div class="paper-list-head">
-            <h3>论文列表 <span id="paperCount"></span></h3>
-            <div class="paper-list-filters">
-              <select id="paperDirectionFilter">
-                <option value="">全部方向</option>
-              </select>
-              <input id="paperKeywordFilter" placeholder="搜索标题/摘要…" />
-              <button class="ghost" id="paperSearchBtn">搜索</button>
-            </div>
-          </div>
-          <div class="library-table-wrap">
-            <table class="library-table">
-              <thead>
-                <tr>
-                  <th>标题</th>
-                  <th class="lib-col-type">年份</th>
-                  <th class="lib-col-type">方向</th>
-                  <th class="lib-col-type">引用数</th>
-                  <th class="lib-col-type">质量分</th>
-                  <th class="lib-col-actions">操作</th>
-                </tr>
-              </thead>
-              <tbody id="paperTableBody"></tbody>
-            </table>
-          </div>
-          <div class="library-empty" id="paperListEmpty">暂无论文，请上传 PDF 或 DOCX 文件。</div>
-        </div>
-
-        <div id="paperPipelineSection" class="paper-pipeline" hidden>
-          <div class="paper-pipeline-head">
-            <h4>运行流水线: <span id="paperPipelineTitle"></span></h4>
-            <button class="primary" id="runPaperPipeline">运行完整流水线</button>
-          </div>
-          <div id="paperPipelineLog" class="task-log"></div>
-        </div>
-
-        <div id="paperDetailRow" class="paper-detail-row" hidden></div>
-      </section>
-
       <section class="panel page" id="license">
         <div class="page-head compact">
           <div>
@@ -776,55 +664,6 @@
             <button class="primary" id="startTrialBtn">开始免费试用</button>
             <span class="save-tip" id="licenseTrialTip"></span>
           </div>
-        </div>
-
-        <!-- Admin-only: Generate license -->
-        <div class="license-admin-section" id="licenseGenerateSection" hidden>
-          <h3>生成许可证</h3>
-          <p class="hint">管理员可生成各等级许可证激活码</p>
-          <div class="license-generate-form">
-            <label class="field">
-              <span>许可证等级</span>
-              <select id="licenseGenTier">
-                <option value="basic">基础版 (1年)</option>
-                <option value="pro">畅想版 (2年)</option>
-                <option value="vip">VIP版 (2年)</option>
-                <option value="admin">管理员版 (10年)</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>用户邮箱 (可选)</span>
-              <input id="licenseGenEmail" placeholder="user@example.com" />
-            </label>
-            <button class="primary" id="licenseGenBtn">生成许可证</button>
-          </div>
-          <div class="generated-code" id="generatedCodeBox" hidden>
-            <div class="generated-code-label">激活码</div>
-            <code id="generatedCodeText"></code>
-            <button class="ghost" id="copyGeneratedCode">复制激活码</button>
-            <span class="save-tip" id="genCodeTip"></span>
-          </div>
-        </div>
-
-        <!-- Admin-only: License history -->
-        <div class="license-admin-section" id="licenseHistorySection" hidden>
-          <h3>许可证历史</h3>
-          <div class="library-table-wrap">
-            <table class="library-table">
-              <thead>
-                <tr>
-                  <th>操作</th>
-                  <th>类型</th>
-                  <th>邮箱</th>
-                  <th>激活码</th>
-                  <th>生成/激活时间</th>
-                  <th>到期时间</th>
-                </tr>
-              </thead>
-              <tbody id="licenseHistoryBody"></tbody>
-            </table>
-          </div>
-          <div class="library-empty" id="licenseHistoryEmpty">无历史记录</div>
         </div>
       </section>
     </section>
@@ -987,7 +826,8 @@
       </div>
     </section>
   </div>
-  <script src="/app.js?v=59" defer></script>
+  <script src="/app.js?v=60" defer></script>
+  <script src="/admin.js?v=1" defer></script>
 </body>
 
 </html>

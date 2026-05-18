@@ -95,14 +95,10 @@ function activeStep(id) {
   }
   const chatTitle = $("#chatFloatTitle");
   if (chatTitle) {
-    const labels = { setup:"配置引导", paper_info:"论文信息引导", methods:"方法论引导", framework:"框架引导", outline:"大纲引导", citations:"引文引导", writing:"写作引导", blind_review:"盲审引导", proposal:"开题报告引导", ppt_proposal:"开题PPT制作", ppt_midterm:"中期PPT制作", ppt_defense:"答辩PPT制作", table_generator:"表格生成器", aigc_check:"AIGC率评估", aigc_reduce:"AIGC降重", kb_init:"知识库初始化", paper_manager:"论文管理", license:"许可证管理" };
+    const labels = { setup:"配置引导", paper_info:"论文信息引导", methods:"方法论引导", framework:"框架引导", outline:"大纲引导", citations:"引文引导", writing:"写作引导", blind_review:"盲审引导", proposal:"开题报告引导", ppt_proposal:"开题PPT制作", ppt_midterm:"中期PPT制作", ppt_defense:"答辩PPT制作", table_generator:"表格生成器", aigc_check:"AIGC率评估", aigc_reduce:"AIGC降重" };
     chatTitle.textContent = labels[id] || "论文助手";
   }
   if (id === "license") updateLicenseUI();
-  if (id === "paper_manager") {
-    populatePaperDirectionDropdown();
-    loadPapers();
-  }
 }
 
 function selectedDirection() {
@@ -779,11 +775,8 @@ function updateLicenseUI() {
   // Gate menu items
   const features = lic.features || [];
   const hasAll = features.includes("all");
-  const hasAdmin = features.includes("admin");
   const hasWorkflow = hasAll || features.includes("workflow");
   const hasAdvanced = hasAll || features.includes("advanced");
-  // Persist to state so gate checks in activeStep can access them
-  state.hasAdmin = hasAdmin;
   state.hasAdvanced = hasAdvanced;
   state.hasWorkflow = hasWorkflow;
 
@@ -874,39 +867,12 @@ function updateLicenseUI() {
     trialSection.hidden = lic.status !== "no_license";
   }
 
-  // Gate 知识库初始化 sidebar — admin only
-  const kbSidebarBtn = document.querySelector('.step[data-step="kb_init"]');
-  if (kbSidebarBtn) {
-    if (!hasAdmin) {
-      kbSidebarBtn.classList.add("gated");
-      kbSidebarBtn.title = "需要管理员许可证";
-    } else {
-      kbSidebarBtn.classList.remove("gated");
-      kbSidebarBtn.title = "";
-    }
-  }
-
-  // Gate 论文管理 — Pro 及以上 (advanced)
-  const paperBtn = document.querySelector('.step[data-step="paper_manager"]');
-  if (paperBtn) {
-    if (!hasAdvanced) {
-      paperBtn.classList.add("gated");
-      paperBtn.title = "需要畅想版及以上许可证";
-    } else {
-      paperBtn.classList.remove("gated");
-      paperBtn.title = "";
-    }
-  }
-
-  // License management is for every user; only generation/history are admin-only.
+  // License management is accessible to all users for activation/trial
   const licBtn = document.querySelector('.step[data-step="license"]');
   if (licBtn) {
     licBtn.classList.remove("gated");
     licBtn.title = "管理许可证";
   }
-
-  // Toggle admin sections on license page
-  toggleAdminSections(hasAdmin, lic.status);
 
   // Inline license section on setup page
   const inlineDot = $("#licenseInlineDot");
@@ -932,309 +898,6 @@ function updateLicenseUI() {
   if (inlineTrial) inlineTrial.hidden = lic.status !== "no_license";
 }
 
-// ── Admin sections toggle ──
-function toggleAdminSections(hasAdmin, licStatus) {
-  const genSection = $("#licenseGenerateSection");
-  const histSection = $("#licenseHistorySection");
-  if (genSection) genSection.hidden = !hasAdmin;
-  if (histSection) histSection.hidden = !hasAdmin;
-}
-
-// ── Paper Management ──
-const paperState = { list: [], total: 0, selectedId: "", pipelineTaskId: "", pipelineTimer: null };
-
-function populatePaperDirectionDropdown() {
-  const sel = $("#paperDirectionFilter");
-  if (!sel) return;
-  sel.innerHTML = '<option value="">全部方向</option>';
-  const dirs = [
-    { id: "quality_management", label: "质量管理" },
-    { id: "risk_management", label: "风险管理" },
-    { id: "schedule_management", label: "进度管理" },
-    { id: "requirements_management", label: "需求管理" },
-    { id: "process_optimization", label: "流程优化" },
-    { id: "cost_management", label: "成本管理" },
-    { id: "supply_chain_logistics", label: "供应链与物流" },
-  ];
-  dirs.forEach(d => {
-    const opt = document.createElement("option");
-    opt.value = d.id;
-    opt.textContent = d.label;
-    sel.appendChild(opt);
-  });
-}
-
-async function loadPapers() {
-  const dir = $("#paperDirectionFilter")?.value || "";
-  const kw = $("#paperKeywordFilter")?.value?.trim() || "";
-  const params = new URLSearchParams();
-  if (dir) params.set("direction", dir);
-  if (kw) params.set("keyword", kw);
-  params.set("limit", "100");
-  params.set("offset", "0");
-  try {
-    const data = await api("/api/papers/list?" + params.toString());
-    paperState.list = data.papers || [];
-    paperState.total = data.total || 0;
-    renderPaperList();
-  } catch (e) {
-    paperState.list = [];
-    paperState.total = 0;
-    renderPaperList();
-  }
-  // Also load stats
-  try {
-    const stats = await api("/api/papers/stats");
-    if ($("#paperCount")) $("#paperCount").textContent = `(${stats.papers || 0} 篇论文 · ${stats.cards || 0} 引用卡片)`;
-  } catch (_) {}
-}
-
-function renderPaperList() {
-  const tbody = $("#paperTableBody");
-  const empty = $("#paperListEmpty");
-  if (!tbody) return;
-  if (!paperState.list.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="lib-empty-cell">暂无论文，请上传 PDF 或 DOCX 文件。</td></tr>';
-    if (empty) empty.style.display = "block";
-    return;
-  }
-  if (empty) empty.style.display = "none";
-  tbody.innerHTML = paperState.list.map(p => {
-    const methods = (p.methods || []).slice(0, 3).map(m => `<span style="font-size:10px;background:#edf7ff;padding:1px 6px;border-radius:4px;margin-right:2px">${escHtml(m)}</span>`).join("");
-    const hasPipeline = p.indexed || p.cleaned;
-    return `<tr>
-      <td>
-        <div style="font-weight:600;color:var(--text)">${escHtml(p.title || "未知标题")}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${methods || "无方法标签"}</div>
-      </td>
-      <td>${p.year || "-"}</td>
-      <td>${escHtml(p.direction_label || "-")}</td>
-      <td>${p.reference_count || 0}</td>
-      <td><span style="font-weight:600;color:${p.quality_score > 0.6 ? '#2d9a68' : p.quality_score > 0.3 ? '#d97706' : '#94a3b8'}">${(p.quality_score || 0).toFixed(1)}</span></td>
-      <td>
-        <div class="lib-actions-cell" style="gap:4px">
-          <button class="ghost paper-run-btn" data-doc-id="${escHtml(p.doc_id)}" title="运行流水线">▶</button>
-          <button class="ghost paper-detail-btn" data-doc-id="${escHtml(p.doc_id)}" title="详情">📋</button>
-          <button class="ghost paper-delete-btn" data-doc-id="${escHtml(p.doc_id)}" title="删除" style="color:#c44">✕</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join("");
-}
-
-async function uploadPaper() {
-  const input = $("#paperFileInput");
-  const tip = $("#paperUploadTip");
-  if (!input || !input.files.length) {
-    if (tip) tip.textContent = "请先选择文件";
-    return;
-  }
-  const file = input.files[0];
-  const formData = new FormData();
-  formData.append("file", file);
-  const btn = $("#paperUploadBtn");
-  if (btn) { btn.disabled = true; btn.textContent = "上传中..."; }
-  if (tip) tip.textContent = "上传中...";
-  try {
-    const res = await fetch("/api/papers/upload", { method: "POST", body: formData });
-    const data = await res.json();
-    if (data.status === "ok") {
-      if (tip) tip.textContent = `上传成功: ${data.file_name}`;
-      input.value = "";
-      await loadPapers();
-      // Auto-start pipeline if md_path exists
-      if (data.saved_path) {
-        if (tip) tip.textContent += " 可在论文列表中点击 ▶ 运行流水线";
-      }
-    } else {
-      if (tip) tip.textContent = "上传失败: " + (data.message || "未知错误");
-    }
-  } catch (e) {
-    if (tip) tip.textContent = "上传失败: " + e.message;
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = "选择文件并上传"; }
-  }
-}
-
-async function deletePaper(docId) {
-  if (!docId) return;
-  try {
-    const res = await api("/api/papers/delete", {
-      method: "POST",
-      body: JSON.stringify({ doc_id: docId }),
-    });
-    if (res.deleted) {
-      await loadPapers();
-      // Hide pipeline section if was selected
-      const pipelineSection = $("#paperPipelineSection");
-      if (pipelineSection) pipelineSection.hidden = true;
-    }
-  } catch (e) {
-    alert("删除失败: " + e.message);
-  }
-}
-
-async function togglePaperDetail(docId) {
-  const detailRow = $("#paperDetailRow");
-  if (!detailRow) return;
-  if (paperState.selectedId === docId) {
-    detailRow.hidden = !detailRow.hidden;
-    return;
-  }
-  paperState.selectedId = docId;
-  try {
-    const data = await api(`/api/papers/detail?doc_id=${encodeURIComponent(docId)}`);
-    const p = data.paper;
-    if (!p) { detailRow.hidden = true; return; }
-    const methods = (p.methods || []).join(", ") || "无";
-    const theories = (p.theory_frameworks || []).join(", ") || "无";
-    const sections = (p.sections || []).map(s => `<li>${escHtml(s)}</li>`).join("") || "<li>无</li>";
-    const keywords = (p.keywords || []).join(", ") || "无";
-    detailRow.innerHTML = `
-      <div class="paper-detail-card">
-        <h4>${escHtml(p.title)}</h4>
-        <div class="paper-detail-grid">
-          <div class="paper-detail-field"><span>作者</span> ${escHtml((p.authors || []).join(", ") || "未知")}</div>
-          <div class="paper-detail-field"><span>年份</span> ${p.year || "未知"}</div>
-          <div class="paper-detail-field"><span>方向</span> ${escHtml(p.direction_label || "未分类")}</div>
-          <div class="paper-detail-field"><span>语言</span> ${p.language || "zh"}</div>
-          <div class="paper-detail-field"><span>质量分</span> ${(p.quality_score || 0).toFixed(2)}</div>
-          <div class="paper-detail-field"><span>引用数</span> ${p.reference_count || 0}</div>
-          <div class="paper-detail-field"><span>字数</span> ${p.word_count || 0}</div>
-          <div class="paper-detail-field"><span>本地化分</span> ${(p.localization_score || 0).toFixed(2)}</div>
-        </div>
-        <div class="paper-detail-field"><span>关键词</span> ${keywords}</div>
-        <div class="paper-detail-field"><span>方法</span> ${methods}</div>
-        <div class="paper-detail-field"><span>理论框架</span> ${theories}</div>
-        <div class="paper-detail-field"><span>摘要</span> ${escHtml(p.abstract || "无")}</div>
-        <div class="paper-detail-field"><span>章节</span><ul>${sections}</ul></div>
-        <button class="ghost" onclick="document.getElementById('paperDetailRow').hidden = true">关闭</button>
-      </div>`;
-    detailRow.hidden = false;
-    // Show pipeline section for this paper
-    const pipelineSection = $("#paperPipelineSection");
-    if (pipelineSection) {
-      pipelineSection.hidden = false;
-      if ($("#paperPipelineTitle")) $("#paperPipelineTitle").textContent = p.title || docId;
-    }
-  } catch (e) {
-    detailRow.innerHTML = `<div class="paper-detail-card"><p>加载失败: ${e.message}</p></div>`;
-    detailRow.hidden = false;
-  }
-}
-
-async function runPaperPipeline() {
-  const docId = paperState.selectedId;
-  if (!docId) { alert("请先在论文列表中点击详情选择一篇论文"); return; }
-  const logBox = $("#paperPipelineLog");
-  if (logBox) logBox.innerHTML = "";
-  const btn = $("#runPaperPipeline");
-  if (btn) { btn.disabled = true; btn.textContent = "启动中..."; }
-  try {
-    const res = await api("/api/papers/pipeline/start", {
-      method: "POST",
-      body: JSON.stringify({ doc_id: docId }),
-    });
-    paperState.pipelineTaskId = res.task_id;
-    if (btn) btn.textContent = "运行中...";
-    pollPaperPipeline();
-  } catch (e) {
-    if (btn) { btn.disabled = false; btn.textContent = "运行完整流水线"; }
-    alert("启动流水线失败: " + e.message);
-  }
-}
-
-function pollPaperPipeline() {
-  if (!paperState.pipelineTaskId) return;
-  if (paperState.pipelineTimer) clearTimeout(paperState.pipelineTimer);
-  (async () => {
-    try {
-      const data = await api(`/api/tasks/${paperState.pipelineTaskId}`);
-      const logBox = $("#paperPipelineLog");
-      if (data.logs && logBox) {
-        logBox.innerHTML = data.logs.map(l => `<div><time>${l.time || ""}</time><span>${escHtml(l.message || "")}</span></div>`).join("");
-        logBox.scrollTop = logBox.scrollHeight;
-      }
-      if (data.status === "done" || data.status === "error") {
-        const btn = $("#runPaperPipeline");
-        if (btn) { btn.disabled = false; btn.textContent = "运行完整流水线"; }
-        paperState.pipelineTaskId = "";
-        await loadPapers();
-        return;
-      }
-      paperState.pipelineTimer = setTimeout(pollPaperPipeline, 1500);
-    } catch (_) {
-      paperState.pipelineTimer = setTimeout(pollPaperPipeline, 3000);
-    }
-  })();
-}
-
-// ── License Admin ──
-async function generateLicenseCode() {
-  const tier = $("#licenseGenTier")?.value || "basic";
-  const email = $("#licenseGenEmail")?.value?.trim() || "";
-  const btn = $("#licenseGenBtn");
-  const box = $("#generatedCodeBox");
-  const codeText = $("#generatedCodeText");
-  const tip = $("#genCodeTip");
-  if (btn) { btn.disabled = true; btn.textContent = "生成中..."; }
-  try {
-    const res = await api("/api/license/generate", {
-      method: "POST",
-      body: JSON.stringify({ license_type: tier, user_email: email }),
-    });
-    if (res.license_code && codeText) codeText.textContent = res.license_code;
-    if (box) box.hidden = false;
-    if (tip) tip.textContent = "生成成功";
-  } catch (e) {
-    if (tip) tip.textContent = "生成失败: " + e.message;
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = "生成许可证"; }
-  }
-}
-
-function copyGeneratedCode() {
-  const codeText = $("#generatedCodeText");
-  if (!codeText || !codeText.textContent) return;
-  navigator.clipboard.writeText(codeText.textContent).then(() => {
-    const tip = $("#genCodeTip");
-    if (tip) { tip.textContent = "已复制到剪贴板"; setTimeout(() => { tip.textContent = ""; }, 2000); }
-  });
-}
-
-async function loadLicenseHistory() {
-  const tbody = $("#licenseHistoryBody");
-  const empty = $("#licenseHistoryEmpty");
-  try {
-    const data = await api("/api/license/history");
-    const history = data.history || [];
-    if (!history.length) {
-      if (tbody) tbody.innerHTML = "";
-      if (empty) empty.style.display = "block";
-      return;
-    }
-    if (empty) empty.style.display = "none";
-    if (tbody) {
-      tbody.innerHTML = history.reverse().map(h => {
-        const codePreview = (h.code_preview || "").length > 24 ? (h.code_preview || "").slice(0, 24) + "..." : (h.code_preview || "-");
-        const actionLabel = h.action === "generate" ? "生成" : h.action === "activate" ? "激活" : h.action || "-";
-        // For activate, license_type may not be present; try to infer from code_preview or mark as "激活"
-        const typeLabel = h.license_type || (h.action === "activate" ? "激活" : "-");
-        return `<tr>
-          <td><span style="font-weight:600;color:${h.action === 'generate' ? 'var(--primary)' : '#2d9a68'}">${actionLabel}</span></td>
-          <td>${escHtml(typeLabel)}</td>
-          <td>${escHtml(h.user_email || "-")}</td>
-          <td style="font-family:monospace;font-size:11px">${escHtml(codePreview)}</td>
-          <td>${escHtml((h.generated_at || h.saved_at || "-").slice(0, 16))}</td>
-          <td>${escHtml((h.expires_at || "-").slice(0, 10))}</td>
-        </tr>`;
-      }).join("");
-    }
-  } catch (e) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="lib-empty-cell">加载失败: ${e.message}</td></tr>`;
-  }
-}
-
 async function saveConfig() {
   $("#saveTip").textContent = "保存中...";
   const data = await api("/api/config", {
@@ -1255,87 +918,6 @@ async function saveConfig() {
   }, 2800);
 }
 
-async function initKnowledgeBase() {
-  const button = $("#initKnowledgeBase");
-  const status = $("#initKbStatus");
-  const logBox = $("#initKbLog");
-  if (!button || !status || !logBox) return;
-
-  // Admin-only guard
-  const lic = state.license || {};
-  const features = lic.features || [];
-  if (!features.includes("admin")) {
-    status.innerHTML = "🔒 需要管理员许可证";
-    activeStep("license");
-    return;
-  }
-
-  button.disabled = true;
-  button.classList.add("loading");
-  status.classList.add("progress-tip");
-  status.innerHTML = `<span class="cute-loader">初始化中<span></span><span></span><span></span></span>`;
-  logBox.innerHTML = "";
-  try {
-    const data = await api("/api/knowledge-base/init", {
-      method: "POST",
-    });
-    if (!data.task_id) {
-      throw new Error("未能获取任务 ID");
-    }
-    status.textContent = `初始化任务已创建：${data.task_id}`;
-    await pollKnowledgeBaseTask(data.task_id, 0);
-  } catch (error) {
-    status.innerHTML = `❌ 初始化失败：${htmlEscape(error?.message || String(error))}`;
-    button.disabled = false;
-    button.classList.remove("loading");
-  }
-}
-
-async function pollKnowledgeBaseTask(taskId, count) {
-  const status = $("#initKbStatus");
-  const logBox = $("#initKbLog");
-  const button = $("#initKnowledgeBase");
-  if (!status || !logBox || !button) return;
-
-  const data = await api(`/api/tasks/${taskId}`);
-  status.textContent = `${data.message || data.status} · 已检查 ${Math.max(count, 1)} 次`;
-  renderTaskLog(data.logs || [], "#initKbLog");
-
-  if (data.status === "done") {
-    const conversion = data.result?.conversion || {};
-    const templates = data.result?.templates?.templates?.length ?? 0;
-    const documents = data.result?.vector_index?.documents ?? 0;
-    const chunks = data.result?.vector_index?.chunks ?? 0;
-    const entries = data.result?.citation_index?.entry_count ?? 0;
-    const mdCount = (conversion.converted_files ?? 0) + (conversion.reused_files ?? 0);
-    const outlineTotal = data.result?.outline_index?.total ?? 0;
-    const directionCount = Object.keys(data.result?.outline_index?.directions || {}).length;
-    const categoryStats = conversion.category_stats || {};
-
-    let catLines = [];
-    const catNames = { paper: "论文", methodology: "方法论", template: "模板", other: "其他" };
-    for (const [cat, stats] of Object.entries(categoryStats)) {
-      catLines.push(`${catNames[cat] || cat} ${stats.total} 篇`);
-    }
-
-    status.innerHTML = `✅ 初始化完成<br>
-      📄 ${mdCount} 个 Markdown（${catLines.join(" · ")}）<br>
-      📚 ${documents} 个文档 · ${chunks} 个文本块<br>
-      📋 ${outlineTotal} 篇大纲 · ${directionCount} 个研究方向 · ${templates} 个模板 · ${entries} 条引用`;
-    button.disabled = false;
-    button.classList.remove("loading");
-    return;
-  }
-
-  if (data.status === "error") {
-    status.innerHTML = `❌ 初始化失败：${htmlEscape(data.message || "未知错误")}`;
-    button.disabled = false;
-    button.classList.remove("loading");
-    return;
-  }
-
-  setTimeout(() => pollKnowledgeBaseTask(taskId, count + 1), 2000);
-}
 
 function htmlEscape(str) {
   return String(str)
@@ -2060,84 +1642,6 @@ async function pollCitationTask(taskId, count) {
   setTimeout(() => pollCitationTask(taskId, count + 1), 1500);
 }
 
-// ── KB Init page citation generation ──
-
-function setKbCitationProgress(done, total, message = "") {
-  const box = $("#kbCitationProgress");
-  if (!box) return;
-  const percent = total ? Math.min(100, Math.max(0, Math.round((done / total) * 100))) : 0;
-  box.hidden = false;
-  const snail = $("#kbCitationSnail");
-  if (snail) snail.style.left = `calc(${percent}% - 18px)`;
-  const text = $("#kbCitationProgressText");
-  if (text) text.textContent = message || `正在生成引用 ${done}/${total}`;
-}
-
-function hideKbCitationProgress() {
-  const box = $("#kbCitationProgress");
-  if (box) box.hidden = true;
-}
-
-async function generateCitationsKb() {
-  const direction = selectedDirection();
-  const btn = $("#kbGenerateCitationsBtn");
-  if (btn) { btn.disabled = true; btn.textContent = "生成中..."; }
-  $("#kbCitationStatus").textContent = "正在创建引用生成任务...";
-  const logEl = $("#kbCitationLog");
-  if (logEl) logEl.innerHTML = "";
-  try {
-    const expectedCount = Math.max(10, Math.min(150, Number(($("#kbCitationCount") && $("#kbCitationCount").value) || 100)));
-    const data = await api("/api/citations/generate", {
-      method: "POST",
-      body: JSON.stringify({
-        topic: $("#topicInput").value.trim(),
-        project_context: projectContextPayload(),
-        direction: direction.id,
-        direction_name: direction.name,
-        methods: selectedMethodNames(),
-        phase_methods: phaseMethodsPayload(),
-        expected_count: expectedCount,
-      }),
-    });
-    if (!data.task_id) throw new Error("未能创建引用生成任务");
-    pollCitationTaskKb(data.task_id, 0);
-  } catch (error) {
-    $("#kbCitationStatus").textContent = `引用生成失败：${error.message}`;
-    if (btn) { btn.disabled = false; btn.textContent = "AI生成引用"; }
-  }
-}
-
-async function pollCitationTaskKb(taskId, count) {
-  const data = await api(`/api/tasks/${taskId}`);
-  $("#kbCitationStatus").textContent = `${data.message || data.status} · ${Math.max(count, 1)} 次检查`;
-  renderTaskLog(data.logs || [], "#kbCitationLog");
-
-  const progress = data.progress || 0;
-  setKbCitationProgress(progress, 100, data.message || "正在生成引用...");
-
-  if (data.status === "done") {
-    const result = data.result || {};
-    state.citations = result.citations || [];
-    state.localCitations = result.local_citations || [];
-    state.llmCitations = result.llm_citations || [];
-    $("#kbCitationStatus").textContent = `${result.message || "引用已生成"} · 方向 ${result.direction_count || 0} 条 + 方法 ${result.local_count - (result.direction_count || 0)} 条 + LLM ${result.llm_count || 0} 条`;
-    setKbCitationProgress(100, 100, "引用生成完成");
-    setTimeout(hideKbCitationProgress, 4000);
-    const genBtn = $("#kbGenerateCitationsBtn");
-    if (genBtn) { genBtn.disabled = false; genBtn.textContent = "重新生成"; }
-    return;
-  }
-
-  if (data.status === "error") {
-    $("#kbCitationStatus").textContent = `引用生成失败：${data.message || "未知错误"}`;
-    hideKbCitationProgress();
-    const failBtn = $("#kbGenerateCitationsBtn");
-    if (failBtn) { failBtn.disabled = false; failBtn.textContent = "重试"; }
-    return;
-  }
-
-  setTimeout(() => pollCitationTaskKb(taskId, count + 1), 1500);
-}
 
 async function pollClassifyTask(taskId, count, btn) {
   const data = await api(`/api/tasks/${taskId}`);
@@ -3453,7 +2957,7 @@ activeStep = function(id) {
       const hasWorkflow = hasAll || features.includes("workflow");
       const hasAdvanced = hasAll || features.includes("advanced");
       const isTrial = lic.status === "trial";
-      const advancedMenus = ["proposal", "ppt_proposal", "ppt_midterm", "ppt_defense", "paper_manager"];
+      const advancedMenus = ["proposal", "ppt_proposal", "ppt_midterm", "ppt_defense"];
       const vipMenus = ["blind_review", "aigc_check", "aigc_reduce"];
 
       let blocked = false;
@@ -3467,9 +2971,6 @@ activeStep = function(id) {
       } else if (vipMenus.includes(id) && !hasAll) {
         blocked = true;
         message = "此功能需要VIP版许可证";
-      } else if ((id === "kb_init") && !state.hasAdmin) {
-        blocked = true;
-        message = "此功能需要管理员许可证";
       } else if (advancedMenus.includes(id) && !state.hasAdvanced) {
         blocked = true;
         message = "此功能需要畅想版及以上许可证";
@@ -3517,22 +3018,6 @@ activeStep = function(id) {
       vipSub.hidden = true;
       vipToggle.classList.remove("active");
       if (vipChev) vipChev.textContent = "▸";
-    }
-  }
-  // Admin submenu
-  const adminSubIds = ["kb_init", "paper_manager", "license"];
-  const adminSub = $("#adminSub");
-  const adminToggle = $("#adminToggle");
-  const adminChev = $("#adminChevron");
-  if (adminSub && adminToggle) {
-    if (adminSubIds.includes(id)) {
-      adminSub.hidden = false;
-      adminToggle.classList.add("active");
-      if (adminChev) adminChev.textContent = "▾";
-    } else {
-      adminSub.hidden = true;
-      adminToggle.classList.remove("active");
-      if (adminChev) adminChev.textContent = "▸";
     }
   }
 };
@@ -3621,8 +3106,6 @@ function bindEvents() {
   $("#projectSelect").addEventListener("change", (event) => switchProject(event.target.value));
   $("#saveConfig").addEventListener("click", saveConfig);
   $("#providerInput").addEventListener("change", onProviderChange);
-  if ($("#initKnowledgeBase")) $("#initKnowledgeBase").addEventListener("click", initKnowledgeBase);
-  if ($("#kbGenerateCitationsBtn")) $("#kbGenerateCitationsBtn").addEventListener("click", generateCitationsKb);
   if ($("#continueLast")) $("#continueLast").addEventListener("click", () => activeStep("writing"));
   if ($("#servicesToggle")) $("#servicesToggle").addEventListener("click", () => {
     const sub = $("#servicesSub");
@@ -3650,20 +3133,6 @@ function bindEvents() {
       if (chev) chev.textContent = "▾";
     }
   });
-  if ($("#adminToggle")) $("#adminToggle").addEventListener("click", () => {
-    const sub = $("#adminSub");
-    const chev = $("#adminChevron");
-    if (!sub) return;
-    sub.hidden = !sub.hidden;
-    if (sub.hidden) {
-      $("#adminToggle").classList.remove("active");
-      if (chev) chev.textContent = "▸";
-    } else {
-      $("#adminToggle").classList.add("active");
-      if (chev) chev.textContent = "▾";
-    }
-  });
-
   // License handlers
   if ($("#startTrialBtn")) $("#startTrialBtn").addEventListener("click", async () => {
     const btn = $("#startTrialBtn");
@@ -3779,48 +3248,6 @@ function bindEvents() {
     }
   }, true);
 
-  // ── Paper management handlers ──
-  $("#paperUploadBtn")?.addEventListener("click", () => { $("#paperFileInput").click(); });
-  $("#paperFileInput")?.addEventListener("change", uploadPaper);
-  $("#refreshPapers")?.addEventListener("click", loadPapers);
-  $("#paperSearchBtn")?.addEventListener("click", loadPapers);
-  $("#paperKeywordFilter")?.addEventListener("keydown", (e) => { if (e.key === "Enter") loadPapers(); });
-
-  // Paper list actions (delegated via table body)
-  $("#paperTableBody")?.addEventListener("click", (e) => {
-    const runBtn = e.target.closest(".paper-run-btn");
-    const detailBtn = e.target.closest(".paper-detail-btn");
-    const deleteBtn = e.target.closest(".paper-delete-btn");
-    if (runBtn) { togglePaperDetail(runBtn.dataset.docId).then(() => runPaperPipeline()); }
-    if (detailBtn) togglePaperDetail(detailBtn.dataset.docId);
-    if (deleteBtn) {
-      const docId = deleteBtn.dataset.docId;
-      if (confirm("确定要删除此论文及其关联引用卡片吗？此操作不可撤销。")) {
-        deletePaper(docId).then(() => {
-          if (paperState.selectedId === docId) {
-            paperState.selectedId = "";
-            const detailRow = $("#paperDetailRow");
-            const pipelineSection = $("#paperPipelineSection");
-            if (detailRow) detailRow.hidden = true;
-            if (pipelineSection) pipelineSection.hidden = true;
-          }
-        });
-      }
-    }
-  });
-
-  $("#runPaperPipeline")?.addEventListener("click", runPaperPipeline);
-
-  // ── License admin handlers ──
-  $("#licenseGenBtn")?.addEventListener("click", generateLicenseCode);
-  $("#copyGeneratedCode")?.addEventListener("click", copyGeneratedCode);
-
-  // Load history when entering license page (via activeStep override below)
-  const _origActiveStepForLicense = activeStep;
-  activeStep = function(id) {
-    _origActiveStepForLicense(id);
-    if (id === "license") loadLicenseHistory();
-  };
 
   $("#generateFramework").addEventListener("click", generateFramework);
 
@@ -4881,94 +4308,11 @@ function openLibraryEdit(cardId) {
   };
 }
 
-// --- Add citation modal (paste-and-parse) ---
-
-function openAddCitationModal() {
-  $("#cmAddCitationText").value = "";
-  $("#cmAddCitationModal").hidden = false;
-  $("#cmAddCitationText").focus();
-}
-
-function closeAddCitationModal() {
-  $("#cmAddCitationModal").hidden = true;
-}
-
-async function submitAddCitation() {
-  const rawText = $("#cmAddCitationText").value.trim();
-  if (!rawText) {
-    alert("请粘贴引用文本");
-    return;
-  }
-  const btn = $("#cmAddCitationSubmit");
-  btn.disabled = true;
-  btn.textContent = "解析中...";
-  try {
-    const data = await api("/api/citation-cards/parse-and-add", {
-      method: "POST",
-      body: JSON.stringify({ raw_text: rawText }),
-    });
-    if (data.status === "ok") {
-      alert("成功添加 " + data.inserted + " 条引用");
-      closeAddCitationModal();
-      loadLibrary();
-    } else {
-      alert("解析失败：" + (data.message || "未知错误"));
-    }
-  } catch (e) {
-    alert("请求失败：" + e.message);
-  }
-  btn.disabled = false;
-  btn.textContent = "解析并添加";
-}
-
-// --- Scan-verify task polling ---
-
-async function pollScanVerifyTask(taskId, count, btn) {
-  const data = await api(`/api/tasks/${taskId}`);
-  setCitationProgress(data.progress || 0, 100, data.message || "正在扫描校验...");
-
-  if (data.status === "done") {
-    const r = data.result || {};
-    $("#citationStatus").textContent =
-      "扫描完成：确认 " + (r.confirmed || 0) + " 条，虚假 " + (r.fake || 0) + " 条，格式问题 " + (r.format_error || 0) + " 条";
-    setCitationProgress(100, 100, "扫描校验完成");
-    setTimeout(hideCitationProgress, 8000);
-    if (btn) { btn.disabled = false; btn.textContent = "扫描校验"; }
-    loadLibrary();
-    return;
-  }
-  if (data.status === "error") {
-    $("#citationStatus").textContent = "扫描失败：" + (data.message || "未知错误");
-    hideCitationProgress();
-    if (btn) { btn.disabled = false; btn.textContent = "扫描校验"; }
-    return;
-  }
-  setTimeout(() => pollScanVerifyTask(taskId, count + 1, btn), 2000);
-}
-
 // --- Event bindings ---
 
 function bindLibraryEvents() {
   // Generate citations
   $("#generateCitationsBtn")?.addEventListener("click", () => generateCitations());
-
-  // Add citation (paste-and-parse)
-  $("#addCitationBtn")?.addEventListener("click", () => openAddCitationModal());
-
-  // Scan-verify unverified citations
-  $("#scanVerifyBtn")?.addEventListener("click", async () => {
-    const btn = $("#scanVerifyBtn");
-    btn.disabled = true;
-    btn.textContent = "扫描中...";
-    try {
-      const data = await api("/api/citation-cards/scan-verify", { method: "POST", body: "{}" });
-      pollScanVerifyTask(data.task_id, 0, btn);
-    } catch (e) {
-      btn.disabled = false;
-      btn.textContent = "扫描校验";
-      alert("扫描任务创建失败：" + e.message);
-    }
-  });
 
   // LLM classify
   $("#classifyCitationsBtn")?.addEventListener("click", async () => {
@@ -5072,16 +4416,6 @@ function bindLibraryEvents() {
     if (e.target === $("#cmEditModal")) $("#cmEditModal").hidden = true;
   });
 
-  // Add citation modal controls
-  $("#cmAddCitationClose").addEventListener("click", closeAddCitationModal);
-  $("#cmAddCitationCancel").addEventListener("click", closeAddCitationModal);
-  $("#cmAddCitationSubmit").addEventListener("click", submitAddCitation);
-  $("#cmAddCitationModal").addEventListener("click", (e) => {
-    if (e.target === $("#cmAddCitationModal")) closeAddCitationModal();
-  });
-  $("#cmAddCitationText").addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeAddCitationModal();
-  });
 }
 
 // Override: load library when entering citations page

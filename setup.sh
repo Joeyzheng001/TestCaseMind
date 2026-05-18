@@ -51,13 +51,12 @@ pip install --upgrade pip -q
 pip install -r requirements.txt -q
 echo -e "${GREEN}✓ 依赖安装完成${NC}"
 
-# ── 知识库资产下载 ──
+# ── 知识库检查 ──
 echo ""
-echo "下载知识库向量索引 (约 300MB)..."
-if [ -f "download_assets.sh" ]; then
-    bash download_assets.sh 2>&1 || echo -e "${YELLOW}注意: 向量索引下载失败，部分功能（引用推荐、文献检索）可能受限${NC}"
+if [ -f "knowledge_base/vector_store.sqlite3" ]; then
+    echo -e "${GREEN}✓ 知识库向量索引已就绪${NC}"
 else
-    echo -e "${YELLOW}注意: 未找到 download_assets.sh，跳过向量索引下载${NC}"
+    echo -e "${YELLOW}注意: 未找到向量索引，部分功能（引用推荐、文献检索）可能受限${NC}"
 fi
 
 # ── 中文字体检测 ──

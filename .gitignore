@@ -83,3 +83,4 @@ htmlcov/
 
 # Dependencies
 *.lock
+.claude/

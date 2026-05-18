@@ -40,6 +40,14 @@ pip install --upgrade pip -q
 pip install -r requirements.txt -q
 echo [OK] 依赖安装完成
 
+:: 知识库检查
+echo.
+if exist "knowledge_base\vector_store.sqlite3" (
+    echo [OK] 知识库向量索引已就绪
+) else (
+    echo [注意] 未找到向量索引，部分功能可能受限
+)
+
 :: 完成
 echo.
 echo ========================================

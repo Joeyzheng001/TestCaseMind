@@ -2,43 +2,13 @@
 anthropic>=0.42.0
 python-dotenv>=1.0.0
 cryptography>=41.0.0
+PyYAML>=6.0
 
 # Document processing
 python-docx>=0.8.11
+fpdf2>=2.7.0
 pypdf>=4.0.0
-openpyxl>=3.10.0
-python-pptx>=0.6.21
-
-# Data and file handling
-pyyaml>=6.0
-json5>=0.9.0
-requests>=2.31.0
-
-# Graph and visualization
-graphviz>=0.20.0
-mermaid>=0.3.0
-Pillow>=10.0.0
+openpyxl>=3.0.0
 
 # Citation and bibliography
-bibtexparser>=2.0.0
-citeproc-py>=0.5.1
 pybtex>=0.24.0
-
-# Text processing
-nltk>=3.8.1
-spacy>=3.7.0
-textstat>=0.7.3
-
-# Utilities
-tqdm>=4.66.0
-pandas>=2.0.0
-numpy>=1.24.0
-click>=8.1.0
-
-# Testing
-pytest>=7.4.0
-pytest-cov>=4.1.0
-
-# Code quality
-black>=23.9.0
-pylint>=2.17.0

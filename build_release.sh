@@ -58,7 +58,16 @@ if [ -d "knowledge_base/outlines" ] && [ "$(ls -A knowledge_base/outlines 2>/dev
     echo "  ✓ knowledge_base/outlines/"
 fi
 
-# ── 4. 向量索引 ──
+# ── 4. 离线依赖包 ──
+echo "下载 Python 依赖包（离线安装用）..."
+WHEELS_DIR="${BUILD_DIR}/wheels"
+mkdir -p "${WHEELS_DIR}"
+pip download -r requirements.txt -d "${WHEELS_DIR}" -q 2>&1
+WHEEL_COUNT=$(ls -1 "${WHEELS_DIR}"/*.whl 2>/dev/null | wc -l)
+WHEELS_SIZE=$(du -sh "${WHEELS_DIR}" | cut -f1)
+echo "  ✓ ${WHEEL_COUNT} 个 wheel 包 (${WHEELS_SIZE})"
+
+# ── 5. 向量索引 ──
 if [ -f "knowledge_base/vector_store.sqlite3" ]; then
     VECTOR_SIZE=$(du -h knowledge_base/vector_store.sqlite3 | cut -f1)
     echo "打包向量索引 (${VECTOR_SIZE})..."
@@ -69,7 +78,7 @@ else
     echo -e "${YELLOW}  请将向量索引文件放入 knowledge_base/ 后重新打包${NC}"
 fi
 
-# ── 5. 配置文件 ──
+# ── 6. 配置文件 ──
 echo "复制配置文件..."
 for f in requirements.txt setup.sh; do
     if [ -f "$f" ]; then
@@ -84,7 +93,7 @@ if [ -f "setup.bat" ]; then
     echo "  ✓ setup.bat"
 fi
 
-# ── 6. 清理开发残留 ──
+# ── 7. 清理开发残留 ──
 echo "清理开发残留..."
 find "${BUILD_DIR}" -type f -name ".DS_Store" -delete
 find "${BUILD_DIR}" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
@@ -95,7 +104,7 @@ rm -f "${BUILD_DIR}/knowledge_base/"*_backup_*
 rm -f "${BUILD_DIR}/knowledge_base/"*-shm
 rm -f "${BUILD_DIR}/knowledge_base/"*-wal
 
-# ── 7. 创建 zip ──
+# ── 8. 创建 zip ──
 mkdir -p build
 echo ""
 echo "创建 zip 包..."

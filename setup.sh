@@ -48,7 +48,20 @@ echo -e "${GREEN}✓ 虚拟环境已激活${NC}"
 # ── 依赖安装 ──
 echo "安装依赖包..."
 pip install --upgrade pip -q
-pip install -r requirements.txt -q
+
+if [ -d "wheels" ] && [ "$(ls -1 wheels/*.whl 2>/dev/null | wc -l)" -gt 0 ]; then
+    echo "  从本地离线包安装..."
+    pip install --no-index --find-links=wheels -r requirements.txt -q 2>&1 || {
+        echo -e "${YELLOW}  离线包安装失败，切换到清华镜像...${NC}"
+        pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple -q
+    }
+else
+    echo "  离线包不存在，从 PyPI 安装..."
+    pip install -r requirements.txt -q 2>&1 || {
+        echo -e "${YELLOW}  PyPI 连接失败，尝试清华镜像...${NC}"
+        pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple -q
+    }
+fi
 echo -e "${GREEN}✓ 依赖安装完成${NC}"
 
 # ── 知识库检查 ──

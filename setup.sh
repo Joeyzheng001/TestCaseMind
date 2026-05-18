@@ -51,13 +51,13 @@ pip install --upgrade pip -q
 pip install -r requirements.txt -q
 echo -e "${GREEN}✓ 依赖安装完成${NC}"
 
-# ── 资产解密 ──
+# ── 知识库资产下载 ──
 echo ""
-if [ -d "assets_enc" ]; then
-    echo -e "${YELLOW}提示: 检测到加密资产包 (assets_enc/)${NC}"
-    echo "资产将在首次启动服务时自动解密"
+echo "下载知识库向量索引 (约 300MB)..."
+if [ -f "download_assets.sh" ]; then
+    bash download_assets.sh 2>&1 || echo -e "${YELLOW}注意: 向量索引下载失败，部分功能（引用推荐、文献检索）可能受限${NC}"
 else
-    echo -e "${YELLOW}提示: 未找到加密资产包，系统将以受限模式运行${NC}"
+    echo -e "${YELLOW}注意: 未找到 download_assets.sh，跳过向量索引下载${NC}"
 fi
 
 # ── 中文字体检测 ──

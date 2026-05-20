@@ -3379,7 +3379,11 @@ def generate_llm_outline(
 
     client, provider = _build_llm_client_and_provider(config)
 
-    prompt = f"""请基于选题、研究方向、阶段方法和本地知识库资料，生成工程管理硕士论文大纲骨架。
+    # ── 阶段 1：构建通用 6 章模板骨架 ──
+    from tools import _universal_outline, _shorten_topic  # deferred import to avoid circular
+
+    # LLM 负责生成节标题（每章 3-4 个）；章标题由模板锁定
+    sections_prompt = f"""你是一个工程管理硕士论文大纲设计专家。
 
 论文主题：{topic}
 研究方向：{direction}
@@ -3387,66 +3391,115 @@ def generate_llm_outline(
 阶段方法配置：{json.dumps(phase_methods, ensure_ascii=False)}
 目标总字数：{total_words}
 
-方向模板（仅供参考章节命名习惯，不要照搬案例公司的行业）：
+方向模板（仅供章节命名参考）：
 {template_text}
 
 {outline_index_text}
 
-要求：
-1. 论文主题必须严格围绕「{topic}」展开，章节标题和内容必须与这个具体题目匹配。
-2. 严禁引入用户未提及的行业、公司类型或技术领域（如新能源汽车、半导体、电池等），不要根据知识库资料中的案例行业来替换用户的选题。
-3. 必须优先吸收下方「项目背景与论文思路」中的章节结构、核心章节安排、研究方法和写作要求。
-4. 优先参考方向模板中的章节命名规则和方法组合，再结合用户选定方法微调。
-5. 章节逻辑体现"发现问题-解决问题-验证问题"。
-6. 生成 6 章；每章只给 3-4 个二级小节。
-7. 不要生成三级小节，subsections 固定为空数组。
-8. 只输出 JSON，不要 Markdown，不要解释。
-
 项目背景与论文思路：
 {project_context[:3200] or "用户未填写。"}
 
-JSON 结构：
-{{
-  "title": "论文: ...",
-  "chapters": [
-    {{
-      "title": "绪论",
-      "sections": [
-        {{"title": "研究背景", "subsections": []}}
-      ]
-    }}
-  ]
-}}
-
-本地知识库参考（仅供研究方法论和论文结构参考，不要照搬其行业/公司）：
+本地知识库参考：
 {reference_text or "未检索到高相关资料。"}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+论文采用固定的 6 章结构，章标题已经锁定：
+
+第1章 绪论
+第2章 理论基础与文献综述
+第3章 {_shorten_topic(topic)}现状与问题分析
+第4章 {_shorten_topic(topic)}优化方案设计
+第5章 方案实施与效果评价
+第6章 结论与展望
+
+请为每章生成 3-4 个二级小节标题。
+
+要求：
+1. 节标题必须严格围绕论文主题「{topic}」展开，与研究方向「{direction}」匹配。
+2. 第 1、6 章的节标题保持通用学术规范即可。
+3. 第 2 章的节标题结合已选方法和理论基础。
+4. 第 3-5 章的节标题体现"发现问题-解决问题-验证问题"逻辑，标题要具体、不空洞。
+5. 严禁引入用户未提及的行业、公司类型或技术领域（如汽车、半导体等）。
+6. 优先吸收项目背景中的研究方向和方法要求。
+7. 只输出 JSON，不要 Markdown，不要解释。
+
+JSON 格式：
+{{
+  "1": ["研究背景", "研究目的与意义", "国内外研究现状", "研究内容与方法"],
+  "2": ["相关理论基础", "国内外研究现状", "文献述评"],
+  "3": ["...", "...", "...", "..."],
+  "4": ["...", "...", "...", "..."],
+  "5": ["...", "...", "...", "..."],
+  "6": ["研究结论", "管理启示", "研究不足与展望"]
+}}
 """
-    response = _llm_create_message(
-        client, provider, config,
-        system="你是工程管理硕士论文大纲设计专家，擅长结合本地案例论文和研究方法生成可落地的章节结构。",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=_token_budget(config, "small"),
+    llm_sections = None
+    try:
+        response = _llm_create_message(
+            client, provider, config,
+            system="你是工程管理硕士论文大纲设计专家。只输出 JSON，不要解释。",
+            messages=[{"role": "user", "content": sections_prompt}],
+            max_tokens=_token_budget(config, "test"),
+        )
+        raw = _extract_json_object(_llm_response_text(response, provider))
+        # Parse section map: keys are chapter numbers (str or int), values are lists of strings
+        sections_hint = {}
+        for key, value in (raw or {}).items():
+            ch_num = int(key)
+            if 1 <= ch_num <= 6 and isinstance(value, list):
+                # Flatten: values may be list of strings or list of dicts
+                titles = []
+                for item in value[:5]:  # max 5 sections per chapter
+                    if isinstance(item, str):
+                        titles.append(item.strip())
+                    elif isinstance(item, dict):
+                        titles.append(str(item.get("title", "")).strip())
+                sections_hint[ch_num] = [t for t in titles if t]
+        if sections_hint:
+            llm_sections = sections_hint
+            if task_id:
+                task_log(task_id, f"LLM 已生成 {sum(len(v) for v in sections_hint.values())} 个节标题")
+    except Exception as e:
+        if task_id:
+            task_log(task_id, f"LLM 节标题生成失败（将使用默认节标题）: {e}")
+
+    # ── 阶段 2：用模板骨架 + LLM 节标题构建最终大纲 ──
+    outline_chapters = _universal_outline(
+        topic=topic,
+        methods=methods,
+        direction=direction,
+        depth=3,
+        sections_hint=llm_sections,
     )
+    outline = {
+        "title": f"论文: {topic}",
+        "depth": 3,
+        "chapters": outline_chapters,
+        "chapter_count": len(outline_chapters),
+    }
+    # Metadata
+    total_sections = sum(len(c["sections"]) for c in outline_chapters)
+    total_subsections = sum(
+        len(s.get("subsections", [])) for c in outline_chapters for s in c["sections"]
+    )
+    outline["metadata"] = {
+        "total_chapters": len(outline_chapters),
+        "total_sections": total_sections,
+        "total_subsections": total_subsections,
+        "estimated_words": total_words,
+        "generated_by": "llm_rag",
+        "created_at": datetime.now().isoformat(),
+        "references": [
+            {"title": item.get("title"), "path": item.get("path"), "score": item.get("score")}
+            for item in references
+        ],
+    }
     if task_id:
         task_log(
             task_id,
-            f"大模型已返回，总用时 {time.monotonic() - started_at:.1f}s；正在解析 JSON 大纲...",
+            f"大纲构建完成：{len(outline_chapters)} 章，{total_sections} 个节，正在分配字数...",
         )
-    raw = _extract_json_object(_llm_response_text(response, provider))
-    outline = _normalize_llm_outline(raw, topic)
-    if task_id:
-        task_log(
-            task_id,
-            f"已解析 {len(outline.get('chapters', []))} 个章节，正在分配字数...",
-        )
-    outline["metadata"]["references"] = [
-        {
-            "title": item.get("title"),
-            "path": item.get("path"),
-            "score": item.get("score"),
-        }
-        for item in references
-    ]
     return allocate_words(outline, total_words)
 
 

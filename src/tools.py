@@ -382,19 +382,21 @@ def _build_chapter(
 
 
 def _quality_management_outline(topic: str, depth: int) -> List[Dict[str, Any]]:
+    """质量管理方向的论文大纲（与通用模板章标题一致，但节/小节更贴合质量主题）。"""
+    short = _shorten_topic(topic)
     chapters = [
         (
             "绪论",
             [
-                {"title": "研究背景", "subsections": [f"{topic}相关产业发展趋势", f"{topic}管理挑战"]},
+                {"title": "研究背景", "subsections": [f"{short}相关产业发展趋势", f"{short}管理挑战"]},
                 {"title": "研究目的与意义", "subsections": ["理论意义", "实践意义"]},
-                {"title": "国内外研究现状", "subsections": ["质量管理研究现状", f"{topic}管理研究现状"]},
+                {"title": "国内外研究现状", "subsections": ["质量管理研究现状", f"{short}管理研究现状"]},
                 {"title": "研究内容与技术路线", "subsections": ["研究内容", "研究方法", "技术路线"]},
                 {"title": "研究创新点", "subsections": ["方法应用创新", "管理改进创新"]},
             ],
         ),
         (
-            "理论基础与方法论",
+            "理论基础与文献综述",
             [
                 {"title": "质量管理相关理论", "subsections": ["全面质量管理", "过程质量管理"]},
                 {"title": "CMMI过程改进模型", "subsections": ["CMMI模型结构", "CMMI在研发过程中的适用性"]},
@@ -403,18 +405,16 @@ def _quality_management_outline(topic: str, depth: int) -> List[Dict[str, Any]]:
             ],
         ),
         (
-            "新能源车载系统研发质量管理现状与核心问题识别"
-            if "车载" in topic or "新能源" in topic
-            else f"{topic}现状与核心问题识别",
+            f"{short}现状与问题分析",
             [
-                {"title": "研究对象与业务流程", "subsections": [f"{topic}业务流程", "质量管理边界界定"]},
+                {"title": "研究对象与业务流程", "subsections": [f"{short}业务流程", "质量管理边界界定"]},
                 {"title": "质量管理现状调研", "subsections": ["流程制度现状", "质量数据统计", "访谈问卷结果"]},
                 {"title": "核心问题发现过程", "subsections": ["问题池构建", "问题归类", "关键问题筛选"]},
                 {"title": "问题成因分析", "subsections": ["人员因素", "流程因素", "工具与数据因素", "组织保障因素"]},
             ],
         ),
         (
-            "质量管理优化方案构建",
+            f"{short}优化方案设计",
             [
                 {"title": "优化目标与原则", "subsections": ["优化目标", "方案设计原则"]},
                 {"title": "基于CMMI的研发过程改进", "subsections": ["过程域映射", "流程标准化改进"]},
@@ -424,7 +424,7 @@ def _quality_management_outline(topic: str, depth: int) -> List[Dict[str, Any]]:
             ],
         ),
         (
-            "优化方案实施与效果验证",
+            "方案实施与效果评价",
             [
                 {"title": "实施方案设计", "subsections": ["实施范围", "实施步骤", "实施周期"]},
                 {"title": "效果评价指标体系", "subsections": ["缺陷率指标", "返工率指标", "交付稳定性指标"]},
@@ -436,7 +436,7 @@ def _quality_management_outline(topic: str, depth: int) -> List[Dict[str, Any]]:
             "结论与展望",
             [
                 {"title": "研究结论", "subsections": ["核心问题结论", "优化方案结论", "验证结果结论"]},
-                {"title": "管理启示", "subsections": ["对研发质量管理的启示", f"对{topic}项目管理的启示"]},
+                {"title": "管理启示", "subsections": ["对研发质量管理的启示", f"对{short}项目管理的启示"]},
                 {"title": "研究不足与展望", "subsections": ["研究不足", "后续研究方向"]},
             ],
         ),
@@ -444,66 +444,67 @@ def _quality_management_outline(topic: str, depth: int) -> List[Dict[str, Any]]:
     return [_build_chapter(idx, title, sections, depth) for idx, (title, sections) in enumerate(chapters, 1)]
 
 
-def _general_outline(framework: Dict[str, Any], depth: int) -> List[Dict[str, Any]]:
-    topic = framework.get("topic", "研究主题")
-    phases = framework.get("research_phases", []) or []
-    components = framework.get("key_components", []) or []
-    method_phase = phases[2] if len(phases) > 2 else "研究方法设计"
-    analysis_phase = phases[4] if len(phases) > 4 else "结果分析"
-    core_component = components[2] if len(components) > 2 else "核心问题"
+def _universal_outline(topic: str, methods: List[str], direction: str, depth: int, sections_hint: Optional[Dict[int, List[str]]] = None) -> List[Dict[str, Any]]:
+    """通用工程管理硕士论文大纲模板。
+
+    6 章框架是锁死的，不会因主题不同而改变章标题。
+    节标题根据主题、方法论和研究方向动态填充；如果 sections_hint
+    为 None 则使用内置默认节标题（确保 LLM 失败时也有可用大纲）。
+    """
+    # 从主题中提取核心短语用于章 3/4 标题（去掉过长修饰）
+    short_topic = _shorten_topic(topic)
+
+    # ── 默认节标题（LLM 失败时的兜底） ──
+    default_sections = {
+        1: ["研究背景", "研究目的与意义", "研究内容与方法", "创新点与论文结构"],
+        2: ["相关概念与理论基础", "国内外研究现状", "文献述评与研究切入点"],
+        3: ["研究对象与现状调研", "核心问题识别与分析", "问题成因深度剖析"],
+        4: ["优化目标与设计原则", "核心优化方案设计", "实施路径与保障机制"],
+        5: ["实施过程与数据收集", "效果评价指标体系", "实施效果分析与讨论"],
+        6: ["研究结论", "管理启示", "研究不足与展望"],
+    }
+    # 从用户选定的方法中生成更具体的节标题
+    method_names = ", ".join(methods[:4]) if methods else ""
+
+    # ── 使用 sections_hint（LLM 生成）或默认值 ──
+    sec = sections_hint if sections_hint else default_sections
 
     chapters = [
-        (
-            "绪论",
-            [
-                {"title": "研究背景", "subsections": [f"{topic}的现实背景", "研究问题提出"]},
-                {"title": "研究目的与意义", "subsections": ["研究目的", "理论意义", "实践意义"]},
-                {"title": "研究内容与方法", "subsections": ["研究内容", "研究方法", "技术路线"]},
-                {"title": "创新点与论文结构", "subsections": ["研究创新点", "论文结构安排"]},
-            ],
-        ),
-        (
-            "文献综述与理论基础",
-            [
-                {"title": "国内外研究现状", "subsections": ["国内研究现状", "国外研究现状"]},
-                {"title": "相关理论基础", "subsections": components[:3] or ["基础理论", "分析框架"]},
-                {"title": "文献述评", "subsections": ["已有研究不足", "本文研究切入点"]},
-            ],
-        ),
-        (
-            "研究设计与问题识别",
-            [
-                {"title": "研究对象与资料来源", "subsections": ["研究对象", "数据来源"]},
-                {"title": method_phase, "subsections": ["研究方法选择", "研究步骤设计"]},
-                {"title": core_component, "subsections": ["问题识别过程", "关键问题归纳"]},
-            ],
-        ),
-        (
-            "方案构建与实施路径",
-            [
-                {"title": "方案设计目标", "subsections": ["总体目标", "设计原则"]},
-                {"title": "核心方案构建", "subsections": phases[2:5] or ["方案内容", "实施机制"]},
-                {"title": "实施保障", "subsections": ["组织保障", "制度保障", "资源保障"]},
-            ],
-        ),
-        (
-            "结果分析与效果评价",
-            [
-                {"title": analysis_phase, "subsections": ["结果呈现", "结果解释"]},
-                {"title": "效果评价", "subsections": ["评价指标", "对比分析"]},
-                {"title": "讨论", "subsections": ["研究发现", "管理启示"]},
-            ],
-        ),
-        (
-            "结论与展望",
-            [
-                {"title": "研究结论", "subsections": ["主要结论", "研究贡献"]},
-                {"title": "研究不足", "subsections": ["样本与数据限制", "方法局限"]},
-                {"title": "未来展望", "subsections": ["后续研究方向", "应用推广方向"]},
-            ],
-        ),
+        (1, "绪论", sec.get(1, default_sections[1])),
+        (2, "理论基础与文献综述", sec.get(2, default_sections[2])),
+        (3, f"{short_topic}现状与问题分析", sec.get(3, default_sections[3])),
+        (4, f"{short_topic}优化方案设计", sec.get(4, default_sections[4])),
+        (5, "方案实施与效果评价", sec.get(5, default_sections[5])),
+        (6, "结论与展望", sec.get(6, default_sections[6])),
     ]
-    return [_build_chapter(idx, title, sections, depth) for idx, (title, sections) in enumerate(chapters, 1)]
+
+    return [_build_chapter(num, title, [{"title": t, "subsections": []} for t in sections], depth)
+            for num, title, sections in chapters]
+
+
+def _shorten_topic(topic: str) -> str:
+    """将过长主题压缩为适合嵌入章标题的简短形式。"""
+    t = topic.strip()
+    # 去掉「研究」「以…为例」「——…」等后缀
+    for delim in ("——", "——", "—", "：", ":"):
+        if delim in t:
+            # 保留前半部分
+            t = t.split(delim, 1)[0].strip()
+    # 去掉常见前缀
+    for prefix in ("基于",):
+        if t.startswith(prefix) and len(t) > 8:
+            pass  # keep it
+    if len(t) > 20:
+        t = t[:20]
+    return t
+
+
+def _general_outline(framework: Dict[str, Any], depth: int) -> List[Dict[str, Any]]:
+    """重定向到通用模板。保留此函数以兼容旧调用方。"""
+    topic = framework.get("topic", "研究主题")
+    direction = framework.get("direction", "")
+    methods = framework.get("methods", []) or []
+    return _universal_outline(topic, methods, direction, depth)
 
 
 def generate_outline(framework: Dict[str, Any], depth: int = 3) -> Dict[str, Any]:

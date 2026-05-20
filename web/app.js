@@ -2659,11 +2659,25 @@ async function testConnection() {
   if (!button || !status) return;
 
   button.disabled = true;
-  button.textContent = "测试中...";
+  button.textContent = "保存并测试中...";
   status.textContent = "";
   status.className = "save-tip";
 
   try {
+    // 先保存配置（包括 API Key），再测试连接
+    await api("/api/config", {
+      method: "POST",
+      body: JSON.stringify({
+        provider: $("#providerInput").value,
+        model: $("#modelInput").value.trim(),
+        base_url: $("#baseUrlInput").value.trim(),
+        api_key: $("#apiKeyInput").value.trim(),
+        max_tokens: parseInt($("#maxTokensInput").value) || 8000,
+      }),
+    });
+    $("#apiKeyInput").value = "";
+    await loadConfig();
+
     const data = await api("/api/chat/test", { method: "POST", body: "{}" });
     if (data.status === "ok") {
       status.textContent = data.message;

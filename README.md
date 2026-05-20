@@ -199,17 +199,46 @@ set HTTP_PROXY=http://127.0.0.1:7890
 python -m pip install -r requirements.txt -i https://pypi.org/simple
 ```
 
-编辑 `.env`，配置 Anthropic 兼容接口（支持 DeepSeek、MiniMax、智谱等兼容端点）：
+### 配置大模型服务（DeepSeek）
 
-```env
-ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
-ANTHROPIC_MODEL=deepseek-v4-pro
-MODEL_ID=deepseek-v4-pro
-ANTHROPIC_AUTH_MODE=api_key
-ANTHROPIC_API_KEY=your_api_key_here
-```
+ThesisMind 默认使用 **DeepSeek** 作为大模型服务商。首次使用需要在 DeepSeek 官网获取 API Key，然后在 Web 页面中配置。
 
-启动 Web 工作台：
+#### 1. 获取 DeepSeek API Key
+
+1. 打开 [DeepSeek 开放平台](https://platform.deepseek.com)
+2. 注册账号并登录
+3. 在左侧菜单进入 **「API Keys」**
+4. 点击 **「创建新的 API Key」**，输入名称（如 `ThesisMind`），复制生成的密钥
+
+> **计费说明：** DeepSeek 采用按量计费，新用户通常会赠送一定免费额度。`deepseek-v4-pro` 模型输入约 ￥2/百万 token，输出约 ￥8/百万 token。一篇完整的硕士论文（从大纲到全文扩写）通常消耗 20-40 万 token，费用约 ￥2-4。
+
+#### 2. 在 Web 页面中配置
+
+1. 启动 Web 工作台后，左侧菜单进入 **「基本配置」**（第一步）
+2. 确认服务商选择 **DeepSeek**（默认选中的第一个）
+3. 模型保持默认 `deepseek-v4-pro`
+4. 在 **「API Key」** 输入框中粘贴刚才复制的 Key
+5. 点击 **「测试连接」** 按钮
+
+点击测试连接时，系统会自动将 API Key 和配置写入 `.env` 文件，然后立即验证连接。看到「连接成功！模型 deepseek-v4-pro 已就绪」即配置完成。
+
+> **如果连接失败：** 检查 Key 是否复制完整（去掉了首尾空格）、网络是否能访问 `https://api.deepseek.com`。如果公司网络有防火墙限制，可能需要配置代理。
+
+#### 3. 切换其他服务商
+
+ThesisMind 也支持其他兼容 Anthropic 接口的服务商。在「基本配置」页面的下拉菜单中选择即可：
+
+| 服务商 | Base URL |
+| ------ | -------- |
+| DeepSeek | `https://api.deepseek.com/anthropic` |
+| MiniMax | `https://api.minimax.chat/anthropic` |
+| 智谱 (Zhipu) | `https://open.bigmodel.cn/api/paas/v4/anthropic` |
+| OpenAI | `https://api.openai.com/v1` |
+| Anthropic 原生 | 留空即可 |
+
+配置方式和 DeepSeek 一样：选择服务商 → 填写 API Key → 点击「测试连接」。
+
+#### 4. 启动 Web 工作台
 
 ```bash
 python src/web_server.py --host 127.0.0.1 --port 8765

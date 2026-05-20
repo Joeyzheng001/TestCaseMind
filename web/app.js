@@ -700,7 +700,7 @@ async function loadConfig() {
   $("#providerInput").value = state.config.provider;
   $("#modelInput").value = state.config.model;
   $("#baseUrlInput").value = state.config.base_url || "";
-  $("#maxTokensInput").value = state.config.max_tokens || 4000;
+  $("#maxTokensInput").value = state.config.max_tokens || 8000;
   $("#apiKeyInput").placeholder = state.config.api_key_configured
     ? `已保存 ${state.config.api_key_preview}，留空不修改`
     : "请输入 API Key";
@@ -916,7 +916,7 @@ async function saveConfig() {
       model: $("#modelInput").value.trim(),
       base_url: $("#baseUrlInput").value.trim(),
       api_key: $("#apiKeyInput").value.trim(),
-      max_tokens: parseInt($("#maxTokensInput").value) || 4000,
+      max_tokens: parseInt($("#maxTokensInput").value) || 8000,
     }),
   });
   $("#apiKeyInput").value = "";

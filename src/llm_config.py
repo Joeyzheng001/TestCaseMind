@@ -18,7 +18,7 @@ class LLMConfig:
     base_url: Optional[str]
     model: str
     auth_mode: str
-    max_tokens: int = 4000
+    max_tokens: int = 8000
 
 
 def load_llm_config(api_key: Optional[str] = None) -> LLMConfig:
@@ -30,9 +30,9 @@ def load_llm_config(api_key: Optional[str] = None) -> LLMConfig:
     model = (
         os.getenv("ANTHROPIC_MODEL")
         or os.getenv("MODEL_ID")
-        or "claude-opus-4-1"
+        or "deepseek-v4-pro"
     )
-    max_tokens = int(os.getenv("LLM_MAX_TOKENS", "4000"))
+    max_tokens = int(os.getenv("LLM_MAX_TOKENS", "8000"))
 
     return LLMConfig(
         provider=provider,
@@ -62,4 +62,4 @@ def _infer_provider() -> str:
         for kw in keywords:
             if kw in base_url or kw in model:
                 return provider
-    return "anthropic"
+    return "deepseek"

@@ -140,28 +140,52 @@ python -m pip install --upgrade pip -q 2>nul
 echo Installing dependencies...
 set "OK=0"
 
+:: 尝试离线 wheels（错误输出可见，方便排查；失败则自动切换网络安装）
 if exist "wheels\*.whl" (
-    echo   [1/3] Offline wheels...
-    python -m pip install --no-index --find-links=wheels -r requirements.txt -q 2>nul
-    if !errorlevel! equ 0 set "OK=1"
+    echo   Trying offline wheels...
+    python -m pip install --no-index --find-links=wheels -r requirements.txt
+    if !errorlevel! equ 0 (
+        set "OK=1"
+        echo   [OK] Installed from offline wheels
+    ) else (
+        echo.
+        echo   ---- Offline install failed ^(see above^), switching to network... ----
+        echo.
+    )
+)
+
+:: 网络安装：优先清华镜像，失败则 PyPI
+if "!OK!"=="0" (
+    echo   Downloading from network ^(this may take a few minutes^)...
+    python -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+    if !errorlevel! equ 0 (
+        set "OK=1"
+        echo   [OK] Installed from Tsinghua mirror
+    )
 )
 
 if "!OK!"=="0" (
-    echo   [2/3] Tsinghua mirror...
-    python -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple -q 2>nul
-    if !errorlevel! equ 0 set "OK=1"
-)
-
-if "!OK!"=="0" (
-    echo   [3/3] Default PyPI...
-    python -m pip install -r requirements.txt -q 2>nul
-    if !errorlevel! equ 0 set "OK=1"
+    echo   Tsinghua mirror unreachable, trying default PyPI...
+    python -m pip install -r requirements.txt
+    if !errorlevel! equ 0 (
+        set "OK=1"
+        echo   [OK] Installed from PyPI
+    )
 )
 
 if "!OK!"=="0" (
     echo.
-    echo [ERROR] All install sources failed.
-    echo Check your network and try again.
+    echo ============================================
+    echo   [ERROR] Dependency install failed.
+    echo.
+    echo   Possible causes:
+    echo   1. No internet or firewall blocks pip
+    echo   2. Corporate proxy not configured
+    echo.
+    echo   Manual fix - open cmd in this folder:
+    echo   .venv\Scripts\activate
+    echo   pip install -r requirements.txt
+    echo ============================================
     pause
     exit /b 1
 )

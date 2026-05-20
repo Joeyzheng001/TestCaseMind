@@ -5833,6 +5833,30 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _json_response(self, {"history": manager.load_license_history()})
                 return
 
+            # ── PPT Engine API (read-only) ──
+            if path == "/api/ppt/templates":
+                from ppt_engine import list_defense_templates
+                _json_response(self, {"templates": list_defense_templates()})
+                return
+
+            if path.startswith("/api/ppt/download/"):
+                filename = path.rsplit("/", 1)[-1]
+                if not filename or ".." in filename:
+                    self.send_error(400)
+                    return
+                filepath = OUTPUT_DIR / "ppt" / filename
+                if not filepath.exists():
+                    self.send_error(404)
+                    return
+                body = filepath.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/vnd.openxmlformats-officedocument.presentationml.presentation")
+                self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+
             path = _safe_static_path(path)
             if not path.exists():
                 self.send_error(404)

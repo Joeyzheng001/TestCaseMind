@@ -62,7 +62,23 @@ fi
 echo "下载 Python 依赖包（离线安装用）..."
 WHEELS_DIR="${BUILD_DIR}/wheels"
 mkdir -p "${WHEELS_DIR}"
+
+# 下载当前平台 wheels（macOS 构建时是 macOS wheels）
 pip download -r requirements.txt -d "${WHEELS_DIR}" -q 2>&1
+
+# 同时下载 Windows 兼容 wheels（解决 C 扩展包跨平台问题）
+# cryptography、PyYAML 等有 C 扩展，macOS wheels 无法在 Windows 使用
+# 覆盖 Python 3.11 / 3.12 / 3.13 三个主流版本
+echo "  补充 Windows 兼容 wheels..."
+for pyver in 3.9 3.10 3.11 3.12 3.13; do
+    pip download -r requirements.txt -d "${WHEELS_DIR}" \
+      --platform win_amd64 \
+      --python-version "${pyver}" \
+      --only-binary :all: \
+      -q 2>/dev/null || true
+done
+echo "  (Windows wheels for Python 3.9-3.13)"
+
 WHEEL_COUNT=$(ls -1 "${WHEELS_DIR}"/*.whl 2>/dev/null | wc -l)
 WHEELS_SIZE=$(du -sh "${WHEELS_DIR}" | cut -f1)
 echo "  ✓ ${WHEEL_COUNT} 个 wheel 包 (${WHEELS_SIZE})"

@@ -1,5 +1,5 @@
 @echo off
-chcp 65001 >nul 2>&1
+cd /d "%~dp0"
 setlocal EnableDelayedExpansion
 
 :: Force UTF-8 for Python I/O on Windows (PEP 540 + PYTHONIOENCODING fallback)
@@ -11,18 +11,44 @@ echo =========================================
 echo   ThesisMind 论文辅助工作台 - 安装向导
 echo =========================================
 echo.
+echo   当前目录: %cd%
+echo.
 
 :: ── Python detection with version check (need 3.9+) ──
 set "PYTHON="
 set "PYVER="
+
+:: First try PATH
 for %%p in (python3 python) do (
     where %%p >nul 2>&1
     if !errorlevel! equ 0 (
-        for /f "tokens=*" %%v in ('%%p -c "import sys; print(sys.version_info.major)"') do set "PYMAJOR=%%v"
-        for /f "tokens=*" %%w in ('%%p -c "import sys; print(sys.version_info.minor)"') do set "PYMINOR=%%w"
+        for /f "tokens=*" %%v in ('%%p -c "import sys; print(sys.version_info.major)" 2^>nul') do set "PYMAJOR=%%v"
+        for /f "tokens=*" %%w in ('%%p -c "import sys; print(sys.version_info.minor)" 2^>nul') do set "PYMINOR=%%w"
         if "!PYMAJOR!"=="3" (
             if !PYMINOR! GEQ 9 (
                 set "PYTHON=%%p"
+                set "PYVER=!PYMAJOR!.!PYMINOR!"
+            )
+        )
+    )
+    if defined PYTHON goto :python_found
+)
+
+:: Then try common installation paths (user may have skipped "Add to PATH")
+for %%d in (
+    "C:\Python312" "C:\Python311" "C:\Python310" "C:\Python39"
+    "%LocalAppData%\Programs\Python\Python312"
+    "%LocalAppData%\Programs\Python\Python311"
+    "%LocalAppData%\Programs\Python\Python310"
+    "%LocalAppData%\Programs\Python\Python39"
+    "%ProgramFiles%\Python312" "%ProgramFiles%\Python311"
+) do (
+    if exist %%d\python.exe (
+        for /f "tokens=*" %%v in ('%%d\python.exe -c "import sys; print(sys.version_info.major)" 2^>nul') do set "PYMAJOR=%%v"
+        for /f "tokens=*" %%w in ('%%d\python.exe -c "import sys; print(sys.version_info.minor)" 2^>nul') do set "PYMINOR=%%w"
+        if "!PYMAJOR!"=="3" (
+            if !PYMINOR! GEQ 9 (
+                set "PYTHON=%%d\python.exe"
                 set "PYVER=!PYMAJOR!.!PYMINOR!"
             )
         )

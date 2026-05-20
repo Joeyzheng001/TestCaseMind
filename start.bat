@@ -1,5 +1,5 @@
 @echo off
-chcp 65001 >nul 2>&1
+cd /d "%~dp0"
 setlocal
 
 :: Force UTF-8 for Python I/O on Windows
@@ -7,7 +7,12 @@ set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
 set PYTHONLEGACYWINDOWSSTDIO=utf-8
 
-cd /d "%~dp0"
+echo =========================================
+echo   ThesisMind 论文辅助工作台
+echo =========================================
+echo.
+echo   当前目录: %cd%
+echo.
 
 :: Activate virtual environment
 if not exist ".venv\Scripts\activate.bat" (

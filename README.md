@@ -172,15 +172,14 @@ ThesisMind 的每一步生成都以本地知识库检索结果为基础，而非
 
 ## 快速开始
 
-Python 3.10+ 推荐。
+**Python 3.9+ 必须**（3.7 及以下不兼容）。如果尚未安装 Python 或不确定版本，请参阅 [Python 安装配置指南](web/python-guide.html)（分 Windows / macOS 步骤）。
 
 ```bash
 git clone <repo-url>
 cd ThesisMind
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
+# Windows 用户：双击 setup.bat
+# Mac/Linux 用户：
+bash setup.sh
 ```
 
 编辑 `.env`，配置 Anthropic 兼容接口（支持 DeepSeek、MiniMax、智谱等兼容端点）：

@@ -3661,24 +3661,23 @@ function exportProposal(format) {
 
 async function generatePpt(pptType) {
   const ids = {
-    proposal: { btn: "generatePptProposal", status: "pptProposalStatus", result: "pptProposalResult", dl: "downloadPptProposal", label: "开题PPT" },
-    midterm: { btn: "generatePptMidterm", status: "pptMidtermStatus", result: "pptMidtermResult", dl: "downloadPptMidterm", label: "中期PPT" },
-    defense: { btn: "generatePptDefense", status: "pptDefenseStatus", result: "pptDefenseResult", dl: "downloadPptDefense", label: "答辩PPT" },
+    proposal: { btn: "generatePptProposal", status: "pptProposalStatus", result: "pptProposalResult", dl: "downloadPptProposal", log: "pptProposalLog", label: "开题PPT" },
+    midterm: { btn: "generatePptMidterm", status: "pptMidtermStatus", result: "pptMidtermResult", dl: "downloadPptMidterm", log: "pptMidtermLog", label: "中期PPT" },
+    defense: { btn: "generatePptDefense", status: "pptDefenseStatus", result: "pptDefenseResult", dl: "downloadPptDefense", log: "pptDefenseLog", label: "答辩PPT" },
   };
   const cfg = ids[pptType];
   const button = $(`#${cfg.btn}`);
   const status = $(`#${cfg.status}`);
   const result = $(`#${cfg.result}`);
   const dlBtn = $(`#${cfg.dl}`);
+  const logEl = $(`#${cfg.log}`);
 
   button.disabled = true;
-  button.textContent = "生成中…";
+  button.textContent = "排队中…";
   status.textContent = "";
   dlBtn.hidden = true;
   result.innerHTML = "";
-  const barId = `genPptBar${pptType}`;
-  injectGenProgress(cfg.result, barId);
-  const prog = startGenProgress(null, barId);
+  if (logEl) logEl.innerHTML = "";
 
   try {
     const payload = {
@@ -3705,31 +3704,120 @@ async function generatePpt(pptType) {
     });
 
     if (!resp.ok) {
-      if (prog) prog.finish();
       const errData = await resp.json().catch(() => ({}));
       throw new Error(errData.message || `服务器错误 (${resp.status})`);
     }
-    if (prog) prog.finish();
 
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    dlBtn.onclick = () => {
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${cfg.label}.pptx`;
-      a.click();
-    };
-    dlBtn.hidden = false;
-    status.textContent = "生成完成，点击下载";
-    result.innerHTML = `<p style="padding:20px;color:#2a7d4f;">${cfg.label}已生成，共 ${(blob.size / 1024).toFixed(0)} KB，点击下方按钮下载。</p>`;
+    const data = await resp.json();
+    if (data.status !== "queued" || !data.task_id) {
+      throw new Error(data.message || "未能创建PPT生成任务");
+    }
+
+    status.textContent = "任务已创建，正在生成…";
+    pollPptTask(data.task_id, pptType, cfg, 0);
+
   } catch (err) {
-    if (prog) prog.finish();
     status.textContent = "生成失败";
     result.innerHTML = `<div class="empty-state">生成失败：${escapeHtml(err.message || "未知错误")}</div>`;
-  } finally {
     button.disabled = false;
     button.textContent = "重新生成";
   }
+}
+
+async function pollPptTask(taskId, pptType, cfg, count) {
+  const data = await api(`/api/tasks/${taskId}`);
+  const status = $(`#${cfg.status}`);
+  const dlBtn = $(`#${cfg.dl}`);
+  const result = $(`#${cfg.result}`);
+  const button = $(`#${cfg.btn}`);
+
+  if (status) status.textContent = `${data.message || data.status} · ${Math.max(count, 1)} 次检查`;
+  renderTaskLog(data.logs || [], `#${cfg.log}`);
+
+  if (data.status === "awaiting_confirm") {
+    // Show design spec for user confirmation
+    const spec = data.design_spec || {};
+    const slides = spec.slides || [];
+    const colors = spec.color_scheme || {};
+    const fonts = spec.fonts || {};
+    const layoutHints = { title: "封面", toc: "目录", content: "内容", section: "章节", thanks: "致谢" };
+
+    let slidesHtml = slides.map((s, i) => {
+      const hint = layoutHints[s.layout_hint] || s.layout_hint || "内容";
+      return `<tr><td class="confirm-slide-id">${s.id}</td><td>${escHtml(s.name)}</td><td class="confirm-slide-hint">${hint}</td><td class="confirm-slide-desc">${escHtml(s.description || "")}</td></tr>`;
+    }).join("");
+
+    const colorSwatch = (hex, label) =>
+      `<span class="confirm-swatch" style="background:${hex}" title="${label}: ${hex}"></span>`;
+
+    if (result) result.innerHTML = `
+      <div class="confirm-spec-card">
+        <h4>📋 幻灯片目录确认</h4>
+        <div class="confirm-meta">
+          <span>共 <strong>${slides.length}</strong> 页</span>
+          <span>配色：${colorSwatch(colors.primary, "主色")} ${colorSwatch(colors.accent, "强调色")} ${colorSwatch(colors.bg, "背景")} ${colorSwatch(colors.text, "正文")}</span>
+          <span>字体：${escHtml(fonts.title || "Microsoft YaHei")}</span>
+        </div>
+        <table class="confirm-slides-table">
+          <thead><tr><th>#</th><th>名称</th><th>类型</th><th>描述</th></tr></thead>
+          <tbody>${slidesHtml}</tbody>
+        </table>
+        <div class="confirm-actions">
+          <button class="primary" id="confirmPptBtn">确认，开始生成</button>
+          <button class="ghost" id="cancelPptBtn">取消</button>
+        </div>
+      </div>`;
+
+    $(`#confirmPptBtn`).addEventListener("click", async () => {
+      if (result) result.innerHTML = `<p style="padding:20px;">正在启动生成…</p>`;
+      try {
+        await fetch("/api/ppt/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ task_id: taskId }),
+        });
+        pollPptTask(taskId, pptType, cfg, 0);
+      } catch (e) {
+        if (status) status.textContent = "确认失败";
+        button.disabled = false;
+        button.textContent = "重新生成";
+      }
+    });
+
+    $(`#cancelPptBtn`).addEventListener("click", () => {
+      if (status) status.textContent = "已取消";
+      if (result) result.innerHTML = "";
+      button.disabled = false;
+      button.textContent = "重新生成";
+    });
+
+    if (status) status.textContent = "请确认幻灯片目录";
+    return;
+  }
+
+  if (data.status === "done") {
+    const filename = data.filename || "";
+    const downloadUrl = data.download_url || (filename ? `/api/ppt/download/${filename}` : "");
+    if (downloadUrl) {
+      dlBtn.onclick = () => { window.location.href = downloadUrl; };
+      dlBtn.hidden = false;
+    }
+    if (status) status.textContent = "生成完成，点击下载";
+    if (result) result.innerHTML = `<p style="padding:20px;color:#2a7d4f;">${cfg.label}已生成，点击下方按钮下载。</p>`;
+    button.disabled = false;
+    button.textContent = "重新生成";
+    return;
+  }
+
+  if (data.status === "error") {
+    if (status) status.textContent = "生成失败";
+    if (result) result.innerHTML = `<div class="empty-state">生成失败：${escapeHtml(data.message || "未知错误")}</div>`;
+    button.disabled = false;
+    button.textContent = "重新生成";
+    return;
+  }
+
+  setTimeout(() => pollPptTask(taskId, pptType, cfg, count + 1), 2000);
 }
 
 // ============ AIGC 率评估 / AIGC 降重 ============

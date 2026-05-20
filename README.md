@@ -172,7 +172,7 @@ ThesisMind 的每一步生成都以本地知识库检索结果为基础，而非
 
 ## 快速开始
 
-**Python 3.9+ 必须**（3.7 及以下不兼容）。如果尚未安装 Python 或不确定版本，请参阅 [Python 安装配置指南](web/python-guide.html)（分 Windows / macOS 步骤）。
+**Python 3.9-3.14 必须**（3.8 及以下不兼容，3.15 及以上暂不作为发行包支持范围）。如果尚未安装 Python 或不确定版本，请参阅 [Python 安装配置指南](web/python-guide.html)（分 Windows / macOS 步骤）。
 
 ```bash
 git clone <repo-url>
@@ -180,6 +180,23 @@ cd ThesisMind
 # Windows 用户：双击 setup.bat
 # Mac/Linux 用户：
 bash setup.sh
+```
+
+本地 `.whl` 文件会被优先使用，但 wheel 和平台、Python 小版本、CPU 架构绑定：Windows 需要 `win_amd64`，Intel Mac 和 Apple Silicon Mac 需要对应的 macOS wheel，Python 3.9/3.10/3.11/3.12/3.13/3.14 也分别可能需要不同文件。发离线包时，把目标用户平台对应的 `.whl` 放进 `wheels/` 目录即可；本地包不全时，安装脚本会继续用镜像源补齐缺失依赖。
+
+Windows 双击安装时如果看到 `SSLEOFError`、`Could not fetch URL https://pypi.org`、`No matching distribution found`，通常是 pip 访问 PyPI 被网络、代理、防火墙或杀毒软件的 HTTPS 检查拦截。新版 `setup.bat` 会优先使用项目根目录或 `wheels/` 目录里的本地 `.whl` 文件；本地包不全时，再按清华、阿里云、中科大、官方 PyPI 顺序重试。如果仍失败，可在项目目录打开 cmd 后手动执行：
+
+```bat
+.venv\Scripts\activate
+python -m pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple --trusted-host mirrors.aliyun.com
+```
+
+如果必须走代理，先把端口换成自己的代理端口：
+
+```bat
+set HTTPS_PROXY=http://127.0.0.1:7890
+set HTTP_PROXY=http://127.0.0.1:7890
+python -m pip install -r requirements.txt -i https://pypi.org/simple
 ```
 
 编辑 `.env`，配置 Anthropic 兼容接口（支持 DeepSeek、MiniMax、智谱等兼容端点）：

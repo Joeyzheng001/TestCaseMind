@@ -4228,105 +4228,329 @@ def _build_proposal_docx(markdown: str) -> bytes:
     return buf.read()
 
 
-def _generate_ppt(ppt_type: str, payload: Dict[str, Any]) -> bytes:
-    """Generate a thesis PPTX file using the ppt_skill module and LLM for content planning."""
+def start_ppt_generate_task(ppt_type: str, payload: Dict[str, Any]) -> str:
+    """Create a background PPT generation task. Returns task_id for polling."""
+    task_id = uuid.uuid4().hex
+    with TASK_LOCK:
+        TASKS[task_id] = {
+            "kind": "ppt_generate",
+            "status": "queued",
+            "message": "PPT 生成任务已创建",
+            "logs": [{"time": time.strftime("%H:%M:%S"), "message": "PPT 生成任务已创建，等待后台执行"}],
+            "created_at": time.time(),
+            "progress": 0,
+            "ppt_type": ppt_type,
+        }
+    thread = threading.Thread(
+        target=_generate_ppt_task,
+        args=(task_id, ppt_type, payload),
+        daemon=True,
+    )
+    thread.start()
+    return task_id
+
+
+def _generate_ppt_task(task_id: str, ppt_type: str, payload: Dict[str, Any]) -> None:
+    """Phase 1: analyze content, generate design spec, then await user confirmation."""
     import json
-    from skills.ppt_skill import create_pptx
 
-    topic = str(payload.get("topic", "")).strip()
-    direction = str(payload.get("direction", "")).strip()
-    methods = payload.get("methods", []) or []
-    project_context = str(payload.get("project_context", "")).strip()
-    chapters = payload.get("chapters", []) or []
-    proposal_content = str(payload.get("proposal_content", "")).strip()
+    def log(msg: str) -> None:
+        task = TASKS.get(task_id)
+        if task:
+            task.setdefault("logs", []).append({"time": time.strftime("%H:%M:%S"), "message": msg})
+            task["message"] = msg
 
-    ppt_type_labels = {
-        "proposal": "开题答辩",
-        "midterm": "中期答辩",
-        "defense": "毕业答辩",
-    }
-    label = ppt_type_labels.get(ppt_type, "论文")
+    try:
+        TASKS[task_id].update({"status": "running", "progress": 5, "message": "分析论文内容..."})
 
-    # Build content context
-    chapter_summaries = []
-    for ch in chapters:
-        content = (ch.get("content", "") or "")[:300]
-        chapter_summaries.append(f"第{ch.get('number', '?')}章 {ch.get('title', '')}: {content[:200]}")
-    chapter_text = "\n".join(chapter_summaries) if chapter_summaries else "暂无章节内容"
+        ppt_type_labels = {"proposal": "开题答辩", "midterm": "中期答辩", "defense": "毕业答辩"}
+        label = ppt_type_labels.get(ppt_type, "论文")
+        topic = str(payload.get("topic", "")).strip()
+        direction = str(payload.get("direction", "")).strip()
+        methods = payload.get("methods", []) or []
+        project_context = str(payload.get("project_context", "")).strip()
+        chapters = payload.get("chapters", []) or []
+        proposal_content = str(payload.get("proposal_content", "")).strip()
 
-    # Determine which content to use
-    if ppt_type == "proposal" and proposal_content:
-        base_content = f"开题报告内容：\n{proposal_content[:3000]}"
-    else:
-        base_content = f"论文章节内容摘要：\n{chapter_text}"
+        # Build thesis content summary
+        chapter_summaries = []
+        for ch in chapters:
+            content = (ch.get("content", "") or "")[:500]
+            chapter_summaries.append(f"第{ch.get('number', '?')}章 {ch.get('title', '')}:\n{content}")
+        chapter_text = "\n\n".join(chapter_summaries) if chapter_summaries else "暂无章节内容"
 
-    # Try LLM to generate slide outline if API key is configured
-    config = load_llm_config()
-    slide_outline = None
-    if config.api_key:
-        try:
-            prompt = f"""请为{label}PPT生成幻灯片大纲，以JSON格式输出。
+        if ppt_type == "proposal" and proposal_content:
+            content_body = f"开题报告内容：\n{proposal_content[:6000]}"
+        else:
+            content_body = f"论文章节内容：\n{chapter_text}"
+
+        config = load_llm_config()
+        if not config.api_key:
+            TASKS[task_id].update({"status": "error", "message": "请先配置 LLM API Key"})
+            return
+
+        client, provider = _build_llm_client_and_provider(config)
+
+        # ── Phase 1: Content analysis & design spec ──
+        log("📋 阶段 1/3：分析论文内容，生成设计规格...")
+        TASKS[task_id]["progress"] = 10
+
+        design_prompt = f"""你是一位学术答辩PPT设计专家。请分析以下论文内容，生成设计规格。
 
 论文题目：{topic}
 研究方向：{direction}
 选用方法：{", ".join(methods) if methods else "未指定"}
-项目背景：{project_context[:500] or "未填写"}
+项目背景：{project_context[:800] or "未填写"}
 
-{base_content}
+{content_body[:6000]}
 
-请输出如下JSON格式（只输出JSON，不要其它文字）：
+请以 JSON 格式输出设计规格（只输出JSON）：
 {{
+  "analysis": "内容分析摘要（100字内）",
   "slides": [
-    {{"layout": "title", "title": "{topic or '论文题目'}", "subtitle": "{direction} — {label}"}},
-    {{"layout": "toc", "title": "目录", "items": ["1. 研究背景", "2. 研究方法", "3. 主要工作", "4. 总结展望"]}},
-    {{"layout": "content", "title": "研究背景", "items": ["要点一", "要点二"]}},
-    {{"layout": "thanks", "title": "谢谢！", "subtitle": "恳请各位老师批评指正"}}
-  ]
+    {{"id": "01", "name": "封面", "description": "标题、作者、日期", "layout_hint": "title"}},
+    {{"id": "02", "name": "目录", "description": "章节导航", "layout_hint": "toc"}},
+    ...
+  ],
+  "color_scheme": {{
+    "primary": "#1A3C5E",
+    "accent": "#2E86C1",
+    "bg": "#FFFFFF",
+    "text": "#2C3E50",
+    "secondary_bg": "#F2F6FA"
+  }},
+  "fonts": {{"title": "Microsoft YaHei, sans-serif", "body": "Microsoft YaHei, sans-serif"}},
+  "body_font_size": 20,
+  "page_count": 12
 }}
 
-要求：8-15页幻灯片，content页3-5个要点，学术风格，中文。"""
-            client, provider = _build_llm_client_and_provider(config)
+要求：8-16 页幻灯片，学术风格，中文。slides 数组要包含每一页的名称和描述。"""
+
+        try:
             response = _llm_create_message(
                 client, provider, config,
                 system="",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=config.max_tokens,
+                messages=[{"role": "user", "content": design_prompt}],
+                max_tokens=min(config.max_tokens, 4000),
             )
-            text = _llm_response_text(response, provider)
-            json_match = re.search(r'\{[\s\S]*\}', text)
+            design_text = _llm_response_text(response, provider)
+            json_match = re.search(r'\{[\s\S]*\}', design_text)
             if json_match:
-                outline = json.loads(json_match.group(0))
-                slide_outline = outline.get("slides", [])
-        except Exception:
-            slide_outline = None
+                design_spec = json.loads(json_match.group(0))
+            else:
+                design_spec = None
+        except Exception as e:
+            log(f"⚠ 设计规格生成失败: {e}，使用默认规格")
+            design_spec = None
 
-    if not slide_outline:
-        # Fallback: build slides from chapters without LLM
-        slide_outline = [
-            {"layout": "title", "title": topic or "论文题目", "subtitle": f"{direction} — {label}"},
-            {"layout": "toc", "title": "目录", "items": [ch.get("title", f"第{ch.get('number', '?')}章") for ch in chapters[:8]]},
-        ]
-        for ch in chapters[:10]:
-            title = f"第{ch.get('number', '?')}章 {ch.get('title', '')}"
-            content = (ch.get("content", "") or "")[:500]
-            items = [line.strip("- ").strip() for line in content.split("\n") if line.strip()][:5]
-            if not items:
-                items = ["（本章内容待完善）"]
-            slide_outline.append({"layout": "content", "title": title, "items": items})
-        slide_outline.append({"layout": "thanks", "title": "谢谢！", "subtitle": "恳请各位老师批评指正"})
+        if design_spec:
+            slides_spec = design_spec.get("slides", [])
+            colors = design_spec.get("color_scheme", {})
+            fonts = design_spec.get("fonts", {})
+            page_count = design_spec.get("page_count", len(slides_spec))
+            log(f"  内容分析: {design_spec.get('analysis', '完成')}")
+            log(f"  页数规划: {page_count} 页")
+            log(f"  配色方案: 主色 {colors.get('primary', '#1A3C5E')}, 强调色 {colors.get('accent', '#2E86C1')}")
+            log(f"  字体: 标题 {fonts.get('title', 'Microsoft YaHei')}, 正文 {fonts.get('body', 'Microsoft YaHei')} {design_spec.get('body_font_size', 20)}px")
+        else:
+            # Fallback slide structure
+            slides_spec = [
+                {"id": "01", "name": "封面", "description": f"{topic} — {label}", "layout_hint": "title"},
+                {"id": "02", "name": "目录", "description": "章节导航", "layout_hint": "toc"},
+            ]
+            for i, ch in enumerate(chapters[:10]):
+                slides_spec.append({
+                    "id": f"{i+3:02d}",
+                    "name": ch.get("title", f"第{ch.get('number', i+1)}章"),
+                    "description": f"第{ch.get('number', i+1)}章内容",
+                    "layout_hint": "content",
+                })
+            slides_spec.append({"id": "99", "name": "致谢", "description": "感谢 + Q&A", "layout_hint": "thanks"})
+            colors = {"primary": "#1A3C5E", "accent": "#2E86C1", "bg": "#FFFFFF", "text": "#2C3E50", "secondary_bg": "#F2F6FA"}
+            fonts = {"title": "Microsoft YaHei, sans-serif", "body": "Microsoft YaHei, sans-serif"}
+            design_spec = {
+                "slides": slides_spec,
+                "color_scheme": colors,
+                "fonts": fonts,
+                "body_font_size": 20,
+                "page_count": len(slides_spec),
+            }
 
-    # Generate PPTX
-    buf = io.BytesIO()
-    tmp_path = os.path.join(tempfile.gettempdir(), f"thesismind_ppt_{ppt_type}.pptx")
+        # Store design spec and await user confirmation
+        TASKS[task_id].update({
+            "status": "awaiting_confirm",
+            "progress": 20,
+            "message": "等待确认幻灯片目录…",
+            "design_spec": {
+                "slides": slides_spec,
+                "color_scheme": colors,
+                "fonts": fonts,
+            },
+        })
+
+    except Exception as e:
+        TASKS[task_id].update({"status": "error", "progress": 0, "message": f"设计规格生成失败: {e}"})
+
+
+def _generate_ppt_phase2(task_id: str, ppt_type: str, payload: Dict[str, Any],
+                          slides_spec: list, colors: dict, fonts: dict) -> None:
+    """Phase 2+3: generate SVG slides, post-process, convert to PPTX."""
+    import json
+    import shutil
+    from pathlib import Path
+    from ppt_engine import generate_pptx, finalize_svgs
+    from ppt_engine.config import OUTPUT_DIR
+
+    def log(msg: str) -> None:
+        task = TASKS.get(task_id)
+        if task:
+            task.setdefault("logs", []).append({"time": time.strftime("%H:%M:%S"), "message": msg})
+            task["message"] = msg
+
     try:
-        create_pptx(slide_outline, tmp_path, title=topic or "论文", subtitle=direction)
-        with open(tmp_path, "rb") as f:
-            buf.write(f.read())
-    finally:
-        if os.path.exists(tmp_path):
-            os.remove(tmp_path)
-    buf.seek(0)
-    return buf.read()
+        TASKS[task_id].update({"status": "running", "progress": 25, "message": "开始生成 SVG 幻灯片..."})
+
+        topic = str(payload.get("topic", "")).strip()
+        direction = str(payload.get("direction", "")).strip()
+        chapters = payload.get("chapters", []) or []
+        ppt_type_labels = {"proposal": "开题答辩", "midterm": "中期答辩", "defense": "毕业答辩"}
+        label = ppt_type_labels.get(ppt_type, "论文")
+
+        config = load_llm_config()
+        client, provider = _build_llm_client_and_provider(config)
+
+        # ── Phase 2: Generate SVG slides ──
+        log(f"📝 阶段 2/3：逐页生成 SVG 幻灯片（共 {len(slides_spec)} 页）...")
+
+        svg_dir = OUTPUT_DIR / f"svg_{task_id[:8]}"
+        if svg_dir.exists():
+            shutil.rmtree(svg_dir)
+        svg_dir.mkdir(parents=True)
+
+        primary = colors.get("primary", "#1A3C5E")
+        accent = colors.get("accent", "#2E86C1")
+        bg = colors.get("bg", "#FFFFFF")
+        text_color = colors.get("text", "#2C3E50")
+        secondary_bg = colors.get("secondary_bg", "#F2F6FA")
+        title_font = fonts.get("title", "Microsoft YaHei, sans-serif")
+        body_font = fonts.get("body", "Microsoft YaHei, sans-serif")
+
+        for idx, slide_spec in enumerate(slides_spec):
+            slide_id = slide_spec.get("id", f"{idx+1:02d}")
+            slide_name = slide_spec.get("name", f"幻灯片{idx+1}")
+            slide_desc = slide_spec.get("description", "")
+            layout_hint = slide_spec.get("layout_hint", "content")
+
+            progress = 25 + int((idx + 1) / len(slides_spec) * 55)
+            TASKS[task_id]["progress"] = progress
+            log(f"  📄 P{slide_id}: {slide_name} — {layout_hint}")
+
+            svg_prompt = f"""生成一张学术答辩PPT的SVG幻灯片。
+
+论文题目：{topic}
+幻灯片编号：{slide_id}
+幻灯片名称：{slide_name}
+幻灯片描述：{slide_desc}
+布局类型：{layout_hint}
+
+设计参数：
+- 画布：1280×720 (viewBox="0 0 1280 720")
+- 主色：{primary}，强调色：{accent}
+- 背景色：{bg}，正文色：{text_color}
+- 标题字体：{title_font}，正文字体：{body_font}
+
+关键规则：
+1. 输出完整的 SVG 文档，viewBox="0 0 1280 720"
+2. 使用 <text> 标签，不能依赖外部字体
+3. 保持学术风格：专业、克制、信息密度适中
+4. 用 <rect>/<path>/<line> 做装饰元素
+5. 文字内容用中文，简洁有力
+6. 封面/致谢页可以用深色背景({primary})和白字
+7. 内容页用浅色背景，顶部有主色标题栏
+8. 每页底部加页码 "{slide_id}"
+
+只输出 SVG 代码，不要任何解释文字。"""
+
+            try:
+                svg_response = _llm_create_message(
+                    client, provider, config,
+                    system="你是专业的学术PPT SVG设计器。只输出SVG代码，不要解释。",
+                    messages=[{"role": "user", "content": svg_prompt}],
+                    max_tokens=min(config.max_tokens, 8000),
+                )
+                svg_text = _llm_response_text(svg_response, provider)
+
+                svg_match = re.search(r'<svg[\s\S]*?</svg>', svg_text, re.IGNORECASE)
+                if svg_match:
+                    svg_content = svg_match.group(0)
+                else:
+                    svg_content = svg_text
+
+                svg_path = svg_dir / f"{slide_id}_{slide_name}.svg"
+                svg_path.write_text(svg_content, encoding='utf-8')
+            except Exception as e:
+                log(f"  ⚠ P{slide_id} 生成失败: {e}")
+                continue
+
+        svg_count = len(list(svg_dir.glob("*.svg")))
+        log(f"  ✓ 共生成 {svg_count} 页 SVG")
+
+        TASKS[task_id]["progress"] = 80
+
+        # ── Phase 3: Post-process & convert ──
+        log("🔧 阶段 3/3：SVG 后处理 + PPTX 转换...")
+        try:
+            finalized_dir = finalize_svgs(svg_dir, steps=['align-images', 'flatten-text'])
+            log(f"  ✓ SVG 后处理完成 → {finalized_dir}")
+        except Exception as e:
+            log(f"  ⚠ 后处理部分失败: {e}，使用原始 SVG")
+            finalized_dir = svg_dir
+
+        TASKS[task_id]["progress"] = 90
+
+        try:
+            output_path = generate_pptx(
+                str(finalized_dir),
+                format="ppt169",
+                animation="fade",
+                transition="fade",
+            )
+            log(f"  ✓ PPTX 生成完成: {output_path.name}")
+        except Exception as e:
+            log(f"  ⚠ PPTX 转换失败: {e}，回退到简单模式")
+            from skills.ppt_skill import create_pptx
+            fallback_slides = []
+            for spec in slides_spec:
+                sid = spec.get("id", "")
+                name = spec.get("name", "")
+                hint = spec.get("layout_hint", "content")
+                if hint == "title":
+                    fallback_slides.append({"layout": "title", "title": topic or "论文题目", "subtitle": f"{direction} — {label}"})
+                elif hint == "toc":
+                    fallback_slides.append({"layout": "toc", "title": name, "items": [ch.get("title", "") for ch in chapters[:8]]})
+                elif hint == "thanks":
+                    fallback_slides.append({"layout": "thanks", "title": "谢谢！", "subtitle": "恳请各位老师批评指正"})
+                else:
+                    ch = chapters[min(int(sid) - 3, len(chapters) - 1)] if chapters and sid.isdigit() and int(sid) >= 3 else None
+                    items = ["要点一", "要点二", "要点三"]
+                    if ch:
+                        ch_content = (ch.get("content", "") or "")[:500]
+                        items = [l.strip("- ").strip() for l in ch_content.split("\n") if l.strip()][:5] or items
+                    fallback_slides.append({"layout": "content", "title": name, "items": items})
+            output_path = OUTPUT_DIR / f"defense_{task_id[:8]}.pptx"
+            create_pptx(fallback_slides, str(output_path), title=topic or "论文", subtitle=direction)
+            log(f"  ✓ 回退模式生成完成: {output_path.name}")
+
+        TASKS[task_id].update({
+            "status": "done",
+            "progress": 100,
+            "message": f"生成完成，共 {svg_count} 页",
+            "download_url": f"/api/ppt/download/{output_path.name}",
+            "filename": output_path.name,
+        })
+
+    except Exception as e:
+        TASKS[task_id].update({"status": "error", "progress": 0, "message": f"生成失败: {e}"})
 
 
 def _create_method_card(
@@ -5839,12 +6063,46 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _json_response(self, {"templates": list_defense_templates()})
                 return
 
+            if path == "/api/ppt/confirm":
+                if not _check_license_api(self, path):
+                    return
+                task_id = str(payload.get("task_id", "")).strip()
+                if not task_id:
+                    _json_response(self, {"status": "error", "message": "缺少 task_id"}, status=400)
+                    return
+                with TASK_LOCK:
+                    task = TASKS.get(task_id)
+                if not task:
+                    _json_response(self, {"status": "error", "message": "任务不存在"}, status=404)
+                    return
+                if task.get("status") != "awaiting_confirm":
+                    _json_response(self, {"status": "error", "message": "任务状态不正确"}, status=409)
+                    return
+
+                design_spec = task.get("design_spec", {})
+                slides_spec = payload.get("slides_spec") or design_spec.get("slides", [])
+                colors = design_spec.get("color_scheme", {})
+                fonts = design_spec.get("fonts", {})
+
+                TASKS[task_id].update({"status": "running", "progress": 25, "message": "用户已确认，开始生成…"})
+
+                thread = threading.Thread(
+                    target=_generate_ppt_phase2,
+                    args=(task_id, task.get("ppt_type", "defense"), payload,
+                          slides_spec, colors, fonts),
+                    daemon=True,
+                )
+                thread.start()
+                _json_response(self, {"status": "ok"})
+                return
+
             if path.startswith("/api/ppt/download/"):
                 filename = path.rsplit("/", 1)[-1]
                 if not filename or ".." in filename:
                     self.send_error(400)
                     return
-                filepath = OUTPUT_DIR / "ppt" / filename
+                from ppt_engine.config import OUTPUT_DIR as _PPT_OUTPUT_DIR
+                filepath = _PPT_OUTPUT_DIR / filename
                 if not filepath.exists():
                     self.send_error(404)
                     return
@@ -6295,15 +6553,11 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 if not _check_license_api(self, path):
                     return
                 ppt_type = str(payload.get("ppt_type", "defense")).strip()
-                pptx_bytes = _generate_ppt(ppt_type, payload)
-                filename_map = {"proposal": "proposal.pptx", "midterm": "midterm.pptx", "defense": "defense.pptx"}
-                filename = filename_map.get(ppt_type, "thesis.pptx")
-                self.send_response(200)
-                self.send_header("Content-Type", "application/vnd.openxmlformats-officedocument.presentationml.presentation")
-                self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
-                self.send_header("Content-Length", str(len(pptx_bytes)))
-                self.end_headers()
-                self.wfile.write(pptx_bytes)
+                if ppt_type not in ("proposal", "midterm", "defense"):
+                    _json_response(self, {"status": "error", "message": "无效的PPT类型"}, status=400)
+                    return
+                task_id = start_ppt_generate_task(ppt_type, payload)
+                _json_response(self, {"status": "queued", "task_id": task_id})
                 return
 
             if path == "/api/blind-review-check":

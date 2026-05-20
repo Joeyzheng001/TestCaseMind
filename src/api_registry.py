@@ -58,6 +58,7 @@ API_PREFIX_MENU_MAP: Dict[str, str] = {
     "/api/methodologies": "methods",
     "/api/citation-cards": "paper_manager",
     "/api/tasks/": "workflow",
+    "/api/ppt/download/": "ppt_proposal",
 }
 
 
@@ -100,7 +101,9 @@ API_MENU_MAP: Dict[str, str] = {
     "/api/proposal": "proposal",
     "/api/proposal/export": "proposal",
     "/api/proposal/save": "proposal",
+    "/api/ppt/templates": "ppt_proposal",
     "/api/ppt/generate": "ppt_proposal",
+    "/api/ppt/confirm": "ppt_proposal",
     "/api/blind-review-check": "blind_review",
     "/api/aigc/check": "aigc_check",
     "/api/aigc/reduce": "aigc_reduce",

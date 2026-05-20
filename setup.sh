@@ -20,7 +20,7 @@ for cmd in python3 python; do
         ver=$($cmd -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
         major=$($cmd -c "import sys; print(sys.version_info.major)")
         minor=$($cmd -c "import sys; print(sys.version_info.minor)")
-        if [ "$major" -ge 3 ] && [ "$minor" -ge 9 ]; then
+        if [ "$major" -eq 3 ] && [ "$minor" -ge 9 ] && [ "$minor" -le 14 ]; then
             PYTHON=$cmd
             break
         fi
@@ -28,7 +28,7 @@ for cmd in python3 python; do
 done
 
 if [ -z "$PYTHON" ]; then
-    echo -e "${RED}错误: 未找到 Python 3.9+，请先安装 Python${NC}"
+    echo -e "${RED}错误: 未找到 Python 3.9-3.14，请先安装受支持的 Python 版本${NC}"
     echo "  macOS: brew install python@3.12"
     echo "  Ubuntu/Debian: sudo apt install python3 python3-venv python3-pip"
     echo "  CentOS/RHEL: sudo dnf install python3 python3-pip"
@@ -47,20 +47,43 @@ echo -e "${GREEN}✓ 虚拟环境已激活${NC}"
 
 # ── 依赖安装 ──
 echo "安装依赖包..."
-pip install --upgrade pip -q
+PIP_COMMON=(--disable-pip-version-check --retries 5 --timeout 60 --prefer-binary)
+PIP_LOCAL_LINKS=()
 
-if [ -d "wheels" ] && [ "$(ls -1 wheels/*.whl 2>/dev/null | wc -l)" -gt 0 ]; then
-    echo "  从本地离线包安装..."
-    pip install --no-index --find-links=wheels -r requirements.txt -q 2>&1 || {
-        echo -e "${YELLOW}  离线包安装失败，切换到清华镜像...${NC}"
-        pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple -q
+if compgen -G "wheels/*.whl" > /dev/null; then
+    PIP_LOCAL_LINKS+=(--find-links=wheels)
+fi
+
+if compgen -G "*.whl" > /dev/null; then
+    PIP_LOCAL_LINKS+=(--find-links=.)
+fi
+
+if [ "${#PIP_LOCAL_LINKS[@]}" -gt 0 ]; then
+    echo "  检测到本地 wheel，优先使用本地包..."
+    pip install --upgrade pip setuptools wheel "${PIP_COMMON[@]}" "${PIP_LOCAL_LINKS[@]}" --no-index || {
+        echo -e "${YELLOW}  本地 pip/setuptools/wheel 升级失败，继续安装依赖...${NC}"
     }
 else
-    echo "  离线包不存在，从 PyPI 安装..."
-    pip install -r requirements.txt -q 2>&1 || {
-        echo -e "${YELLOW}  PyPI 连接失败，尝试清华镜像...${NC}"
-        pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple -q
+    pip install --upgrade pip setuptools wheel "${PIP_COMMON[@]}" -i https://pypi.tuna.tsinghua.edu.cn/simple || {
+        echo -e "${YELLOW}  pip 升级失败，继续安装依赖...${NC}"
     }
+fi
+
+OK=0
+if [ "${#PIP_LOCAL_LINKS[@]}" -gt 0 ]; then
+    pip install -r requirements.txt "${PIP_COMMON[@]}" "${PIP_LOCAL_LINKS[@]}" --no-index && OK=1 || {
+        echo -e "${YELLOW}  本地 wheel 不完整，切换到镜像源补齐缺失依赖...${NC}"
+    }
+fi
+
+if [ "$OK" -eq 0 ]; then
+    pip install -r requirements.txt "${PIP_COMMON[@]}" "${PIP_LOCAL_LINKS[@]}" -i https://pypi.tuna.tsinghua.edu.cn/simple && OK=1 || true
+fi
+if [ "$OK" -eq 0 ]; then
+    pip install -r requirements.txt "${PIP_COMMON[@]}" "${PIP_LOCAL_LINKS[@]}" -i https://mirrors.aliyun.com/pypi/simple && OK=1 || true
+fi
+if [ "$OK" -eq 0 ]; then
+    pip install -r requirements.txt "${PIP_COMMON[@]}" "${PIP_LOCAL_LINKS[@]}" -i https://pypi.org/simple
 fi
 echo -e "${GREEN}✓ 依赖安装完成${NC}"
 

@@ -72,6 +72,12 @@ else
     echo -e "${YELLOW}注意: 未找到向量索引，部分功能（引用推荐、文献检索）可能受限${NC}"
 fi
 
+# ── 配置文件 ──
+if [ ! -f ".env" ] && [ -f ".env.example" ]; then
+    cp .env.example .env
+    echo -e "${YELLOW}! 配置文件已创建，请编辑 .env 填写 API Key${NC}"
+fi
+
 # ── 中文字体检测 ──
 echo ""
 if [[ "$OSTYPE" == "darwin"* ]]; then

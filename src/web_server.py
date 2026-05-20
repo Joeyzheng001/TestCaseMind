@@ -2869,9 +2869,9 @@ def _normalize_phase_methods(phase_methods: Dict[str, List[str]]) -> Dict[str, L
     if not mapping:
         return phase_methods  # DB not available, pass through
     result: Dict[str, List[str]] = {}
-    seen: Set[str] = set()
     for phase, methods in phase_methods.items():
         normalized: List[str] = []
+        seen: Set[str] = set()
         for m in methods:
             cid = _normalize_method_identifier(m, mapping)
             if cid and cid not in seen:
@@ -3538,11 +3538,63 @@ def start_outline_task(payload: Dict[str, Any]) -> str:
     return task_id
 
 
+_DSML_RE = re.compile(r'</?[|\s]*DSML[^>]*>', re.IGNORECASE)
+_DSML_FRAG_RE = re.compile(r'<[|]{1,2}\s*>|</[|]{1,2}\s*>', re.IGNORECASE)
+_DSML_INVOKE_RE = re.compile(
+    r'<[|\s]*DSML[|\s]*invokename="([^"]+)"[^>]*>', re.IGNORECASE
+)
+_DSML_PARAM_RE = re.compile(
+    r'<[|\s]*DSML[|\s]*parameter\s+name="([^"]+)"\s*string="(true|false)"[^>]*>(.*?)(?=</?[|\s]*DSML|$)',
+    re.DOTALL | re.IGNORECASE,
+)
+
+
+def _strip_dsml(text: str) -> str:
+    """Remove DSML tool-call tokens that DeepSeek may emit as raw text."""
+    if not text or "DSML" not in text:
+        return text
+    text = _DSML_RE.sub("", text)
+    text = _DSML_FRAG_RE.sub("", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
+def _parse_dsml_tools(text: str) -> list:
+    """Parse DSML tool calls from LLM text into a list of (name, params_dict) tuples.
+    Returns empty list if no DSML tool calls found."""
+    if not text or "DSML" not in text or "invokename" not in text:
+        return []
+    tools = []
+    # Find all tool invocations and parameter blocks independently
+    invocations = list(_DSML_INVOKE_RE.finditer(text))
+    param_matches = list(_DSML_PARAM_RE.finditer(text))
+    for i, inv in enumerate(invocations):
+        tool_name = inv.group(1)
+        # Determine the span of this tool's content:
+        # from this invocation to the next invocation (or end of text)
+        start = inv.end()
+        end = invocations[i + 1].start() if i + 1 < len(invocations) else len(text)
+        params = {}
+        for pm in param_matches:
+            if start <= pm.start() < end:
+                pname = pm.group(1)
+                is_string = pm.group(2) == "true"
+                pvalue = pm.group(3).strip()
+                if not is_string:
+                    try:
+                        pvalue = int(pvalue)
+                    except (ValueError, TypeError):
+                        pass
+                params[pname] = pvalue
+        tools.append((tool_name, params))
+    return tools
+
+
 def _response_text(response: Any) -> str:
     parts = []
     for block in response.content:
         if hasattr(block, "text"):
-            parts.append(block.text)
+            parts.append(_strip_dsml(block.text))
     return "\n".join(parts).strip()
 
 
@@ -3847,7 +3899,7 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
             if hasattr(block, "type") and block.type == "tool_use":
                 tool_blocks.append(block)
             elif hasattr(block, "text"):
-                text_blocks.append(block.text)
+                text_blocks.append(_strip_dsml(block.text))
 
         if tool_blocks:
             preserved = []
@@ -3857,7 +3909,7 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
                 elif hasattr(block, "type") and block.type == "tool_use":
                     preserved.append({"type": "tool_use", "id": block.id, "name": block.name, "input": block.input})
                 elif hasattr(block, "text") and not hasattr(block, "type"):
-                    preserved.append({"type": "text", "text": block.text})
+                    preserved.append({"type": "text", "text": _strip_dsml(block.text)})
             api_messages.append({"role": "assistant", "content": preserved})
             tool_results = []
             for tb in tool_blocks:
@@ -3873,7 +3925,28 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
             )
             text = _llm_response_text(response2, provider)
         else:
-            text = "\n".join(text_blocks).strip()
+            raw_text = "\n".join(text_blocks).strip()
+            # DeepSeek may emit tool calls as DSML text instead of tool_use blocks
+            dsml_tools = _parse_dsml_tools(raw_text)
+            if dsml_tools:
+                preserved_tool = []
+                for tname, tparams in dsml_tools:
+                    preserved_tool.append({"type": "tool_use", "name": tname, "input": tparams})
+                api_messages.append({"role": "assistant", "content": preserved_tool})
+                tool_results = []
+                for tname, tparams in dsml_tools:
+                    result_text = _execute_chat_tool(tname, tparams)
+                    tool_results.append({"type": "tool_result", "tool_use_id": tname, "content": result_text})
+                api_messages.append({"role": "user", "content": tool_results})
+                response2 = _llm_create_message(
+                    client, provider, config,
+                    system=system,
+                    messages=api_messages,
+                    max_tokens=_token_budget(config, "default"),
+                )
+                text = _llm_response_text(response2, provider)
+            else:
+                text = _strip_dsml(raw_text)
 
         return {"status": "ok", "message": {"role": "assistant", "content": text}}
     except Exception as exc:
@@ -6058,7 +6131,10 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 save_workspace_value("markdown", markdown)
                 if outline:
                     build_thesis_memory(payload, outline)
-                stale = _mark_all_drafts_stale("章节大纲已更新，本章可能需要重新生成以保持一致性")
+                if payload.get("skip_stale"):
+                    stale = []
+                else:
+                    stale = _mark_all_drafts_stale("章节大纲已更新，本章可能需要重新生成以保持一致性")
                 _json_response(self, {"status": "ok", "markdown": markdown, "stale_chapters": stale})
                 return
 

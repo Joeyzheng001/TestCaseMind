@@ -80,18 +80,20 @@ fi
 
 # ── 6. 配置文件 ──
 echo "复制配置文件..."
-for f in requirements.txt setup.sh; do
+for f in requirements.txt setup.sh .env.example; do
     if [ -f "$f" ]; then
         cp "$f" "${BUILD_DIR}/"
         echo "  ✓ $f"
     fi
 done
 
-# setup.bat for Windows
-if [ -f "setup.bat" ]; then
-    cp setup.bat "${BUILD_DIR}/"
-    echo "  ✓ setup.bat"
-fi
+# setup.bat + start.bat for Windows
+for f in setup.bat start.bat; do
+    if [ -f "$f" ]; then
+        cp "$f" "${BUILD_DIR}/"
+        echo "  ✓ $f"
+    fi
+done
 
 # ── 7. 清理开发残留 ──
 echo "清理开发残留..."

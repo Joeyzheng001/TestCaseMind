@@ -45,9 +45,9 @@
         <button class="step sub-item" data-step="paper_manager">论文管理</button>
         <button class="step sub-item" data-step="license">许可证管理</button>
       </nav>`;
-    if (badge) {
-      badge.before(container);
-    } else {
+    if (badge && badge.parentElement) {
+      badge.parentElement.insertBefore(container, badge);
+    } else if (sidebar) {
       sidebar.appendChild(container);
     }
   }
@@ -892,6 +892,19 @@
           adminToggle.classList.add("active");
           if (chev) chev.textContent = "▾";
         }
+      });
+    }
+
+    // Fix admin sub-item click handlers (data-step may be missing)
+    const adminSub = document.getElementById("adminSub");
+    if (adminSub) {
+      Array.from(adminSub.children).forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const text = btn.textContent;
+          if (text.includes("知识库")) activeStep("kb_init");
+          else if (text.includes("论文管理")) activeStep("paper_manager");
+          else if (text.includes("许可证")) activeStep("license");
+        });
       });
     }
 

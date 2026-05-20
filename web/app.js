@@ -361,7 +361,6 @@ function updateOutlineWordsFromDraft(draftKey, content) {
   const total = rollupOutlineWords("actual_words");
   renderOutline();
   renderWritingList();
-  saveOutlineState(`已按正文统计实际字数，总计 ${total} 字`);
 }
 
 function nowTime() {
@@ -600,8 +599,8 @@ function resetWorkspaceView() {
   state.citations = [];
   state.drafts = {};
   state.methodAssignments = { discover: new Set(), solve: new Set(), validate: new Set() };
+  state.methodPools = { discover: new Set(), solve: new Set(), validate: new Set() };
   state.sectionCitations = {};
-  state.paperCitations = [];
   citationPageState.activeDraftKey = null;
   citationPageState.cardCache = {};
   $("#svgPreview").innerHTML = "";
@@ -1161,7 +1160,9 @@ function renderMethods() {
       const methodId = btn.dataset.poolRemove;
       if (methodId) {
         state.methodPools[phase].delete(methodId);
+        state.methodAssignments[phase].delete(methodId);
         saveMethodPool(phase);
+        saveMethodAssignments();
         renderMethods();
       }
     });
@@ -1195,12 +1196,8 @@ async function supplementMethod(methodName, methodId) {
       // Replace the custom method with the supplemented card in state.methods
       const idx = state.methods.findIndex((m) => m.id === methodId);
       if (idx >= 0) {
-        state.methods[idx] = {
-          ...state.methods[idx],
-          ...data,
-          custom: false,
-          supplemented: true,
-        };
+        state.methods[idx].custom = false;
+        state.methods[idx].supplemented = true;
       }
       if (btn) {
         btn.textContent = "✅ 资料已补充";
@@ -1704,13 +1701,16 @@ function renderTaskLog(logs, selector = "#outlineLog") {
   logBox.scrollTop = logBox.scrollHeight;
 }
 
-async function saveOutlineState(message = "大纲和字数已保存") {
+async function saveOutlineState(message = "大纲和字数已保存", skipStale = false) {
   const data = await api("/api/outline/save", {
     method: "POST",
     body: JSON.stringify({
       topic: $("#topicInput").value.trim(),
       project_context: projectContextPayload(),
       outline: state.outline,
+      methods: selectedMethodNames(),
+      phase_methods: phaseMethodsPayload(),
+      skip_stale: skipStale,
     }),
   });
   state.markdown = data.markdown;
@@ -1883,7 +1883,11 @@ async function saveCitations() {
   $("#citationStatus").textContent = `已于 ${nowTime()} 保存引用`;
 }
 
+let _renderingOutline = false;
 function renderOutline() {
+  if (_renderingOutline) return;
+  _renderingOutline = true;
+  try {
   renumberOutline();
   rollupOutlineWords("estimated_words");
   rollupOutlineWords("actual_words");
@@ -1935,7 +1939,7 @@ function renderOutline() {
       $("#outlineStatus").textContent = `已汇总预计字数，总计 ${total} 字`;
       renderOutline();
       renderWritingList();
-      saveOutlineState();
+      saveOutlineState(undefined, true);
     });
   });
   $$("#outlinePreview button[data-action='subsections']").forEach((button) => {
@@ -1958,7 +1962,10 @@ function renderOutline() {
   });
   $$("#outlinePreview button[data-action='delete-subsection']").forEach((button) => {
     button.addEventListener("click", () => deleteSubsection(Number(button.dataset.chapter), Number(button.dataset.section), Number(button.dataset.subsection)));
-  });
+    });
+  } finally {
+    _renderingOutline = false;
+  }
 }
 
 function renderChapter(chapter, chapterIndex) {
@@ -1967,7 +1974,6 @@ function renderChapter(chapter, chapterIndex) {
       const subsections = (section.subsections || [])
         .map((subsection, subsectionIndex) => {
           const title = cleanHeadingTitle(subsection.title, subsection.number);
-          subsection.title = title;
           return `
             <div class="subsection-line">
               <span>${subsection.number}</span>
@@ -2157,11 +2163,16 @@ async function generateAllSubsectionsSerial() {
   setTimeout(hideSubsectionProgress, 4000);
 }
 
+let _renderingWritingList = false;
 function renderWritingList() {
+  if (_renderingWritingList) return;
+  _renderingWritingList = true;
+  try {
   // Sync actual word counts from loaded drafts before rendering
   Object.entries(state.drafts).forEach(([key, content]) => {
     if (content) updateOutlineWordsFromDraft(key, content);
   });
+  saveOutlineState(undefined, true);
 
   const chapters = state.outline?.chapters || [];
   const content = chapters
@@ -2243,22 +2254,15 @@ function renderWritingList() {
       textarea.value = normalizeDraftContent(textarea.value);
       state.drafts[draftKey] = textarea.value;
       updateOutlineWordsFromDraft(draftKey, textarea.value);
+      saveOutlineState(undefined, true);
       saveDraft(draftKey, textarea.value);
     });
   });
   populateAllCitationSelectors();
   bindCitationEvents();
-}
-
-async function bridgeChecklistToCitations() {
-  state.citations = libState.checklist.map(c => ({
-    formatted: c.formatted, title: c.title,
-    authors: c.authors, year: c.year, type: c.ref_type || c.type,
-  }));
-  await api("/api/citations/save", {
-    method: "POST",
-    body: JSON.stringify({ citations: state.citations }),
-  });
+  } finally {
+    _renderingWritingList = false;
+  }
 }
 
 async function loadCitationsFromWorkspace() {
@@ -2459,6 +2463,7 @@ async function runWritingAction(button) {
     textarea.value = normalizeDraftContent(data.content, target);
     state.drafts[draftKey] = textarea.value;
     updateOutlineWordsFromDraft(draftKey, textarea.value);
+    saveOutlineState(undefined, true);
     const saveResult = await saveDraft(draftKey, textarea.value);
     renderConsistencyFeedback(data.consistency, data.citation_check, saveResult.stale_chapters);
   } catch (err) {

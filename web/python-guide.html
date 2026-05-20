@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python 安装配置指南 — ThesisMind</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --line: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --primary: #1f7bd7;
+      --primary-strong: #155fa9;
+      --green: #16a34a;
+      --amber: #d97706;
+      --red: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.75;
+      padding: 40px 20px 80px;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .header p { color: var(--muted); font-size: 15px; }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 32px;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0;
+      border-bottom: 2px solid var(--line);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 14px 24px;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .tab-panel { display: none; padding-top: 32px; }
+    .tab-panel.active { display: block; }
+
+    /* Content sections */
+    .step {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+    .step h3 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+    }
+    .step p { color: var(--muted); margin-bottom: 10px; }
+    .step a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .step a:hover { text-decoration: underline; }
+
+    .code-block {
+      background: #1e293b;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: "SF Mono", "Cascadia Code", "Consolas", monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+    .code-block .prompt { color: #60a5fa; }
+    .code-block .output { color: #94a3b8; }
+
+    .note {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      font-size: 13px;
+      color: #92400e;
+    }
+    .note strong { color: var(--amber); }
+
+    .check-list { list-style: none; padding: 0; margin: 8px 0 0; }
+    .check-list li {
+      padding: 4px 0 4px 24px;
+      position: relative;
+      color: var(--muted);
+    }
+    .check-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .version-badge {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 20px 12px 60px; }
+      .step { padding: 20px 18px; }
+      .header h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <a href="/" class="back-link">← 返回 ThesisMind 首页</a>
+
+    <div class="header">
+      <h1>Python 安装配置指南</h1>
+      <p>ThesisMind 需要 Python 3.9 或更新版本。请按以下步骤操作。</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('windows')">Windows</button>
+      <button class="tab-btn" onclick="switchTab('mac')">macOS</button>
+    </div>
+
+    <!-- ============ Windows ============ -->
+    <div class="tab-panel active" id="tab-windows">
+      <div class="step">
+        <h3><span class="step-num">1</span> 下载 Python 安装包</h3>
+        <p>
+          打开浏览器访问：
+          <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">https://www.python.org/downloads/</a>
+        </p>
+        <p>点击黄色按钮下载最新版（当前为 3.12 或 3.13）。推荐 64 位版本（<code>python-3.x.x-amd64.exe</code>）。</p>
+        <div class="note">
+          <strong>注意：</strong>不要下载 Python 3.7 或更低版本。ThesisMind 最低要求 3.9。
+        </div>
+      </div>
+
+      <div class="step">
+        <h3><span class="step-num">2</span> 运行安装程序（关键步骤）</h3>
+        <p>双击下载的 <code>.exe</code> 文件，<strong>务必勾选底部两个选项：</strong></p>
+        <ul class="check-list">
+          <li>✅ <strong>Add python.exe to PATH</strong>（将 Python 加入系统路径）</li>
+          <li>如果看到 <strong>"Use admin privileges"</strong> 也勾上</li>
+        </ul>
+        <p>然后点击 <strong>"Install Now"</strong>，等待安装完成。安装成功后关闭窗口。</p>
+        <div class="note">
+          <strong>为什么必须勾选 Add to PATH？</strong><br>
+          不勾选的话，命令行中无法识别 <code>python</code> 命令，ThesisMind 安装脚本将无法运行。
+        </div>
+      </div>
+
+      <div class="step">
+        <h3><span class="step-num">3</span> 验证安装</h3>
+        <p>按 <kbd>Win + R</kbd>，输入 <code>cmd</code>，回车打开命令提示符。输入：</p>
+        <div class="code-block"><span class="prompt">C:\Users\你的用户名&gt;</span> python --version</div>
+        <p>应输出类似：</p>
+        <div class="code-block"><span class="output">Python 3.12.3</span></div>
+        <p>如果显示 <code>'python' 不是内部或外部命令</code>，说明未勾选 PATH，需要重新安装或手动添加环境变量。</p>
+      </div>
+
+      <div class="step">
+        <h3><span class="step-num">4</span> 回到 ThesisMind</h3>
+        <p>Python 安装成功后，双击 ThesisMind 目录下的 <code>setup.bat</code> 即可完成一键安装。</p>
+        <div class="code-block"><span class="prompt">C:\Users\你的用户名&gt;</span> cd ThesisMind-v20250520<br><span class="prompt">C:\...\ThesisMind-v20250520&gt;</span> setup.bat</div>
+      </div>
+
+      <div class="step">
+        <h3>常见问题</h3>
+        <p><strong>Q: 公司电脑有安全策略，无法安装软件？</strong><br>
+        联系 IT 部门申请安装 Python 3.9+，或使用公司内部软件中心（如 Software Center）搜索 "Python"。</p>
+        <p style="margin-top:10px"><strong>Q: Microsoft Store 里的 Python 能用吗？</strong><br>
+        能，搜索 "Python 3.12" 安装即可。但 Store 版本的路径有时会出问题，推荐优先用官网安装包。</p>
+        <p style="margin-top:10px"><strong>Q: 已经装了 Python 3.7 怎么办？</strong><br>
+        需要升级到 3.9+。建议卸载 3.7 后安装新版，或保留 3.7 同时安装新版（需注意 PATH 顺序）。</p>
+      </div>
+    </div>
+
+    <!-- ============ macOS ============ -->
+    <div class="tab-panel" id="tab-mac">
+      <div class="step">
+        <h3><span class="step-num">1</span> 检查系统自带的 Python</h3>
+        <p>打开终端（在"启动台 → 其他 → 终端"或按 <kbd>Cmd + Space</kbd> 搜索 "Terminal"），输入：</p>
+        <div class="code-block"><span class="prompt">$</span> python3 --version</div>
+        <p>macOS 通常预装了 Python 3.9+。如果输出类似 <code>Python 3.9.x</code> 或更高，即可直接使用，<strong>跳到第 3 步</strong>。</p>
+      </div>
+
+      <div class="step">
+        <h3><span class="step-num">2</span> 安装 Python（二选一）</h3>
+        <p><strong>方案 A — Homebrew 安装（推荐）：</strong></p>
+        <p>如果已安装 <a href="https://brew.sh/" target="_blank" rel="noopener">Homebrew</a>，终端中运行：</p>
+        <div class="code-block"><span class="prompt">$</span> brew install python@3.12</div>
+        <p style="margin-top:12px"><strong>方案 B — 官网安装包：</strong></p>
+        <p>
+          访问 <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org/downloads</a>，
+          下载 macOS 安装包（<code>.pkg</code> 文件），双击运行，一路 "继续" 即可。
+        </p>
+      </div>
+
+      <div class="step">
+        <h3><span class="step-num">3</span> 验证安装</h3>
+        <div class="code-block"><span class="prompt">$</span> python3 --version</div>
+        <p>应输出：</p>
+        <div class="code-block"><span class="output">Python 3.12.3</span></div>
+        <p>同时确认 pip 可用：</p>
+        <div class="code-block"><span class="prompt">$</span> pip3 --version</div>
+      </div>
+
+      <div class="step">
+        <h3><span class="step-num">4</span> 启动 ThesisMind</h3>
+        <p>回到 ThesisMind 解压目录，在终端中运行安装脚本：</p>
+        <div class="code-block"><span class="prompt">$</span> cd ~/Downloads/ThesisMind-v20250520<br><span class="prompt">$</span> bash setup.sh</div>
+        <p>安装完成后启动：</p>
+        <div class="code-block"><span class="prompt">$</span> source .venv/bin/activate<br><span class="prompt">$</span> python3 src/web_server.py --port 8222</div>
+        <p>浏览器访问 <code>http://localhost:8222</code>。</p>
+      </div>
+
+      <div class="step">
+        <h3>常见问题</h3>
+        <p><strong>Q: 提示 "command not found: brew"？</strong><br>
+        Homebrew 未安装。先去 <a href="https://brew.sh/" target="_blank" rel="noopener">brew.sh</a> 安装，或用方案 B 官网安装包。</p>
+        <p style="margin-top:10px"><strong>Q: 系统自带的是 Python 2.7？</strong><br>
+        很旧的 macOS 版本才会这样。输入 <code>python3</code> 而非 <code>python</code>，或升级 macOS。</p>
+        <p style="margin-top:10px"><strong>Q: Apple Silicon (M1/M2/M3) 需要注意什么？</strong><br>
+        不需要特殊处理。Python 3.9+ 原生支持 Apple Silicon，官网安装包会自动识别芯片架构。</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchTab(os) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector('.tab-btn[onclick*="' + os + '"]').classList.add('active');
+      document.getElementById('tab-' + os).classList.add('active');
+    }
+  </script>
+</body>
+
+</html>

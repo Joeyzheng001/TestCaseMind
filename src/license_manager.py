@@ -420,7 +420,7 @@ class LicenseManager:
             "tier": "free",
             "tier_label": "免费版(未激活)",
             "days_left": 0,
-            "features": [],
+            "features": ["workflow"],
             "trial_active": False,
             "trial_days_left": 0,
             "message": "请先开始免费试用或激活许可证",
@@ -440,8 +440,6 @@ class LicenseManager:
 
         if status["status"] == "expired":
             return False, "试用已到期，请激活许可证"
-        if status["status"] == "no_license":
-            return False, "请先开始免费试用"
 
         required = self.MENU_FEATURE_MAP.get(menu_id)
         if required is None:
@@ -459,8 +457,6 @@ class LicenseManager:
         status = self.get_license_status()
         if status["status"] == "expired":
             return False, "试用已到期，请激活许可证"
-        if status["status"] == "no_license":
-            return False, "请先开始免费试用或激活许可证"
 
         features = status.get("features", [])
         aliases = {

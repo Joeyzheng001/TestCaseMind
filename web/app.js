@@ -3659,13 +3659,54 @@ function exportProposal(format) {
 
 // ============ PPT 生成 ============
 
+const PPT_TYPE_MAP = {
+  proposal: { btn: "generatePptProposal", status: "pptProposalStatus", result: "pptProposalResult", dl: "downloadPptProposal", log: "pptProposalLog", label: "开题PPT", step: "ppt_proposal" },
+  midterm: { btn: "generatePptMidterm", status: "pptMidtermStatus", result: "pptMidtermResult", dl: "downloadPptMidterm", log: "pptMidtermLog", label: "中期PPT", step: "ppt_midterm" },
+  defense: { btn: "generatePptDefense", status: "pptDefenseStatus", result: "pptDefenseResult", dl: "downloadPptDefense", log: "pptDefenseLog", label: "答辩PPT", step: "ppt_defense" },
+};
+
+async function recoverPptTasks() {
+  for (const [pptType, cfg] of Object.entries(PPT_TYPE_MAP)) {
+    let taskId;
+    try { taskId = localStorage.getItem(`ppt_task_${pptType}`); } catch (_) { continue; }
+    if (!taskId) continue;
+
+    try {
+      const data = await api(`/api/tasks/${taskId}`);
+      if (data.status === "queued" || data.status === "running" || data.status === "awaiting_confirm") {
+        const status = $(`#${cfg.status}`);
+        const result = $(`#${cfg.result}`);
+        const button = $(`#${cfg.btn}`);
+        const dlBtn = $(`#${cfg.dl}`);
+        const logEl = $(`#${cfg.log}`);
+
+        // Restore UI state
+        button.disabled = true;
+        button.textContent = "生成中…";
+        dlBtn.hidden = true;
+        if (result) result.innerHTML = "";
+        if (logEl) logEl.innerHTML = "";
+        if (status) status.textContent = "恢复上次任务…";
+        renderTaskLog(data.logs || [], `#${cfg.log}`);
+
+        // Auto-navigate to the PPT step so user sees the task progress
+        activeStep(cfg.step);
+
+        pollPptTask(taskId, pptType, cfg, 0);
+      } else {
+        // Task is done/error — clean up stale entry
+        try { localStorage.removeItem(`ppt_task_${pptType}`); } catch (_) {}
+      }
+    } catch (_) {
+      // Task not found on server — clean up
+      try { localStorage.removeItem(`ppt_task_${pptType}`); } catch (_) {}
+    }
+  }
+}
+
 async function generatePpt(pptType) {
-  const ids = {
-    proposal: { btn: "generatePptProposal", status: "pptProposalStatus", result: "pptProposalResult", dl: "downloadPptProposal", log: "pptProposalLog", label: "开题PPT" },
-    midterm: { btn: "generatePptMidterm", status: "pptMidtermStatus", result: "pptMidtermResult", dl: "downloadPptMidterm", log: "pptMidtermLog", label: "中期PPT" },
-    defense: { btn: "generatePptDefense", status: "pptDefenseStatus", result: "pptDefenseResult", dl: "downloadPptDefense", log: "pptDefenseLog", label: "答辩PPT" },
-  };
-  const cfg = ids[pptType];
+  const cfg = PPT_TYPE_MAP[pptType];
+  if (!cfg) return;
   const button = $(`#${cfg.btn}`);
   const status = $(`#${cfg.status}`);
   const result = $(`#${cfg.result}`);
@@ -3714,6 +3755,7 @@ async function generatePpt(pptType) {
     }
 
     status.textContent = "任务已创建，正在生成…";
+    try { localStorage.setItem(`ppt_task_${pptType}`, data.task_id); } catch (_) {}
     pollPptTask(data.task_id, pptType, cfg, 0);
 
   } catch (err) {
@@ -3789,6 +3831,7 @@ async function pollPptTask(taskId, pptType, cfg, count) {
       if (result) result.innerHTML = "";
       button.disabled = false;
       button.textContent = "重新生成";
+      try { localStorage.removeItem(`ppt_task_${pptType}`); } catch (_) {}
     });
 
     if (status) status.textContent = "请确认幻灯片目录";
@@ -3806,6 +3849,7 @@ async function pollPptTask(taskId, pptType, cfg, count) {
     if (result) result.innerHTML = `<p style="padding:20px;color:#2a7d4f;">${cfg.label}已生成，点击下方按钮下载。</p>`;
     button.disabled = false;
     button.textContent = "重新生成";
+    try { localStorage.removeItem(`ppt_task_${pptType}`); } catch (_) {}
     return;
   }
 
@@ -3814,6 +3858,7 @@ async function pollPptTask(taskId, pptType, cfg, count) {
     if (result) result.innerHTML = `<div class="empty-state">生成失败：${escapeHtml(data.message || "未知错误")}</div>`;
     button.disabled = false;
     button.textContent = "重新生成";
+    try { localStorage.removeItem(`ppt_task_${pptType}`); } catch (_) {}
     return;
   }
 
@@ -4714,6 +4759,7 @@ async function init() {
   await loadProjects();
   await loadConfig();
   await loadLicense();
+  recoverPptTasks();
   await loadMethods();
   await loadWorkspace();
   window._saveFramework = saveFrameworkToWorkspace;

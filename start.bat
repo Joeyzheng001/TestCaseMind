@@ -1,52 +1,55 @@
 @echo off
 cd /d "%~dp0"
-setlocal
 
-:: Force UTF-8 for Python I/O on Windows
+:: ============================================
+:: MUST extract ZIP before running
+:: ============================================
+if not exist ".venv\Scripts\activate.bat" (
+    echo ============================================
+    echo   ERROR: Virtual environment not found!
+    echo.
+    echo   Please run setup.bat first to install.
+    echo.
+    echo   If you already ran setup.bat, make sure
+    echo   you extracted the entire ZIP before running.
+    echo ============================================
+    pause
+    exit /b 1
+)
+
+setlocal
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
 set PYTHONLEGACYWINDOWSSTDIO=utf-8
 
-echo =========================================
-echo   ThesisMind 论文辅助工作台
-echo =========================================
-echo.
-echo   当前目录: %cd%
-echo.
-
-:: Activate virtual environment
-if not exist ".venv\Scripts\activate.bat" (
-    echo [ERROR] Virtual environment not found. Please run setup.bat first.
-    pause
-    exit /b 1
-)
-
 call .venv\Scripts\activate.bat
 if %errorlevel% neq 0 (
     echo [ERROR] Failed to activate virtual environment.
+    echo Please re-run setup.bat to repair.
     pause
     exit /b 1
 )
 
-:: Check .env config
 if not exist ".env" (
     if exist ".env.example" (
-        echo [NOTE] .env not found, creating from .env.example...
+        echo [NOTE] Creating .env from template...
         copy /y .env.example .env >nul 2>&1
-        echo Please edit .env to add your API Key:
-        echo   notepad .env
+        echo.
+        echo Please configure your API key in .env:
         start notepad .env
         pause
     )
 )
 
-echo Starting ThesisMind...
+echo =========================================
+echo   ThesisMind
 echo.
-echo   Web interface: http://localhost:8222
-echo.
-echo   Press Ctrl+C to stop the server.
+echo   Opening: http://localhost:8222
+echo   Press Ctrl+C to stop
+echo =========================================
 echo.
 
+start http://localhost:8222
 python src\web_server.py --port 8222
 
 pause

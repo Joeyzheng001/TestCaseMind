@@ -61,7 +61,7 @@ from src.consistency_engine import (
     verify_citations,
 )
 from src.method_context import build_method_context
-from src.risk_checker import run_risk_scan, format_risk_report, run_method_risk_scan
+from src.risk_checker import run_risk_scan, format_risk_report, run_method_risk_scan, run_formula_check
 from src.kb_manager import (
     detect_category,
     categorize_output_dir,
@@ -75,9 +75,64 @@ WEB_ROOT = PROJECT_ROOT / "web"
 KB_ROOT = PROJECT_ROOT / "knowledge_base" / "references"
 KB_CONVERTED_ROOT = KB_ROOT / "converted"
 CARDS_DIR = PROJECT_ROOT / "cards" / "methods"
-OUTPUT_ROOT = PROJECT_ROOT / "output"
 ENV_PATH = PROJECT_ROOT / ".env"
-WORKSPACE_DB = OUTPUT_ROOT / "workspace.sqlite3"
+
+# 模块加载时就载入 .env，确保 OUTPUT_ROOT 等路径可依赖环境变量
+from dotenv import load_dotenv as _load_dotenv
+if ENV_PATH.exists():
+    _load_dotenv(ENV_PATH, override=True)
+
+
+def _resolve_user_data_root() -> Path:
+    """用户数据根目录。默认 ~/.thesismind/，可通过环境变量 OUTPUT_PATH 覆盖。
+
+    放在项目目录外部，确保重装/升级版本不会丢失论文数据。
+    """
+    raw = os.getenv("OUTPUT_PATH", "").strip()
+    if raw:
+        p = Path(raw)
+        if p.parts and p.parts[0] == "~":
+            p = Path.home() / Path(*p.parts[1:])
+        return p.resolve()
+    return Path.home() / ".thesismind"
+
+
+def _migrate_legacy_output(legacy: Path, user_root: Path) -> None:
+    """将旧版项目内 output/ 数据迁移到外部用户目录。"""
+    if not legacy.exists():
+        return
+    user_root.mkdir(parents=True, exist_ok=True)
+    migrated = 0
+    for item in legacy.iterdir():
+        dst = user_root / item.name
+        if dst.exists():
+            continue
+        if item.is_file():
+            import shutil
+            shutil.copy2(item, dst)
+            migrated += 1
+        elif item.is_dir():
+            import shutil
+            shutil.copytree(item, dst)
+            migrated += 1
+    if migrated:
+        logger.info("已迁移 %s 个文件从 %s → %s", migrated, legacy, user_root)
+
+
+# 延迟初始化，在 main() 中调用 _init_user_data_root()
+OUTPUT_ROOT: Path = PROJECT_ROOT / "output"  # 占位值，main() 中覆盖
+WORKSPACE_DB: Path = OUTPUT_ROOT / "workspace.sqlite3"  # 同上
+
+
+def _init_user_data_root() -> None:
+    """初始化用户数据目录并执行旧版迁移。"""
+    global OUTPUT_ROOT, WORKSPACE_DB
+    OUTPUT_ROOT = _resolve_user_data_root()
+    _legacy_output = PROJECT_ROOT / "output"
+    _migrate_legacy_output(_legacy_output, OUTPUT_ROOT)
+    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    WORKSPACE_DB = OUTPUT_ROOT / "workspace.sqlite3"
+    logger.info("用户数据目录: %s", OUTPUT_ROOT)
 TASKS: Dict[str, Dict[str, Any]] = {}
 TASK_LOCK = threading.Lock()
 GLOBAL_WORKSPACE_KEYS = {"__projects", "__current_project_id"}
@@ -3380,7 +3435,11 @@ def generate_llm_outline(
     client, provider = _build_llm_client_and_provider(config)
 
     # ── 阶段 1：构建通用 6 章模板骨架 ──
-    from tools import _universal_outline, _shorten_topic  # deferred import to avoid circular
+    from tools import _universal_outline, _shorten_topic, _direction_sections  # deferred import
+
+    direction_defaults = _direction_sections(direction)
+    ch1_default = json.dumps(direction_defaults.get(1, []), ensure_ascii=False)
+    ch2_default = json.dumps(direction_defaults.get(2, []), ensure_ascii=False)
 
     # LLM 负责生成节标题（每章 3-4 个）；章标题由模板锁定
     sections_prompt = f"""你是一个工程管理硕士论文大纲设计专家。
@@ -3404,34 +3463,37 @@ def generate_llm_outline(
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-论文采用固定的 6 章结构，章标题已经锁定：
+论文采用固定的 6 章结构，章标题和部分节标题已锁定：
 
 第1章 绪论
+  （已锁定）{ch1_default}
 第2章 理论基础与文献综述
+  （已锁定）{ch2_default}
 第3章 {_shorten_topic(topic)}现状与问题分析
+  （待生成）请根据项目背景设计 3-4 个二级节标题
 第4章 {_shorten_topic(topic)}优化方案设计
+  （待生成）请根据已选方法和问题分析设计 3-4 个二级节标题
 第5章 方案实施与效果评价
+  （待生成）请设计 3-4 个二级节标题
 第6章 结论与展望
+  （已锁定）研究结论、管理启示、研究不足与展望
 
-请为每章生成 3-4 个二级小节标题。
+请只生成第 3、4、5 章的二级小节标题。
 
 要求：
 1. 节标题必须严格围绕论文主题「{topic}」展开，与研究方向「{direction}」匹配。
-2. 第 1、6 章的节标题保持通用学术规范即可。
-3. 第 2 章的节标题结合已选方法和理论基础。
-4. 第 3-5 章的节标题体现"发现问题-解决问题-验证问题"逻辑，标题要具体、不空洞。
-5. 严禁引入用户未提及的行业、公司类型或技术领域（如汽车、半导体等）。
+2. 第 3 章的节标题体现"现状调研→问题识别→成因分析"逻辑，标题要具体。
+3. 第 4 章的节标题体现"优化目标→方案设计→实施保障"逻辑，结合已选方法 {json.dumps(methods, ensure_ascii=False)}。
+4. 第 5 章的节标题体现"实施过程→效果评价→结果分析"逻辑。
+5. 严禁引入用户未提及的行业、公司类型或技术领域。
 6. 优先吸收项目背景中的研究方向和方法要求。
-7. 只输出 JSON，不要 Markdown，不要解释。
+7. 只输出 JSON（仅含 3/4/5 三个键），不要 Markdown，不要解释。
 
 JSON 格式：
 {{
-  "1": ["研究背景", "研究目的与意义", "国内外研究现状", "研究内容与方法"],
-  "2": ["相关理论基础", "国内外研究现状", "文献述评"],
   "3": ["...", "...", "...", "..."],
   "4": ["...", "...", "...", "..."],
-  "5": ["...", "...", "...", "..."],
-  "6": ["研究结论", "管理启示", "研究不足与展望"]
+  "5": ["...", "...", "...", "..."]
 }}
 """
     llm_sections = None
@@ -3742,7 +3804,7 @@ def strip_markdown(text: str) -> str:
     value = re.sub(r"\*\*([^*]+)\*\*", r"\1", value)
     value = re.sub(r"__([^_]+)__", r"\1", value)
     value = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"\1", value)
-    value = re.sub(r"(?<!_)_([^_\n]+)_(?!_)", r"\1", value)
+    value = re.sub(r"(?<!_)_(?!\{)([^_\n]+)_(?!_)", r"\1", value)
     value = re.sub(r"`([^`]+)`", r"\1", value)
     value = re.sub(r"^\s*[-*+]\s+", "", value, flags=re.MULTILINE)
     return value.strip()
@@ -4956,6 +5018,68 @@ def clean_generated_content(text: str, section: Dict[str, Any] | None = None) ->
     return "\n".join(output).strip()
 
 
+def _get_formula_guidance(selected_methods: List[str], chapter_number: str = "", section_title: str = "") -> str:
+    """Extract formula content from FORMULA.md for selected research methods.
+    Only returns content when the context is appropriate (Ch2 or method-related sections).
+    """
+    if not selected_methods:
+        return ""
+
+    formula_path = PROJECT_ROOT / "skills" / "FORMULA.md"
+    if not formula_path.exists():
+        return ""
+
+    content = formula_path.read_text(encoding="utf-8")
+
+    # Resolve method names to canonical names
+    from src.risk_checker import _resolve_method_name
+    resolved = set()
+    for m in selected_methods:
+        canon = _resolve_method_name(m)
+        if canon:
+            resolved.add(canon)
+
+    if not resolved:
+        return ""
+
+    # Extract relevant sections
+    import re
+    parts = []
+    generic_norm = ""
+
+    sections = re.split(r'\n(?=## \d+\.)', content)
+    for section in sections:
+        title_line = section.strip().split('\n')[0]
+        # Always collect "公式通用规范"
+        if "公式通用规范" in title_line and not generic_norm:
+            generic_norm = section.strip()
+            continue
+        for method in resolved:
+            if method in title_line:
+                parts.append(section.strip())
+                break
+
+    if not parts:
+        return ""
+
+    header = "你需要在本节中嵌入以下标准公式（LaTeX 格式，必须使用 `$...$` 包裹公式）。请根据上下文选择相关公式写入正文，**严禁用中文描述代替公式**，每个公式后给出变量定义：\n\n"
+    if generic_norm:
+        header += generic_norm + "\n\n---\n\n"
+    return header + "\n\n---\n\n".join(parts)
+
+
+def _should_inject_formula(chapter_number: str, chapter_title: str, section_title: str) -> bool:
+    """Determine if formula guidance should be injected for this section."""
+    ch_num = str(chapter_number).strip()
+    ch_title = str(chapter_title)
+    sec_title = str(section_title)
+    indicators = ["理论", "文献综述", "方法", "模型", "技术路线"]
+    combined = f"{ch_title} {sec_title}"
+    if ch_num == "2":
+        return True
+    return any(kw in combined for kw in indicators)
+
+
 def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, Any]:
     section = payload.get("section", {})
     chapter = payload.get("chapter", {})
@@ -5004,6 +5128,21 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
         stage="chapter_generation",
         max_cards=4,
     )
+    # Escape LaTeX braces so they don't break the outer f-string
+    method_context = method_context.replace("{", "{{").replace("}", "}}")
+
+    # Inject formula guidance for method-heavy sections (Ch2, theory, etc.)
+    formula_guidance = ""
+    if _should_inject_formula(
+        str(chapter.get("number", "")),
+        str(chapter.get("title", "")),
+        title,
+    ):
+        methods_list = selected_methods if isinstance(selected_methods, list) else []
+        formula_guidance = _get_formula_guidance(methods_list, str(chapter.get("number", "")), title)
+        # Escape LaTeX braces so they don't break the outer f-string
+        formula_guidance = formula_guidance.replace("{", "{{").replace("}", "}}")
+
     query = f"{topic} {title}"
 
     raw_refs = search_knowledge_base(query, limit=8).get("results", [])
@@ -5069,30 +5208,47 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
             "不得跳过任何一章，不得只写其中几章。\n"
         )
 
+    # Escape all external content to prevent f-string NameError from LaTeX / content braces
+    _esc = lambda s: str(s).replace("{", "{{").replace("}", "}}") if s else s
+    _topic = _esc(topic)
+    _project_ctx = _esc(project_context[:3200] or "用户未填写。")
+    _ch_title = _esc(chapter.get("title", ""))
+    _sec_title = _esc(title)
+    _methods = _esc(methods)
+    _sec_prompt = _esc(section_prompt or "用户未填写。")
+    _memory = _esc(json.dumps(memory_brief, ensure_ascii=False)[:2600])
+    _commit = _esc(commitment_brief)
+    _unresolved = _esc(unresolved_warning)
+    _citation_rule = _esc(citation_rule)
+    _citation_section = _esc(citation_section)
+    _ref_text = _esc(reference_text or "未检索到高相关资料。")
+
     prompt = f"""请为工程管理硕士论文生成章节内容。
 
-论文主题：{topic}
+论文主题：{_topic}
 项目背景与论文思路：
-{project_context[:3200] or "用户未填写。"}
+{_project_ctx}
 
 {chapter_summary}
 
-当前章节：{chapter.get("title", "")}
-当前小节：{section.get("number", "")} {title}
+当前章节：{_ch_title}
+当前小节：{section.get("number", "")} {_sec_title}
 目标字数：约 {words} 字
-选用方法：{methods}
+选用方法：{_methods}
 任务：{task}该小节内容。
 用户对本小节的补充要求：
-{section_prompt or "用户未填写。"}
+{_sec_prompt}
 
 论文长期记忆：
-{json.dumps(memory_brief, ensure_ascii=False)[:2600]}
+{_memory}
 
-{commitment_brief}
+{_commit}
 
-{unresolved_warning}
+{_unresolved}
 
 {method_context}
+
+{formula_guidance}
 
 {chapter_arrangement_hint}
 要求：
@@ -5102,13 +5258,13 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
 4. 内容应包含问题边界、分析逻辑、方法应用和与论文主题的衔接。
 5. 必须与长期记忆中的研究对象、问题、方案和指标保持一致。
 6. 必须优先满足"用户对本小节的补充要求"，但不能违背论文长期记忆和已确认大纲。
-7. {citation_rule}
-8. 严禁使用 Markdown 语法，禁止出现 **加粗**、*斜体*、# 标题、列表符号、代码块、反引号。
+7. {_citation_rule}
+8. 严禁使用 Markdown 语法（LaTeX 数学公式除外），禁止出现 **加粗**、*斜体*、# 标题、列表符号、代码块、反引号。所有数学符号、变量、公式必须用 `$` 包裹成行内公式。**每个下标、每个分式都必须出现在 `$...$` 内部，不包裹则公式会损坏。** 例：`$x_{{ij}}$`、`$w_i = \\frac{{1}}{{n}}$`、`$\\lambda_{{\\max}}$`。禁止用中文描述代替公式。
 9. 不要输出"以下是"等寒暄，直接给正文。
-{citation_section}
+{_citation_section}
 
 本地知识库参考：
-{reference_text or "未检索到高相关资料。"}
+{_ref_text}
 """
     try:
         response = _llm_create_message(
@@ -5298,6 +5454,22 @@ def check_blind_review_risks(payload: Dict[str, Any]) -> Dict[str, Any]:
                 "results": scan.get("results", []),
             })
 
+        # 公式校验（当 methods 提供时）
+        if methods:
+            for ch_result in chapter_results:
+                ch_title = ch_result.get("chapter_title", "")
+                ch_content = next(
+                    (c.get("content", "") for c in chapters if c.get("title", "") == ch_title),
+                    "",
+                )
+                if ch_content.strip():
+                    formula_result = run_formula_check(ch_content, methods, chapter_title=ch_title)
+                    for fr in formula_result.get("results", []):
+                        all_results.append(fr)
+                        if fr.get("triggered"):
+                            total_triggered += 1
+                    ch_result.setdefault("formula_check", formula_result)
+
         # 去重汇总
         seen_ids = set()
         unique_results = []
@@ -5330,6 +5502,14 @@ def check_blind_review_risks(payload: Dict[str, Any]) -> Dict[str, Any]:
 
     if methods:
         scan = run_method_risk_scan(content, methods, chapter_title=chapter_title)
+        # 公式校验
+        formula_result = run_formula_check(content, methods, chapter_title=chapter_title)
+        scan["results"].extend(formula_result.get("results", []))
+        scan["triggered"] = len([r for r in scan["results"] if r.get("triggered")])
+        scan["total_risks"] = len(scan["results"])
+        scan["formula_check"] = formula_result
+        # 更新 summary
+        scan["summary"] = f"方法风险检查 {scan['total_risks']} 项，触发 {scan['triggered']} 项"
     else:
         scan = run_risk_scan(
             content,
@@ -6208,7 +6388,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
             payload = _read_json(self)
             if path == "/api/config":
                 api_key = str(payload.get("api_key", "")).strip()
-                max_tokens = str(payload.get("max_tokens", "4000")).strip()
+                max_tokens = str(payload.get("max_tokens", "8000")).strip()
                 values = {
                     "LLM_PROVIDER": str(payload.get("provider", "deepseek")).strip()
                     or "deepseek",
@@ -6218,6 +6398,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                     "MODEL_ID": str(payload.get("model", "")).strip()
                     or "deepseek-v4-pro",
                     "ANTHROPIC_AUTH_MODE": "api_key",
+                    "ANTHROPIC_AUTH_TOKEN": "",
                     "LLM_MAX_TOKENS": max_tokens,
                 }
                 if api_key:
@@ -6911,6 +7092,8 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
         except PayloadTooLarge as exc:
             _json_response(self, {"error": str(exc)}, status=413)
         except Exception as exc:
+            import traceback
+            traceback.print_exc()
             _json_response(self, {"error": str(exc)}, status=500)
 
     def log_message(self, format: str, *args: Any) -> None:
@@ -6967,10 +7150,8 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
 
-    # 加载 .env 到环境变量
-    from dotenv import load_dotenv
-    if ENV_PATH.exists():
-        load_dotenv(ENV_PATH)
+    # 初始化用户数据目录（迁移旧版数据，确保 .env 已加载）
+    _init_user_data_root()
 
     # 从永久 cards/methods/ 目录重建卡片库
     _rebuild_cards_from_source()

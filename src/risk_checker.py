@@ -485,3 +485,261 @@ def format_risk_report(scan_result: Dict[str, Any]) -> str:
         lines.append("---")
 
     return "\n".join(lines)
+
+
+# ============================================================
+#  公式校验 — 基于规则检查论文草稿中研究方法公式是否正确
+# ============================================================
+
+# 每个方法的公式检查规则：关键词列表，至少匹配一个即算通过
+FORMULA_RULES: Dict[str, Dict[str, Any]] = {
+    "层次分析法": {
+        "aliases": ["AHP", "ahp"],
+        "required": [
+            # 判断矩阵
+            {"patterns": [r"a_{ij}", r"a_\{ij\}", "判断矩阵", "成对比较"],
+             "label": "判断矩阵定义"},
+            # 权重计算
+            {"patterns": [r"w_i", r"w_\{i\}", r"\\prod", "方根法", "特征向量法", "和积法"],
+             "label": "权重计算公式"},
+            # 一致性检验
+            {"patterns": [r"\bCR\b", r"CI\b", r"RI\b", r"\\lambda_\{?\\max\}?", "一致性检验", "一致性比率"],
+             "label": "一致性检验（CR/CI/RI）"},
+        ],
+        "severity": "high",
+    },
+    "模糊综合评价法": {
+        "aliases": ["FCE", "模糊评价", "模糊综合"],
+        "required": [
+            {"patterns": ["隶属度", "隶属函数", r"r_\{?ij\}?"],
+             "label": "隶属度矩阵"},
+            {"patterns": [r"B\s*=\s*W", "模糊合成", "综合评价向量", r"b_j"],
+             "label": "模糊合成公式"},
+        ],
+        "severity": "high",
+    },
+    "熵权法": {
+        "aliases": ["EWM", "熵值法"],
+        "required": [
+            {"patterns": ["标准化", "无量纲化", "归一化", r"x'_"],
+             "label": "数据标准化"},
+            {"patterns": ["信息熵", r"e_j", r"\\ln", "熵值"],
+             "label": "信息熵计算"},
+            {"patterns": [r"w_j", "权重", "差异系数"],
+             "label": "熵权计算"},
+        ],
+        "severity": "high",
+    },
+    "TOPSIS法": {
+        "aliases": ["TOPSIS", "topsis", "逼近理想解"],
+        "required": [
+            {"patterns": ["正理想解", "负理想解", r"A\^\+", r"A\^\-", "理想解"],
+             "label": "正负理想解"},
+            {"patterns": ["相对贴近度", "贴近度", r"C_i", "欧氏距离"],
+             "label": "距离计算或相对贴近度"},
+        ],
+        "severity": "high",
+    },
+    "灰色关联分析法": {
+        "aliases": ["GRA", "灰色关联", "灰色关联度"],
+        "required": [
+            {"patterns": ["关联系数", r"\\xi", "关联度", r"r_i", "分辨系数", r"\\rho"],
+             "label": "关联系数或关联度公式"},
+        ],
+        "severity": "medium",
+    },
+    "回归分析法": {
+        "aliases": ["回归", "regression"],
+        "required": [
+            {"patterns": [r"Y\s*=", r"R\^2", r"R\^\{?2\}?", "回归方程", "回归系数", "F检验", "t检验"],
+             "label": "回归方程或拟合指标"},
+        ],
+        "severity": "medium",
+    },
+    "FMEA失效模式与影响分析": {
+        "aliases": ["FMEA", "fmea", "失效模式"],
+        "required": [
+            {"patterns": [r"RPN", r"S\s*\\?times\s*O\s*\\?times\s*D", "风险优先数",
+                          "严重度.*频度.*检测", "SOD", r"S\s*×\s*O\s*×\s*D"],
+             "label": "RPN 风险优先数公式"},
+        ],
+        "severity": "high",
+    },
+    "挣值分析": {
+        "aliases": ["EVM", "挣值法", "挣值管理"],
+        "required": [
+            {"patterns": [r"\bEV\b", r"\bAC\b", r"\bPV\b", r"\bCPI\b", r"\bSPI\b",
+                          "挣值", "成本偏差", "进度偏差"],
+             "label": "挣值指标（EV/AC/PV/CPI/SPI）"},
+        ],
+        "severity": "medium",
+    },
+    "统计过程控制": {
+        "aliases": ["SPC", "spc", "控制图"],
+        "required": [
+            {"patterns": [r"UCL", r"LCL", r"C_\{?pk\}?", r"过程能力", "控制上限", "控制下限",
+                          r"3\\sigma", r"3σ"],
+             "label": "控制限或过程能力指数"},
+        ],
+        "severity": "medium",
+    },
+    "关键路径法": {
+        "aliases": ["CPM", "cpm", "关键路径"],
+        "required": [
+            {"patterns": [r"t_e", r"t_o", r"t_p", r"t_m", "三时估计", "浮动时间",
+                          r"ES", r"LS", r"EF", r"LF", "关键路径"],
+             "label": "三时估计或浮动时间公式"},
+        ],
+        "severity": "medium",
+    },
+    "QFD质量功能展开": {
+        "aliases": ["QFD", "qfd", "质量屋"],
+        "required": [
+            {"patterns": [r"W_j", "重要度", "关系矩阵", "质量屋", "需求-技术"],
+             "label": "重要度转换或关系矩阵"},
+        ],
+        "severity": "medium",
+    },
+    "主成分分析法": {
+        "aliases": ["PCA", "pca", "主成分"],
+        "required": [
+            {"patterns": ["特征值", r"\\lambda", "方差贡献", "累积贡献", "KMO", "Bartlett"],
+             "label": "特征值或方差贡献率"},
+        ],
+        "severity": "medium",
+    },
+    "DEA数据包络分析": {
+        "aliases": ["DEA", "dea", "数据包络"],
+        "required": [
+            {"patterns": [r"\\theta", r"\\lambda_j", "DMU", "决策单元", "CCR", "BCC",
+                          "投入导向", "产出导向", "效率值"],
+             "label": "DEA效率模型"},
+        ],
+        "severity": "high",
+    },
+    "蒙特卡洛模拟法": {
+        "aliases": ["蒙特卡洛", "Monte Carlo", "monte carlo"],
+        "required": [
+            {"patterns": ["模拟次数", r"N\s*=", "概率分布", "随机抽样",
+                          r"\\hat\{\\theta\}", "收敛", "三角分布", "正态分布"],
+             "label": "蒙特卡洛模拟公式或参数"},
+        ],
+        "severity": "medium",
+    },
+    "因子分析法": {
+        "aliases": ["因子分析", "factor analysis"],
+        "required": [
+            {"patterns": ["因子载荷", r"a_\{?ij\}?", "公因子", "方差贡献", "旋转",
+                          "Varimax", "KMO"],
+             "label": "因子模型或载荷矩阵"},
+        ],
+        "severity": "medium",
+    },
+    "结构方程模型": {
+        "aliases": ["SEM", "sem", "结构方程"],
+        "required": [
+            {"patterns": [r"\\Lambda", r"\\xi", r"\\eta", "测量模型", "结构模型",
+                          "RMSEA", "CFI", "GFI", "路径系数", "拟合指标"],
+             "label": "测量/结构模型或拟合指标"},
+        ],
+        "severity": "high",
+    },
+}
+
+
+def _resolve_method_name(method: str) -> Optional[str]:
+    """将用户搜索/输入的方法名解析为 FORMULA_RULES 中的规范名。"""
+    method_lower = method.strip().lower()
+    for canon, rule in FORMULA_RULES.items():
+        if method_lower == canon.lower():
+            return canon
+        for alias in rule.get("aliases", []):
+            if method_lower == alias.lower():
+                return canon
+    # 模糊匹配
+    for canon in FORMULA_RULES:
+        if canon[:4].lower() in method_lower or method_lower in canon.lower():
+            return canon
+    return None
+
+
+def check_formula_for_method(content: str, method: str) -> Dict[str, Any]:
+    """检查某方法在内容中的公式是否完整。"""
+    canon = _resolve_method_name(method)
+    if canon is None:
+        return {
+            "method": method,
+            "checked": False,
+            "reason": "方法不在公式规则库中",
+        }
+
+    rule = FORMULA_RULES[canon]
+    import re
+    results = []
+    for req in rule["required"]:
+        matched = any(re.search(p, content) for p in req["patterns"])
+        results.append({
+            "label": req["label"],
+            "matched": matched,
+        })
+
+    missing = [r["label"] for r in results if not r["matched"]]
+    all_ok = len(missing) == 0
+
+    return {
+        "method": canon,
+        "checked": True,
+        "ok": all_ok,
+        "missing": missing,
+        "severity": rule["severity"],
+        "details": results,
+    }
+
+
+def run_formula_check(
+    content: str,
+    selected_methods: List[str],
+    chapter_title: str = "",
+) -> Dict[str, Any]:
+    """
+    对论文草稿执行公式校验。
+
+    Args:
+        content: 章节正文（字符串）
+        selected_methods: 用户选择的方法名列表
+        chapter_title: 章节标题（用于报告中标注上下文）
+
+    Returns:
+        结构化校验结果，格式与 run_risk_scan() 兼容。
+    """
+    results = []
+    for method in selected_methods:
+        r = check_formula_for_method(content, method)
+        if r.get("checked") and not r.get("ok"):
+            results.append({
+                "risk_id": f"formula_{r['method']}",
+                "risk_name": f"公式不完整: {r['method']}",
+                "severity": r.get("severity", "medium"),
+                "category": "formula",
+                "triggered": True,
+                "matched_conditions": [f"缺少 {m}" for m in r["missing"]],
+                "evidence": [f"在 {chapter_title or '正文'} 中未找到完整的 {r['method']} 公式。"],
+                "check_questions": [f"是否包含了 {r['method']} 的所有核心公式？"] * len(r["missing"]),
+                "fix_strategy": [f"补充 {m} 的公式定义和变量说明。" for m in r["missing"]],
+                "formula_detail": r,
+            })
+
+    triggered = len(results)
+
+    return {
+        "status": "ok",
+        "total_risks": len(selected_methods),
+        "triggered": triggered,
+        "results": results,
+        "summary": (
+            f"公式校验完成：检查 {len(selected_methods)} 个方法，"
+            f"发现 {triggered} 个公式不完整"
+            if triggered
+            else "所有方法公式完整。"
+        ),
+    }

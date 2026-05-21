@@ -357,11 +357,15 @@ def _is_quality_management_topic(framework: Dict[str, Any]) -> bool:
     return any(keyword.lower() in text.lower() for keyword in keywords)
 
 
-def _section(number: str, title: str, subsections: List[str], depth: int) -> Dict[str, Any]:
+def _section(number: str, title: str, subsections: List[Any], depth: int) -> Dict[str, Any]:
     item: Dict[str, Any] = {"level": 2, "number": number, "title": title}
     if depth >= 3 and subsections:
         item["subsections"] = [
-            {"level": 3, "number": f"{number}.{idx}", "title": subtitle}
+            {
+                "level": 3,
+                "number": f"{number}.{idx}",
+                "title": subtitle if isinstance(subtitle, str) else subtitle.get("title", str(subtitle)),
+            }
             for idx, subtitle in enumerate(subsections, 1)
         ]
     return item
@@ -385,23 +389,13 @@ def _quality_management_outline(topic: str, depth: int) -> List[Dict[str, Any]]:
     """质量管理方向的论文大纲（与通用模板章标题一致，但节/小节更贴合质量主题）。"""
     short = _shorten_topic(topic)
     chapters = [
+        ("绪论", CHAPTER1_SECTIONS),
         (
-            "绪论",
+            "理论基础与研究方法",
             [
-                {"title": "研究背景", "subsections": [f"{short}相关产业发展趋势", f"{short}管理挑战"]},
-                {"title": "研究目的与意义", "subsections": ["理论意义", "实践意义"]},
-                {"title": "国内外研究现状", "subsections": ["质量管理研究现状", f"{short}管理研究现状"]},
-                {"title": "研究内容与技术路线", "subsections": ["研究内容", "研究方法", "技术路线"]},
-                {"title": "研究创新点", "subsections": ["方法应用创新", "管理改进创新"]},
-            ],
-        ),
-        (
-            "理论基础与文献综述",
-            [
-                {"title": "质量管理相关理论", "subsections": ["全面质量管理", "过程质量管理"]},
-                {"title": "CMMI过程改进模型", "subsections": ["CMMI模型结构", "CMMI在研发过程中的适用性"]},
-                {"title": "PDCA质量改进循环", "subsections": ["PDCA循环内涵", "PDCA与持续改进机制"]},
-                {"title": "问题识别与评价方法", "subsections": ["访谈问卷法", "鱼骨图与5Why分析", "AHP/德尔菲权重确定"]},
+                {"title": "相关理论与模型", "subsections": ["全面质量管理", "PDCA循环理论", "CMMI过程改进模型"]},
+                {"title": "相关研究方法", "subsections": ["AHP层次分析法", "FMEA失效模式分析", "鱼骨图分析法", "问卷调查法"]},
+                {"title": "本章小结", "subsections": []},
             ],
         ),
         (
@@ -444,41 +438,104 @@ def _quality_management_outline(topic: str, depth: int) -> List[Dict[str, Any]]:
     return [_build_chapter(idx, title, sections, depth) for idx, (title, sections) in enumerate(chapters, 1)]
 
 
+# ── 第 1 章：绪论 —— 固定三级结构，所有方向统一 ──
+CHAPTER1_SECTIONS: List[Dict[str, Any]] = [
+    {
+        "title": "研究背景与研究意义",
+        "subsections": ["研究背景", "研究意义"],
+    },
+    {
+        "title": "国内外研究现状",
+        "subsections": ["国外研究现状", "国内研究现状", "国内外研究评述"],
+    },
+    {
+        "title": "研究内容与研究方法",
+        "subsections": ["研究内容", "研究方法"],
+    },
+    {
+        "title": "技术路线与论文结构",
+        "subsections": ["技术路线", "论文结构安排"],
+    },
+    {
+        "title": "论文创新点",
+        "subsections": [],
+    },
+]
+
+
+def _direction_sections(direction: str) -> Dict[int, Any]:
+    """按研究方向返回第 1 章和第 2 章的节标题。
+
+    从知识库 130+ 篇 MEM 论文中提炼，反映各方向的实际写作惯例。
+    第 1 章为固定三级结构，第 2 章为方向相关的二级标题，
+    第 3-6 章节标题保持通用，各方向共用。
+    """
+
+    # ── 第 2 章：理论基础与研究方法 —— 所有方向统一，三级标题由 LLM 从知识库动态生成 ──
+    ch2_sections = [
+        {"title": "相关理论与模型", "subsections": []},
+        {"title": "相关研究方法", "subsections": []},
+        {"title": "本章小结", "subsections": []},
+    ]
+
+    # 各方向共用的第 3-6 章节标题
+    ch_default = {
+        3: ["研究对象与现状调研", "核心问题识别与分析", "问题成因深度剖析"],
+        4: ["优化目标与设计原则", "核心优化方案设计", "实施路径与保障机制"],
+        5: ["实施过程与数据收集", "效果评价指标体系", "实施效果分析与讨论"],
+        6: ["研究结论", "研究不足与展望"],
+    }
+
+    result: Dict[int, Any] = dict(ch_default)
+    result[1] = CHAPTER1_SECTIONS
+    result[2] = ch2_sections
+    return result
+
+
 def _universal_outline(topic: str, methods: List[str], direction: str, depth: int, sections_hint: Optional[Dict[int, List[str]]] = None) -> List[Dict[str, Any]]:
     """通用工程管理硕士论文大纲模板。
 
     6 章框架是锁死的，不会因主题不同而改变章标题。
-    节标题根据主题、方法论和研究方向动态填充；如果 sections_hint
-    为 None 则使用内置默认节标题（确保 LLM 失败时也有可用大纲）。
+    第 1、2、6 章节标题由研究方向决定，不调用 LLM。
+    第 3、4、5 章节标题可由 LLM 通过 sections_hint 覆盖，
+    LLM 失败时 fallback 到各方向内置默认值。
     """
-    # 从主题中提取核心短语用于章 3/4 标题（去掉过长修饰）
     short_topic = _shorten_topic(topic)
 
-    # ── 默认节标题（LLM 失败时的兜底） ──
-    default_sections = {
-        1: ["研究背景", "研究目的与意义", "研究内容与方法", "创新点与论文结构"],
-        2: ["相关概念与理论基础", "国内外研究现状", "文献述评与研究切入点"],
-        3: ["研究对象与现状调研", "核心问题识别与分析", "问题成因深度剖析"],
-        4: ["优化目标与设计原则", "核心优化方案设计", "实施路径与保障机制"],
-        5: ["实施过程与数据收集", "效果评价指标体系", "实施效果分析与讨论"],
-        6: ["研究结论", "管理启示", "研究不足与展望"],
-    }
-    # 从用户选定的方法中生成更具体的节标题
-    method_names = ", ".join(methods[:4]) if methods else ""
+    # 研究方向感知的默认节标题（第 1/2/6 章锁定，第 3/4/5 章可被 LLM 覆盖）
+    default_sections = _direction_sections(direction)
 
-    # ── 使用 sections_hint（LLM 生成）或默认值 ──
-    sec = sections_hint if sections_hint else default_sections
+    def _normalize_sections(raw_sections: Any) -> List[Dict[str, Any]]:
+        """Normalize sections to List[Dict] format.
+        Accepts List[str] (simple titles) or List[Dict] (with optional subsections).
+        """
+        result: List[Dict[str, Any]] = []
+        for item in raw_sections:
+            if isinstance(item, str):
+                result.append({"title": item, "subsections": []})
+            elif isinstance(item, dict):
+                title = item.get("title", "")
+                subs = item.get("subsections", [])
+                # subsections can be strings or dicts
+                normalized_subs = []
+                for s in subs:
+                    if isinstance(s, str):
+                        normalized_subs.append({"title": s})
+                    else:
+                        normalized_subs.append(s)
+                result.append({"title": title, "subsections": normalized_subs})
+        return result
 
     chapters = [
-        (1, "绪论", sec.get(1, default_sections[1])),
-        (2, "理论基础与文献综述", sec.get(2, default_sections[2])),
-        (3, f"{short_topic}现状与问题分析", sec.get(3, default_sections[3])),
-        (4, f"{short_topic}优化方案设计", sec.get(4, default_sections[4])),
-        (5, "方案实施与效果评价", sec.get(5, default_sections[5])),
-        (6, "结论与展望", sec.get(6, default_sections[6])),
+        (1, "绪论", _normalize_sections(default_sections[1])),
+        (2, "理论基础与研究方法", _normalize_sections(default_sections[2])),
+        (3, f"{short_topic}现状与问题分析", _normalize_sections((sections_hint or {}).get(3, default_sections[3]))),
+        (4, f"{short_topic}优化方案设计", _normalize_sections((sections_hint or {}).get(4, default_sections[4]))),
+        (5, "方案实施与效果评价", _normalize_sections((sections_hint or {}).get(5, default_sections[5]))),
+        (6, "结论与展望", _normalize_sections(default_sections[6])),
     ]
 
-    return [_build_chapter(num, title, [{"title": t, "subsections": []} for t in sections], depth)
+    return [_build_chapter(num, title, sections, depth)
             for num, title, sections in chapters]
 
 

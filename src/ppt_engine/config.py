@@ -8,8 +8,17 @@ from pathlib import Path
 # Project root (ThesisMind/)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
-# Output directory for generated PPTX files
-OUTPUT_DIR = PROJECT_ROOT / "output" / "ppt"
+# Output directory for generated PPTX files (follows OUTPUT_PATH, default ~/.thesismind/)
+def _resolve_ppt_output() -> Path:
+    raw = os.getenv("OUTPUT_PATH", "").strip()
+    if raw:
+        p = Path(raw)
+        if p.parts and p.parts[0] == "~":
+            p = Path.home() / Path(*p.parts[1:])
+        return p.resolve() / "ppt"
+    return Path.home() / ".thesismind" / "ppt"
+
+OUTPUT_DIR = _resolve_ppt_output()
 
 # Template directories (bundled with the engine)
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"

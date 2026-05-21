@@ -1816,6 +1816,7 @@ function renderCitations() {
 
   if (!items.length && !localItems.length && !llmItems.length) {
     $("#citationList").innerHTML = `<div class="empty-state">尚未生成引用。确认大纲后，点击"生成引用"再进入章节写作。</div>`;
+    $("#citationList").removeAttribute("hidden");
     return;
   }
 
@@ -1871,6 +1872,9 @@ function renderCitations() {
     ${llmHtml ? `<div class="citation-llm-section">${llmHtml}</div>` : ""}
     ${mergedHtml ? `<div class="citation-merged-section">${mergedHtml}</div>` : ""}
   `;
+  if (items.length || localItems.length || llmItems.length) {
+    $("#citationList").removeAttribute("hidden");
+  }
 }
 
 async function saveCitations() {
@@ -2108,6 +2112,7 @@ async function generateChapterSubsections(button) {
   const chapter = state.outline.chapters[chapterIndex];
   button.disabled = true;
   button.textContent = "生成中";
+  try {
   const data = await api("/api/subsections", {
     method: "POST",
     body: JSON.stringify({
@@ -2124,6 +2129,12 @@ async function generateChapterSubsections(button) {
   if (data.fallback) {
     const chTitle = chapterDisplayTitle(data.chapter);
     alert(`⚠️ 第${data.chapter.number}章「${chTitle}」三级目录 LLM 生成失败，已使用本地模板兜底。\n\n建议手动编辑三级标题后重新生成该章。`);
+  }
+  } catch (error) {
+    alert(`三级目录生成失败：${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = "生成三级目录";
   }
 }
 

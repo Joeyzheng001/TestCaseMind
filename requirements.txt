@@ -14,5 +14,8 @@ openpyxl>=3.0.0
 # Citation and bibliography
 pybtex>=0.24.0
 
+# Vector embedding (semantic search)
+sentence-transformers>=2.2.0
+
 # PPT generation
 python-pptx>=0.6.21

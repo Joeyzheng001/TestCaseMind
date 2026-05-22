@@ -82,6 +82,31 @@ def _clean_text(text: str) -> str:
     return text
 
 
+def _extract_keywords(text: str) -> List[str]:
+    """
+    从查询文本中提取有意义的关键词，用于强召回加权。
+    中文2-4字词组 + 英文单词 + 英文缩写（大写2-6字母）。
+    """
+    keywords = []
+    # 英文缩写 如 DID, PDCA, SWOT, AHP
+    for m in re.finditer(r"\b[A-Z]{2,6}\b", text):
+        keywords.append(m.group(0))
+    # 英文单词
+    for m in re.finditer(r"\b[a-zA-Z]{4,}\b", text.lower()):
+        keywords.append(m.group(0))
+    # 中文2-4字词组
+    for m in re.finditer(r"[一-鿿]{2,4}", text):
+        keywords.append(m.group(0))
+    # 去重
+    seen = set()
+    unique = []
+    for kw in keywords:
+        if kw.lower() not in seen:
+            seen.add(kw.lower())
+            unique.append(kw)
+    return unique
+
+
 def _tokenize(text: str) -> List[str]:
     """
     分词：中文识别2-4字词组，英文保留单词。
@@ -132,23 +157,63 @@ def cosine_similarity(left: List[float], right: List[float]) -> float:
     return sum(a * b for a, b in zip(left, right))
 
 
+def _is_garbage_chunk(text: str) -> bool:
+    """
+    检测质量过低的 chunk：乱码、数字占比过高、表格碎片、PDF 编码污染。
+
+    返回 True 表示应该丢弃该 chunk。
+    """
+    if not text or len(text) < 20:
+        return True
+
+    # 1. PDF CID 字体编码污染：/GXX 十六进制字形序列
+    if re.search(r"/G[0-9A-Fa-f]{2,}", text):
+        return True
+
+    # 2. 混合乱码：老挝语、泰文、高棉语等非预期 Unicode 区块
+    garbled_chars = len(re.findall(
+        r"[຀-໿ༀ-࿿က-႟ក-៿᧠-᧿"
+        r"-​-‏ - ﻿]",
+        text,
+    ))
+    if garbled_chars > len(text) * 0.15:
+        return True
+
+    # 3. 中英文字符占比过低（纯数字/符号/表格碎片）
+    cjk_alpha = len(re.findall(r"[一-鿿㐀-䶿a-zA-Z]", text))
+    total = len(text.replace(" ", "").replace("\n", ""))
+    if total > 0 and cjk_alpha / max(total, 1) < 0.25:
+        return True
+
+    # 4. 管道符表格碎片（>10 个 | 且无实质中文）
+    pipe_count = text.count("|")
+    if pipe_count > 10 and cjk_alpha < 30:
+        return True
+
+    # 5. 连续重复字符过多（PDF 乱码常产生 "AAAA" "=====" 类模式）
+    repeats = [m.group() for m in re.finditer(r"(.)\1{8,}", text)]
+    repeat_total = sum(len(m) for m in repeats)
+    if repeat_total > len(text) * 0.3:
+        return True
+
+    return False
+
+
 def chunk_text(text: str, chunk_size: int = 900, overlap: int = 120) -> List[str]:
-    """
-    将文档切成重叠文本块。
-    """
+    """将文档切成重叠文本块，过滤低质量 chunk。"""
     clean = re.sub(r"\n{3,}", "\n\n", text).strip()
     if not clean:
         return []
 
     if len(clean) <= chunk_size:
-        return [clean]
+        return [clean] if not _is_garbage_chunk(clean) else []
 
     chunks = []
     start = 0
     while start < len(clean):
         end = min(start + chunk_size, len(clean))
         chunk = clean[start:end].strip()
-        if chunk:
+        if chunk and not _is_garbage_chunk(chunk):
             chunks.append(chunk)
 
         if end == len(clean):
@@ -309,6 +374,18 @@ class LocalVectorStore:
                     "metadata": json.loads(row["metadata_json"]),
                 }
             )
+
+        # 关键词强召回：对包含查询关键词的 chunk 额外加权
+        query_keywords = _extract_keywords(query)
+        if query_keywords:
+            for r in results:
+                content_lower = r["content"].lower()
+                keyword_hits = sum(
+                    1 for kw in query_keywords if kw.lower() in content_lower
+                )
+                if keyword_hits > 0:
+                    hit_ratio = keyword_hits / len(query_keywords)
+                    r["score"] = round(r["score"] * (1.0 + 0.5 * hit_ratio), 4)
 
         results.sort(key=lambda item: item["score"], reverse=True)
         return results[: max(limit, 1)]

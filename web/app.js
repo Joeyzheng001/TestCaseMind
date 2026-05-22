@@ -849,7 +849,7 @@ function updateLicenseUI() {
   if (tierDesc) {
     const descs = {
       active: lic.days_left > 0 ? `有效期至 ${lic.expires_at || ""}，剩余 ${lic.days_left} 天` : "",
-      trial: `免费试用中，剩余 ${lic.days_left} 天 · 可体验全部功能`,
+      trial: `免费试用中，剩余 ${lic.days_left} 天 · 可体验基础工作流`,
       expired: "试用已到期，请激活许可证继续使用",
       no_license: "请先开始免费试用或激活许可证",
     };

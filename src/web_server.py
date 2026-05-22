@@ -3656,13 +3656,15 @@ def start_outline_task(payload: Dict[str, Any]) -> str:
     return task_id
 
 
-_DSML_RE = re.compile(r'</?[|\s]*DSML[^>]*>', re.IGNORECASE)
-_DSML_FRAG_RE = re.compile(r'<[|]{1,2}\s*>|</[|]{1,2}\s*>', re.IGNORECASE)
+_DSML_MARK = r"[|｜\s]*DSML[|｜\s]*"
+_DSML_RE = re.compile(rf"</?{_DSML_MARK}[^>]*>", re.IGNORECASE)
+_DSML_FRAG_RE = re.compile(r"<[|｜]{1,2}\s*>|</[|｜]{1,2}\s*>", re.IGNORECASE)
 _DSML_INVOKE_RE = re.compile(
-    r'<[|\s]*DSML[|\s]*invokename="([^"]+)"[^>]*>', re.IGNORECASE
+    rf'<{_DSML_MARK}invoke\s+name="([^"]+)"[^>]*>|<{_DSML_MARK}invokename="([^"]+)"[^>]*>',
+    re.IGNORECASE,
 )
 _DSML_PARAM_RE = re.compile(
-    r'<[|\s]*DSML[|\s]*parameter\s+name="([^"]+)"\s*string="(true|false)"[^>]*>(.*?)(?=</?[|\s]*DSML|$)',
+    rf'<{_DSML_MARK}parameter\s+name="([^"]+)"\s+string="(true|false)"[^>]*>(.*?)(?=</?{_DSML_MARK}|$)',
     re.DOTALL | re.IGNORECASE,
 )
 
@@ -3680,14 +3682,14 @@ def _strip_dsml(text: str) -> str:
 def _parse_dsml_tools(text: str) -> list:
     """Parse DSML tool calls from LLM text into a list of (name, params_dict) tuples.
     Returns empty list if no DSML tool calls found."""
-    if not text or "DSML" not in text or "invokename" not in text:
+    if not text or "DSML" not in text:
         return []
     tools = []
     # Find all tool invocations and parameter blocks independently
     invocations = list(_DSML_INVOKE_RE.finditer(text))
     param_matches = list(_DSML_PARAM_RE.finditer(text))
     for i, inv in enumerate(invocations):
-        tool_name = inv.group(1)
+        tool_name = inv.group(1) or inv.group(2)
         # Determine the span of this tool's content:
         # from this invocation to the next invocation (or end of text)
         start = inv.end()
@@ -3887,6 +3889,15 @@ CHAT_TOOLS_SCHEMA = [
             "required": ["direction"],
         },
     },
+    {
+        "name": "list_outline_directions",
+        "description": "列出知识库中所有已建索引的研究方向。用于了解可用的大纲目录范围。",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+    },
 ]
 
 PAGE_SKILL_MAP = {
@@ -3922,6 +3933,23 @@ def _chat_tools_schema() -> List[Dict[str, Any]]:
     return CHAT_TOOLS_SCHEMA
 
 
+def _available_directions_hint() -> str:
+    """从真实 catalog 或目录扫描获取可用研究方向列表。"""
+    catalog = load_catalog()
+    directions = catalog.get("directions", {})
+    if directions:
+        return "、".join(sorted(directions.keys()))
+    # fallback: 扫描 converted papers 目录
+    papers_dir = KB_CONVERTED_ROOT / "papers"
+    if papers_dir.exists():
+        dirs = sorted(
+            d.name for d in papers_dir.iterdir() if d.is_dir()
+        )
+        if dirs:
+            return "、".join(dirs)
+    return "暂无可用方向，请先构建知识库索引"
+
+
 def _execute_chat_tool(name: str, tool_input: Dict[str, Any]) -> str:
     if name == "search_knowledge_base":
         query = str(tool_input.get("query", ""))
@@ -3942,7 +3970,7 @@ def _execute_chat_tool(name: str, tool_input: Dict[str, Any]) -> str:
         direction = str(tool_input.get("direction", ""))
         outlines = query_outlines_by_direction(direction)
         if not outlines:
-            return f"未找到「{direction}」方向的大纲索引。可用方向：质量管理、风险管理、进度管理、成本管理、流程优化、绩效评价、需求管理、供应链物流、通用项目管理。"
+            return f"未找到「{direction}」方向的大纲索引。可用方向：{_available_directions_hint()}"
         lines = []
         for entry in outlines[:5]:
             title = entry.get("title", "")
@@ -3952,6 +3980,16 @@ def _execute_chat_tool(name: str, tool_input: Dict[str, Any]) -> str:
             chapter_titles = [c.get("title", "") for c in chapters[:8]]
             lines.append(f"- {title}\n  方法论: {', '.join(methods[:5]) or '未标注'}\n  章: {' → '.join(chapter_titles)}")
         return "\n".join(lines)
+    elif name == "list_outline_directions":
+        catalog = load_catalog()
+        directions = catalog.get("directions", {})
+        if not directions:
+            return _available_directions_hint()
+        lines = []
+        for d, info in sorted(directions.items()):
+            count = info.get("count", 0)
+            lines.append(f"- {d}（{count} 篇论文）")
+        return "已建索引的研究方向：\n" + "\n".join(lines)
     return f"未知工具: {name}"
 
 

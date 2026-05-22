@@ -46,7 +46,7 @@ class LicenseManager:
             "days": 3,
             "label": "免费版",
             "features": [],  # 试用到期后全部锁定
-            "description": "3天全功能试用",
+            "description": "3天基础工作流试用",
         },
         "basic": {
             "days": 365,
@@ -516,7 +516,7 @@ class LicenseManager:
 
 
 class TrialLicense:
-    """免费试用管理 — 3天全功能试用，无需激活码"""
+    """免费试用管理 — 3天基础工作流试用，无需激活码"""
 
     TRIAL_DAYS = 3
 
@@ -541,7 +541,7 @@ class TrialLicense:
             f = cls._file()
             f.parent.mkdir(parents=True, exist_ok=True)
             f.write_text(json.dumps(data, indent=2))
-            return True, f"免费试用已激活，{cls.TRIAL_DAYS} 天全功能使用"
+            return True, f"免费试用已激活，{cls.TRIAL_DAYS} 天基础工作流使用"
         except Exception as e:
             return False, f"激活试用失败: {e}"
 

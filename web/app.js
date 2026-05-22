@@ -25,6 +25,7 @@ const state = {
   writingAll: false,
   chatMessages: [],
   chatLoading: false,
+  chatHistoryLoaded: false,
   sectionCitations: {},
   license: null,
 };
@@ -99,6 +100,7 @@ function activeStep(id) {
     const labels = { welcome:"欢迎首页", setup:"配置引导", paper_info:"论文信息引导", methods:"方法论引导", framework:"框架引导", outline:"大纲引导", citations:"引文引导", writing:"写作引导", blind_review:"盲审引导", proposal:"开题报告引导", ppt_proposal:"开题PPT制作", ppt_midterm:"中期PPT制作", ppt_defense:"答辩PPT制作", table_generator:"表格生成器", aigc_check:"AIGC率评估", aigc_reduce:"AIGC降重" };
     chatTitle.textContent = labels[id] || "论文助手";
   }
+  persistChatHistory();
   if (id === "license") updateLicenseUI();
 }
 
@@ -2033,7 +2035,8 @@ function renderChapter(chapter, chapterIndex) {
 }
 
 function addChapter(afterIndex) {
-  state.outline.chapters.splice(afterIndex + 1, 0, {
+  const insertAt = afterIndex < 0 ? state.outline.chapters.length : afterIndex + 1;
+  state.outline.chapters.splice(insertAt, 0, {
     level: 1,
     number: afterIndex + 2,
     title: "新增章节",
@@ -2060,7 +2063,8 @@ function deleteChapter(chapterIndex) {
 function addSection(chapterIndex, afterIndex) {
   const chapter = state.outline.chapters[chapterIndex];
   chapter.sections = chapter.sections || [];
-  chapter.sections.splice(afterIndex + 1, 0, {
+  const insertAt = afterIndex < 0 ? chapter.sections.length : afterIndex + 1;
+  chapter.sections.splice(insertAt, 0, {
     level: 2,
     number: "",
     title: "",
@@ -2086,7 +2090,8 @@ function deleteSection(chapterIndex, sectionIndex) {
 function addSubsection(chapterIndex, sectionIndex, afterIndex) {
   const section = state.outline.chapters[chapterIndex].sections[sectionIndex];
   section.subsections = section.subsections || [];
-  section.subsections.splice(afterIndex + 1, 0, {
+  const insertAt = afterIndex < 0 ? section.subsections.length : afterIndex + 1;
+  section.subsections.splice(insertAt, 0, {
     level: 3,
     number: "",
     title: "",
@@ -2733,19 +2738,9 @@ function openChatPanel(welcomeMessage) {
   bubble.hidden = true;
   $(".shell").classList.add("has-chat");
 
-  // 恢复默认位置
-  panel.style.bottom = "24px";
-  panel.style.right = "24px";
-  panel.style.left = "";
-  panel.style.top = "";
+  restoreChatLayout();
 
-  if (!state.chatMessages.length) {
-    state.chatMessages.push({
-      role: "system-msg",
-      content: welcomeMessage || "大模型已连接，你可以开始对话了。",
-    });
-  }
-  renderChatMessages();
+  loadChatHistory(welcomeMessage);
   setTimeout(() => {
     $("#chatInput")?.focus();
   }, 200);
@@ -2766,6 +2761,99 @@ function minimizeChat() {
   if (!panel) return;
   panel.hidden = true;
   bubble.hidden = false;
+}
+
+function currentChatStep() {
+  return $$(".step.active")[0]?.dataset?.step || "setup";
+}
+
+async function loadChatHistory(welcomeMessage) {
+  if (state.chatHistoryLoaded) {
+    if (!state.chatMessages.length) {
+      state.chatMessages.push({
+        role: "system-msg",
+        content: welcomeMessage || "大模型已连接，你可以开始对话了。",
+        created_at: Date.now() / 1000,
+      });
+    }
+    renderChatMessages();
+    return;
+  }
+  try {
+    const data = await api("/api/chat/history?step=global");
+    state.chatMessages = data.messages || [];
+    state.chatHistoryLoaded = true;
+  } catch (_) {
+    state.chatHistoryLoaded = true;
+  }
+  if (!state.chatMessages.length) {
+    state.chatMessages.push({
+      role: "system-msg",
+      content: welcomeMessage || "大模型已连接，你可以开始对话了。",
+      created_at: Date.now() / 1000,
+    });
+  }
+  renderChatMessages();
+}
+
+async function persistChatHistory() {
+  if (!state.chatHistoryLoaded || !state.chatMessages.length) return;
+  try {
+    await api("/api/chat/history", {
+      method: "POST",
+      body: JSON.stringify({
+        step: "global",
+        messages: state.chatMessages,
+      }),
+    });
+  } catch (_) {
+    // 聊天历史是辅助状态，保存失败不打断用户填写表单。
+  }
+}
+
+function restoreChatLayout() {
+  const panel = $("#chatFloat");
+  if (!panel) return;
+  const saved = localStorage.getItem("thesismind.chat.layout");
+  if (!saved) {
+    panel.style.bottom = "24px";
+    panel.style.right = "24px";
+    panel.style.left = "";
+    panel.style.top = "";
+    return;
+  }
+  try {
+    const layout = JSON.parse(saved);
+    if (layout.width) panel.style.width = layout.width;
+    if (layout.height) panel.style.height = layout.height;
+    if (Number.isFinite(layout.left) && Number.isFinite(layout.top)) {
+      const maxLeft = Math.max(8, window.innerWidth - 120);
+      const maxTop = Math.max(8, window.innerHeight - 80);
+      panel.style.left = `${Math.min(Math.max(8, layout.left), maxLeft)}px`;
+      panel.style.top = `${Math.min(Math.max(8, layout.top), maxTop)}px`;
+      panel.style.right = "";
+      panel.style.bottom = "";
+    } else {
+      panel.style.bottom = "24px";
+      panel.style.right = "24px";
+      panel.style.left = "";
+      panel.style.top = "";
+    }
+  } catch (_) {
+    localStorage.removeItem("thesismind.chat.layout");
+  }
+}
+
+function saveChatLayout() {
+  const panel = $("#chatFloat");
+  if (!panel || panel.hidden) return;
+  const rect = panel.getBoundingClientRect();
+  localStorage.setItem("thesismind.chat.layout", JSON.stringify({
+    left: rect.left,
+    top: rect.top,
+    width: `${Math.round(rect.width)}px`,
+    height: `${Math.round(rect.height)}px`,
+  }));
 }
 
 // ---- Drag logic ----
@@ -2804,7 +2892,11 @@ function initChatDrag() {
     if (!dragging) return;
     dragging = false;
     panel.style.transition = "";
+    saveChatLayout();
   });
+
+  const observer = new ResizeObserver(() => saveChatLayout());
+  observer.observe(panel);
 }
 
 async function savePractice(msgIndex) {
@@ -2905,6 +2997,7 @@ async function sendChatMessage() {
 
   input.value = "";
   state.chatMessages.push({ role: "user", content: text });
+  persistChatHistory();
   renderChatMessages();
 
   state.chatLoading = true;
@@ -2925,7 +3018,11 @@ async function sendChatMessage() {
     });
     $("#chatTyping")?.remove();
     if (data.status === "ok" && data.message) {
-      state.chatMessages.push(data.message);
+      if (data.history && Array.isArray(data.history)) {
+        state.chatMessages = data.history;
+      } else {
+        state.chatMessages.push(data.message);
+      }
     } else {
       state.chatMessages.push({
         role: "system-msg",
@@ -2941,6 +3038,7 @@ async function sendChatMessage() {
   }
 
   state.chatLoading = false;
+  persistChatHistory();
   renderChatMessages();
   $("#chatInput")?.focus();
 }

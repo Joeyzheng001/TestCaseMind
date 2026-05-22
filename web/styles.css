@@ -2006,14 +2006,19 @@ textarea:focus {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 420px;
-  height: 520px;
+  width: min(520px, calc(100vw - 32px));
+  height: min(680px, calc(100vh - 32px));
+  min-width: 360px;
+  min-height: 420px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
   border: 1px solid var(--line);
   border-radius: 16px;
   background: rgba(250, 253, 255, 0.96);
   box-shadow: 0 8px 32px rgba(24, 50, 77, 0.18);
   backdrop-filter: blur(18px);
   overflow: hidden;
+  resize: both;
   z-index: 1000;
   transition: opacity 0.2s, transform 0.2s;
 }
@@ -2111,6 +2116,7 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 0;
 }
 
 .chat-empty {
@@ -2339,7 +2345,7 @@ textarea:focus {
 .chat-input-area textarea {
   flex: 1;
   min-height: 44px;
-  max-height: 100px;
+  max-height: 160px;
   padding: 10px 14px;
   border: 1px solid #bdd2e6;
   border-radius: 12px;
@@ -2347,6 +2353,19 @@ textarea:focus {
   resize: none;
   font-size: 14px;
   line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .chat-float {
+    left: 8px !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    top: auto !important;
+    width: auto !important;
+    height: min(72vh, 620px);
+    min-width: 0;
+    resize: vertical;
+  }
 }
 
 .chat-input-area textarea:focus {
@@ -3534,4 +3553,3 @@ textarea:focus {
     transform: rotate(90deg);
   }
 }
-

@@ -308,6 +308,42 @@ def load_workspace_value(key: str, default: Any = None) -> Any:
     return default
 
 
+def _chat_history_key(step: str = "") -> str:
+    step = re.sub(r"[^a-zA-Z0-9_\-]", "", str(step or "").strip()) or "global"
+    return f"chat_history:{step}"
+
+
+def _normalize_chat_messages(messages: Any, limit: int = 80) -> List[Dict[str, Any]]:
+    normalized: List[Dict[str, Any]] = []
+    for msg in messages or []:
+        if not isinstance(msg, dict):
+            continue
+        role = str(msg.get("role", "")).strip()
+        if role not in {"user", "assistant", "system-msg"}:
+            continue
+        content = str(msg.get("content", "") or "").strip()
+        if not content:
+            continue
+        normalized.append(
+            {
+                "role": role,
+                "content": content[:12000],
+                "created_at": msg.get("created_at") or time.time(),
+            }
+        )
+    return normalized[-limit:]
+
+
+def load_chat_history(step: str = "") -> List[Dict[str, Any]]:
+    return _normalize_chat_messages(load_workspace_value(_chat_history_key(step), []) or [])
+
+
+def save_chat_history(step: str, messages: Any) -> List[Dict[str, Any]]:
+    normalized = _normalize_chat_messages(messages)
+    save_workspace_value(_chat_history_key(step), normalized)
+    return normalized
+
+
 def default_thesis_memory() -> Dict[str, Any]:
     return {
         "research_context": {
@@ -3028,10 +3064,10 @@ def make_framework_svg(
     validate = phase_methods.get("validate", []) or ["待配置方法"]
 
     # ── layout constants ──
-    COL_X: Dict[str, int] = {"discover": 350, "solve": 740, "validate": 1130}
+    RECT_W = 370
+    RECT_X: Dict[str, int] = {"discover": 170, "solve": 570, "validate": 970}
+    COL_X: Dict[str, int] = {"discover": 355, "solve": 755, "validate": 1155}
     COL_COLOR: Dict[str, str] = {"discover": "#6f9ed8", "solve": "#6fb889", "validate": "#9d7ce2"}
-    RECT_X: Dict[str, int] = {"discover": 185, "solve": 575, "validate": 965}
-    RECT_W = 330
 
     PHASE_HEADERS_Y = 140
     PHASE_HEADER_H = 78
@@ -3041,14 +3077,14 @@ def make_framework_svg(
 
     # Method area — vertical boxes, horizontal layout, wrapping rows
     METHOD_COL_LABEL_Y = 636
-    METHOD_FIRST_BOX_Y = 662
+    METHOD_FIRST_BOX_Y = 676
     BOX_W = 30
     BOX_GAP = 6
     ROW_GAP = 10
     CHAR_H = 22
     PAD_TOP = 12
     PAD_BOTTOM = 10
-    PER_ROW = max(1, (RECT_W + BOX_GAP) // (BOX_W + BOX_GAP))  # ≈9 per row
+    PER_ROW = max(1, (RECT_W + BOX_GAP) // (BOX_W + BOX_GAP))  # ≈10 per row
 
     def _box_h(methods_list):
         max_chars = max((len(m) for m in methods_list), default=4)
@@ -3072,16 +3108,22 @@ def make_framework_svg(
     max_methods_h = max(disc_methods_h, solve_methods_h, valid_methods_h, 60)
 
     BIG_BOX_Y = 624
-    BIG_BOX_X = 120
-    BIG_BOX_W = 1200
+    BIG_BOX_W = RECT_X["validate"] + RECT_W - RECT_X["discover"] + 30
+    BIG_BOX_X = RECT_X["discover"] - 15
     BIG_BOX_PAD = 24
-    BIG_BOX_H = max_methods_h + (METHOD_COL_LABEL_Y - BIG_BOX_Y) + BIG_BOX_PAD
+    BIG_BOX_H = max_methods_h + (METHOD_FIRST_BOX_Y - BIG_BOX_Y) + BIG_BOX_PAD
 
     OUTPUTS_Y = BIG_BOX_Y + BIG_BOX_H + 20
     OUTPUT_H = 42
     TOTAL_H = OUTPUTS_Y + OUTPUT_H + 40
     ARROW_Y = 430
     CONTENT_BOTTOM_Y = CONTENT_Y + CONTENT_H
+
+    # Arrow positions (between content boxes)
+    arrow_1_x1 = RECT_X["discover"] + RECT_W
+    arrow_1_x2 = RECT_X["solve"]
+    arrow_2_x1 = RECT_X["solve"] + RECT_W
+    arrow_2_x2 = RECT_X["validate"]
 
     # ── build method boxes ──
     discover_boxes, _ = _svg_method_boxes(discover, RECT_X["discover"], RECT_W, METHOD_FIRST_BOX_Y, COL_COLOR["discover"])
@@ -3129,8 +3171,8 @@ def make_framework_svg(
   <text x="{COL_X["validate"]}" y="390" text-anchor="middle" font-size="18" fill="#26384d">实施前后对比</text>
   <text x="{COL_X["validate"]}" y="430" text-anchor="middle" font-size="18" fill="#26384d">关键指标跟踪</text>
   <text x="{COL_X["validate"]}" y="470" text-anchor="middle" font-size="18" fill="#26384d">改进结论输出</text>
-  <line x1="515" y1="{ARROW_Y}" x2="575" y2="{ARROW_Y}" stroke="#617083" stroke-width="4" marker-end="url(#arrow)"/>
-  <line x1="905" y1="{ARROW_Y}" x2="965" y2="{ARROW_Y}" stroke="#617083" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="{arrow_1_x1}" y1="{ARROW_Y}" x2="{arrow_1_x2}" y2="{ARROW_Y}" stroke="#617083" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="{arrow_2_x1}" y1="{ARROW_Y}" x2="{arrow_2_x2}" y2="{ARROW_Y}" stroke="#617083" stroke-width="4" marker-end="url(#arrow)"/>
 
   <!-- 研究方法：大框包含所有方法 -->
   <text x="92" y="{BIG_BOX_Y + 28}" text-anchor="middle" font-size="18" font-weight="700" fill="#4a6178">研究方法</text>
@@ -3438,7 +3480,7 @@ def generate_llm_outline(
     client, provider = _build_llm_client_and_provider(config)
 
     # ── 阶段 1：构建通用 6 章模板骨架 ──
-    from tools import _universal_outline, _shorten_topic, _direction_sections  # deferred import
+    from src.tools import _universal_outline, _shorten_topic, _direction_sections  # deferred import
 
     direction_defaults = _direction_sections(direction)
     ch1_default = json.dumps(direction_defaults.get(1, []), ensure_ascii=False)
@@ -3505,9 +3547,12 @@ JSON 格式：
             client, provider, config,
             system="你是工程管理硕士论文大纲设计专家。只输出 JSON，不要解释。",
             messages=[{"role": "user", "content": sections_prompt}],
-            max_tokens=_token_budget(config, "test"),
+            max_tokens=_token_budget(config, "small"),
         )
-        raw = _extract_json_object(_llm_response_text(response, provider))
+        raw_text = _llm_response_text(response, provider)
+        if task_id:
+            task_log(task_id, f"LLM 节标题原始响应（前 500 字符）: {raw_text[:500]}")
+        raw = _extract_json_object(raw_text)
         # Parse section map: keys are chapter numbers (str or int), values are lists of strings
         sections_hint = {}
         for key, value in (raw or {}).items():
@@ -3554,7 +3599,7 @@ JSON 格式：
         "total_subsections": total_subsections,
         "estimated_words": total_words,
         "generated_by": "llm_rag",
-        "created_at": datetime.now().isoformat(),
+        "created_at": datetime.datetime.now().isoformat(),
         "references": [
             {"title": item.get("title"), "path": item.get("path"), "score": item.get("score")}
             for item in references
@@ -3993,6 +4038,67 @@ def _execute_chat_tool(name: str, tool_input: Dict[str, Any]) -> str:
     return f"未知工具: {name}"
 
 
+def _selected_method_names_from_workspace() -> List[str]:
+    phase_methods = _normalize_phase_methods(
+        load_workspace_value("phase_methods", {"discover": [], "solve": [], "validate": []})
+    )
+    method_ids: List[str] = []
+    for phase in ("discover", "solve", "validate"):
+        method_ids.extend(phase_methods.get(phase, []))
+    if not method_ids:
+        return []
+    names = []
+    catalog_by_id = {item.get("id"): item.get("name") for item in get_registry().get_catalog()}
+    for method_id in method_ids:
+        names.append(catalog_by_id.get(method_id, str(method_id)))
+    return names
+
+
+def _chat_workspace_context(frontend_context: Dict[str, Any]) -> Dict[str, Any]:
+    memory = merge_memory_schema(load_workspace_value("thesis_memory", {}) or {})
+    research_context = memory.get("research_context", {})
+    direction = load_workspace_value("current_direction", {}) or {}
+    project_context = (
+        str(frontend_context.get("project_context", "") or "").strip()
+        or str(load_workspace_value("project_context", "") or "").strip()
+        or str(research_context.get("project_context", "") or "").strip()
+    )
+    return {
+        "current_project_id": current_project_id(),
+        "current_step": frontend_context.get("current_step", "setup"),
+        "topic": frontend_context.get("topic") or research_context.get("topic", ""),
+        "direction": frontend_context.get("direction")
+        or direction.get("name", "")
+        or research_context.get("direction", ""),
+        "methods": frontend_context.get("methods") or _selected_method_names_from_workspace(),
+        "project_bg": frontend_context.get("project_bg", ""),
+        "project_approach": frontend_context.get("project_approach", ""),
+        "project_context": project_context,
+        "thesis_memory": memory,
+        "outline": load_workspace_value("outline"),
+        "draft_count": len(load_drafts()),
+    }
+
+
+def _chat_memory_brief(memory: Dict[str, Any]) -> str:
+    memory = merge_memory_schema(memory or {})
+    parts = []
+    research_context = memory.get("research_context", {})
+    if research_context:
+        parts.append("研究上下文：" + json.dumps(research_context, ensure_ascii=False)[:1600])
+    if memory.get("problem_list"):
+        parts.append("已识别问题：" + "；".join(memory.get("problem_list", [])[:8]))
+    if memory.get("solution_design"):
+        parts.append("已形成方案：" + "；".join(memory.get("solution_design", [])[:8]))
+    if memory.get("evaluation_indicators"):
+        parts.append("评价指标：" + "；".join(memory.get("evaluation_indicators", [])[:8]))
+    if memory.get("outline_summary"):
+        parts.append("当前大纲摘要：" + json.dumps(memory.get("outline_summary", [])[:8], ensure_ascii=False)[:1600])
+    if memory.get("stale_chapters"):
+        parts.append("一致性提醒：" + json.dumps(memory.get("stale_chapters", [])[:8], ensure_ascii=False)[:1000])
+    return "\n".join(parts)
+
+
 def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
     config = load_llm_config()
     if not config.api_key:
@@ -4002,25 +4108,33 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
     if not user_messages:
         return {"status": "error", "message": "消息列表为空。"}
 
-    context = payload.get("context", {})
+    context = _chat_workspace_context(payload.get("context", {}) or {})
     current_step = context.get("current_step", "setup")
     topic = context.get("topic", "")
     direction = context.get("direction", "")
     methods = context.get("methods", [])
     project_bg = context.get("project_bg", "")
     project_approach = context.get("project_approach", "")
+    project_context = context.get("project_context", "")
+    memory_brief = _chat_memory_brief(context.get("thesis_memory", {}))
 
-    context_note = f"用户当前在「{current_step}」步骤。"
+    context_note = f"用户当前在「{current_step}」步骤。当前项目 ID：{context.get('current_project_id')}。"
     if topic:
         context_note += f" 论文主题：「{topic}」。"
     if direction:
         context_note += f" 研究方向：「{direction}」。"
     if methods:
         context_note += f" 已选方法论：{'、'.join(methods[:8])}。"
+    if project_context:
+        context_note += f"\n本地数据库中的项目资料：{project_context[:1800]}"
     if project_bg:
         context_note += f"\n用户已填写的项目背景：{project_bg[:600]}"
     if project_approach:
         context_note += f"\n用户已填写的论文思路：{project_approach[:600]}"
+    if memory_brief:
+        context_note += f"\n\n一致性引擎/论文记忆摘要：\n{memory_brief}"
+    if context.get("draft_count"):
+        context_note += f"\n当前项目已有草稿小节数量：{context.get('draft_count')}。"
 
     system = CHAT_SYSTEM_PROMPT + f"\n\n## 用户当前状态\n{context_note}"
     system += _best_practices_summary()
@@ -4047,7 +4161,9 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
 
         if not use_tools:
             text = _llm_response_text(response, provider)
-            return {"status": "ok", "message": {"role": "assistant", "content": text}}
+            message = {"role": "assistant", "content": text, "created_at": time.time()}
+            history = save_chat_history("global", [*user_messages, message])
+            return {"status": "ok", "message": message, "history": history}
 
         tool_blocks = []
         text_blocks = []
@@ -4104,7 +4220,9 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
             else:
                 text = _strip_dsml(raw_text)
 
-        return {"status": "ok", "message": {"role": "assistant", "content": text}}
+        message = {"role": "assistant", "content": text, "created_at": time.time()}
+        history = save_chat_history("global", [*user_messages, message])
+        return {"status": "ok", "message": message, "history": history}
     except Exception as exc:
         return {"status": "error", "message": f"聊天请求失败：{exc}"}
 
@@ -6155,6 +6273,20 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                     return
                 _json_response(self, {"status": "ok", "key": key, "value": load_workspace_value(key)})
                 return
+            if path == "/api/chat/history":
+                from urllib.parse import parse_qs, urlparse
+                qs = parse_qs(urlparse(self.path).query)
+                step = (qs.get("step", ["global"])[0] or "global").strip()
+                _json_response(
+                    self,
+                    {
+                        "status": "ok",
+                        "current_project_id": current_project_id(),
+                        "step": step,
+                        "messages": load_chat_history(step),
+                    },
+                )
+                return
             if path == "/api/export/docx":
                 outline = load_workspace_value("outline")
                 if not outline:
@@ -6691,6 +6823,24 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
 
             if path == "/api/chat":
                 _json_response(self, _chat_with_llm(payload))
+                return
+
+            if path == "/api/chat/history":
+                step = str(payload.get("step", "global") or "global")
+                if payload.get("action") == "clear":
+                    messages = []
+                else:
+                    messages = payload.get("messages", [])
+                history = save_chat_history(step, messages)
+                _json_response(
+                    self,
+                    {
+                        "status": "ok",
+                        "current_project_id": current_project_id(),
+                        "step": step,
+                        "messages": history,
+                    },
+                )
                 return
 
             if path == "/api/consistency/validate":

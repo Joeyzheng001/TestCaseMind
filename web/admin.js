@@ -225,27 +225,39 @@
   }
 
   function injectAdminButtons() {
-    // Add "添加引用" and "扫描校验" buttons to citations page head-actions
+    // Add admin-only buttons to citations page
     const headActions = document.querySelector("#citations .head-actions");
     if (headActions) {
-      const addBtn = document.createElement("button");
-      addBtn.className = "primary";
-      addBtn.id = "addCitationBtn";
-      addBtn.textContent = "添加引用";
+      const scoreBtn = document.createElement("button");
+      scoreBtn.className = "ghost";
+      scoreBtn.id = "scoreAllCitationsBtn";
+      scoreBtn.textContent = "全库评分";
 
-      const scanBtn = document.createElement("button");
-      scanBtn.className = "ghost";
-      scanBtn.id = "scanVerifyBtn";
-      scanBtn.textContent = "扫描校验";
-
-      // Insert after generateCitationsBtn (or at end)
-      const genBtn = document.getElementById("generateCitationsBtn");
-      if (genBtn) {
-        genBtn.after(addBtn, scanBtn);
+      const lastBtn = headActions.querySelector("button:last-of-type");
+      if (lastBtn) {
+        lastBtn.after(scoreBtn);
       } else {
-        headActions.appendChild(addBtn);
-        headActions.appendChild(scanBtn);
+        headActions.appendChild(scoreBtn);
       }
+
+      // Bind score-all event (admin only)
+      scoreBtn.addEventListener("click", async () => {
+        if (!confirm("确定要重新评估全库引用质量？此操作不可撤销。")) return;
+        scoreBtn.disabled = true;
+        scoreBtn.textContent = "评分中...";
+        try {
+          const data = await api("/api/citation-cards/score-batch", {
+            method: "POST",
+            body: JSON.stringify({ verify_external: false }),
+          });
+          alert(`评分完成：共 ${data.total || "?"} 条引用已更新`);
+          if (typeof loadLibrary === "function") loadLibrary();
+        } catch (e) {
+          alert("评分失败：" + e.message);
+        }
+        scoreBtn.disabled = false;
+        scoreBtn.textContent = "全库评分";
+      });
     }
   }
 
@@ -802,77 +814,6 @@
   }
 
   // ═══════════════════════════════════════════
-  // Citation Management (add / scan-verify)
-  // ═══════════════════════════════════════════
-
-  function openAddCitationModal() {
-    const textarea = document.getElementById("cmAddCitationText");
-    if (textarea) textarea.value = "";
-    const modal = document.getElementById("cmAddCitationModal");
-    if (modal) modal.hidden = false;
-    if (textarea) textarea.focus();
-  }
-
-  function closeAddCitationModal() {
-    const modal = document.getElementById("cmAddCitationModal");
-    if (modal) modal.hidden = true;
-  }
-
-  async function submitAddCitation() {
-    const rawText = document.getElementById("cmAddCitationText")?.value?.trim();
-    if (!rawText) {
-      alert("请粘贴引用文本");
-      return;
-    }
-    const btn = document.getElementById("cmAddCitationSubmit");
-    if (btn) { btn.disabled = true; btn.textContent = "解析中..."; }
-    try {
-      const data = await api("/api/citation-cards/parse-and-add", {
-        method: "POST",
-        body: JSON.stringify({ raw_text: rawText }),
-      });
-      if (data.status === "ok") {
-        alert("成功添加 " + data.inserted + " 条引用");
-        closeAddCitationModal();
-        if (typeof loadLibrary === "function") loadLibrary();
-      } else {
-        alert("解析失败：" + (data.message || "未知错误"));
-      }
-    } catch (e) {
-      alert("请求失败：" + e.message);
-    }
-    if (btn) { btn.disabled = false; btn.textContent = "解析并添加"; }
-  }
-
-  async function pollScanVerifyTask(taskId, count, btn) {
-    const data = await api(`/api/tasks/${taskId}`);
-    if (typeof setCitationProgress === "function") {
-      setCitationProgress(data.progress || 0, 100, data.message || "正在扫描校验...");
-    }
-
-    if (data.status === "done") {
-      const r = data.result || {};
-      const status = document.getElementById("citationStatus");
-      if (status) {
-        status.textContent = "扫描完成：确认 " + (r.confirmed || 0) + " 条，虚假 " + (r.fake || 0) + " 条，格式问题 " + (r.format_error || 0) + " 条";
-      }
-      if (typeof setCitationProgress === "function") setCitationProgress(100, 100, "扫描校验完成");
-      if (typeof hideCitationProgress === "function") setTimeout(hideCitationProgress, 8000);
-      if (btn) { btn.disabled = false; btn.textContent = "扫描校验"; }
-      if (typeof loadLibrary === "function") loadLibrary();
-      return;
-    }
-    if (data.status === "error") {
-      const status = document.getElementById("citationStatus");
-      if (status) status.textContent = "扫描失败：" + (data.message || "未知错误");
-      if (typeof hideCitationProgress === "function") hideCitationProgress();
-      if (btn) { btn.disabled = false; btn.textContent = "扫描校验"; }
-      return;
-    }
-    setTimeout(() => pollScanVerifyTask(taskId, count + 1, btn), 2000);
-  }
-
-  // ═══════════════════════════════════════════
   // Event bindings
   // ═══════════════════════════════════════════
 
@@ -963,44 +904,5 @@
     const copyBtn = document.getElementById("copyGeneratedCode");
     if (copyBtn) copyBtn.addEventListener("click", copyGeneratedCode);
 
-    // Citation management
-    const addBtn = document.getElementById("addCitationBtn");
-    if (addBtn) addBtn.addEventListener("click", openAddCitationModal);
-    const scanBtn = document.getElementById("scanVerifyBtn");
-    if (scanBtn) {
-      scanBtn.addEventListener("click", async () => {
-        scanBtn.disabled = true;
-        scanBtn.textContent = "扫描中...";
-        try {
-          const data = await api("/api/citation-cards/scan-verify", { method: "POST", body: "{}" });
-          pollScanVerifyTask(data.task_id, 0, scanBtn);
-        } catch (e) {
-          scanBtn.disabled = false;
-          scanBtn.textContent = "扫描校验";
-          alert("扫描任务创建失败：" + e.message);
-        }
-      });
-    }
-
-    // Add citation modal
-    const closeBtn = document.getElementById("cmAddCitationClose");
-    if (closeBtn) closeBtn.addEventListener("click", closeAddCitationModal);
-    const cancelBtn = document.getElementById("cmAddCitationCancel");
-    if (cancelBtn) cancelBtn.addEventListener("click", closeAddCitationModal);
-    const submitBtn = document.getElementById("cmAddCitationSubmit");
-    if (submitBtn) submitBtn.addEventListener("click", submitAddCitation);
-
-    // Close modal on backdrop click
-    const modal = document.getElementById("cmAddCitationModal");
-    if (modal) {
-      modal.addEventListener("click", (e) => {
-        if (e.target === modal) closeAddCitationModal();
-      });
-    }
-
-    // Escape to close modal
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modal && !modal.hidden) closeAddCitationModal();
-    });
   }
 })();

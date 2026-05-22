@@ -28,6 +28,7 @@ const state = {
   chatHistoryLoaded: false,
   sectionCitations: {},
   license: null,
+  methodsHaveFormulas: false,
 };
 
 // Per-subsection citation management state
@@ -198,8 +199,9 @@ function chapterPrefix(number) {
   return `第${n}章`;
 }
 
-function chapterDisplayTitle(chapter) {
-  return `${chapterPrefix(chapter.number)} ${cleanHeadingTitle(chapter.title) || "未命名章节"}`;
+function chapterDisplayTitle(chapter, chapterIndex = null) {
+  const num = chapter.number != null ? chapter.number : (chapterIndex != null ? chapterIndex + 1 : 0);
+  return `${chapterPrefix(num)} ${cleanHeadingTitle(chapter.title) || "未命名章节"}`;
 }
 
 function stripMarkdownText(text) {
@@ -294,7 +296,16 @@ function scheduleOutlineAutosave() {
 }
 
 function countTextWords(text) {
-  const value = stripMarkdownText(text || "");
+  let value = stripMarkdownText(text || "");
+  // \u53bb\u9664 LaTeX \u516c\u5f0f
+  value = value.replace(/\$\$[\s\S]*?\$\$/g, "");
+  value = value.replace(/\$[^$\n]+?\$/g, "");
+  // \u53bb\u9664\u5f15\u6587\u6807\u8bb0 [1][2,3][4-6]
+  value = value.replace(/\[(\d+(?:[,\uff0c\-\u2014]\d+)*)\]/g, "");
+  // \u53bb\u9664\u53c2\u8003\u6587\u732e\u5217\u8868\u884c\uff1a\u884c\u9996\u4e3a [\u6570\u5b57] \u540e\u8ddf\u4e2d\u6587\u4f5c\u8005\u540d\uff08\u4ee5\u6c49\u5b57\u5f00\u5934\uff09
+  value = value.replace(/^\[\d+\]\s*[\u4e00-\u9fff].*$/gm, "");
+  // \u53bb\u9664\u591a\u4f59\u7a7a\u767d
+  value = value.replace(/\s+/g, " ").trim();
   const chinese = (value.match(/[\u4e00-\u9fff]/g) || []).length;
   const words = (value.replace(/[\u4e00-\u9fff]/g, " ").match(/[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)*/g) || []).length;
   return chinese + words;
@@ -493,6 +504,23 @@ function selectedMethodNames() {
     ...state.methodAssignments.validate,
   ]);
   return Array.from(ids).map(methodNameById);
+}
+
+async function refreshFormulaAvailability() {
+  const methods = selectedMethodNames();
+  if (!methods.length) {
+    state.methodsHaveFormulas = false;
+    return;
+  }
+  try {
+    const data = await api("/api/methods/have-formulas", {
+      method: "POST",
+      body: JSON.stringify({ methods }),
+    });
+    state.methodsHaveFormulas = data.has_any === true;
+  } catch (e) {
+    state.methodsHaveFormulas = false;
+  }
 }
 
 function phaseMethodsPayload() {
@@ -1132,6 +1160,7 @@ function renderMethods() {
       }
       renderMethods();
       saveMethodAssignments();
+      refreshFormulaAvailability();
     });
   });
 
@@ -1817,7 +1846,7 @@ function renderCitations() {
   const items = state.citations || [];
 
   if (!items.length && !localItems.length && !llmItems.length) {
-    $("#citationList").innerHTML = `<div class="empty-state">尚未生成引用。确认大纲后，点击"生成引用"再进入章节写作。</div>`;
+    $("#citationList").innerHTML = `<div class="empty-state">暂无引用。如果需要，请先生成引用清单。</div>`;
     $("#citationList").removeAttribute("hidden");
     return;
   }
@@ -2070,6 +2099,7 @@ function addSection(chapterIndex, afterIndex) {
     title: "",
     estimated_words: 0,
     subsections: [],
+
   });
   renumberOutline();
   renderOutline();
@@ -2096,6 +2126,7 @@ function addSubsection(chapterIndex, sectionIndex, afterIndex) {
     number: "",
     title: "",
     estimated_words: 0,
+
   });
   renumberOutline();
   renderOutline();
@@ -2204,6 +2235,11 @@ function renderWritingList() {
             const draft = normalizeDraftContent(state.drafts[draftKey] || "", target);
             state.drafts[draftKey] = draft;
             const title = cleanHeadingTitle(target.title, target.number);
+            const isUndefined = target.allow_formulas === undefined;
+            const effectiveChecked = isUndefined ? state.methodsHaveFormulas : (target.allow_formulas === true);
+            const formulaChecked = effectiveChecked ? "checked" : "";
+            const formulaLabel = isUndefined && effectiveChecked ? "（预设）公式" : "公式";
+            const formulaCheckbox = `<label class="formula-toggle" title="勾选后本小节会生成LaTeX公式"><input type="checkbox" data-kind="formula-write" data-chapter="${chapterIndex}" data-section="${sectionIndex}" data-subsection="${subsectionIndex}" ${formulaChecked} />${formulaLabel}</label>`;
             return `
             <div class="writing-section">
               <div class="section-row">
@@ -2214,6 +2250,7 @@ function renderWritingList() {
                 <span class="word-chip">预计 ${target.estimated_words || section.estimated_words || 0}</span>
                 <span class="actual-chip">实际 ${target.actual_words || section.actual_words || 0}</span>
                 <div class="mini-actions">
+                  ${formulaCheckbox}
                   <button data-action="expand" data-chapter="${chapterIndex}" data-section="${sectionIndex}" data-subsection="${subsectionIndex}">扩写</button>
                   <button data-action="rewrite" data-chapter="${chapterIndex}" data-section="${sectionIndex}" data-subsection="${subsectionIndex}">重写</button>
                   <button data-action="generate-table" data-chapter="${chapterIndex}" data-section="${sectionIndex}" data-subsection="${subsectionIndex}">生成表格</button>
@@ -2234,7 +2271,7 @@ function renderWritingList() {
         <article class="chapter-card">
           <div class="chapter-head writing-chapter-head">
             <div>
-              <strong>${chapterDisplayTitle(chapter)}</strong>
+              <strong>${chapterDisplayTitle(chapter, chapterIndex)}</strong>
               <span class="stale-chapter-badge" data-stale-chapter="${chapter.number || chapterIndex + 1}" hidden>上游已变更</span>
               <small>一级目录 · 预计 ${chapter.estimated_words || 0} 字 · 实际 ${chapter.actual_words || 0} 字</small>
             </div>
@@ -2262,6 +2299,27 @@ function renderWritingList() {
     } else {
       button.addEventListener("click", () => runWritingAction(button));
     }
+  });
+  $$("#writingList input[data-kind='formula-write']").forEach((input) => {
+    input.addEventListener("change", () => {
+      if (input.checked && !state.methodsHaveFormulas) {
+        const ok = confirm("当前所选方法论中没有公式定义，强行启用可能导致LLM将普通数字也包裹为$...$格式。\n\n确定要勾选吗？");
+        if (!ok) {
+          input.checked = false;
+          return;
+        }
+      }
+      const chapter = state.outline.chapters[Number(input.dataset.chapter)];
+      const section = chapter.sections[Number(input.dataset.section)];
+      const si = Number(input.dataset.subsection);
+      if (si >= 0) {
+        section.subsections[si].allow_formulas = input.checked;
+      } else {
+        section.allow_formulas = input.checked;
+      }
+      renderWritingList();
+      scheduleOutlineAutosave();
+    });
   });
   $$("#writingList .inline-draft").forEach((textarea) => {
     textarea.addEventListener("input", () => scheduleDraftAutosave(textarea));
@@ -2463,13 +2521,17 @@ async function runWritingAction(button) {
     .filter(i => i >= 0 && i < state.citations.length);
   textarea.value = "正在调用大模型生成，请稍候...";
   try {
+    const effectiveTarget = { ...target };
+    if (effectiveTarget.allow_formulas === undefined) {
+      effectiveTarget.allow_formulas = state.methodsHaveFormulas;
+    }
     const data = await api(path, {
       method: "POST",
       body: JSON.stringify({
         topic: $("#topicInput").value.trim(),
         project_context: projectContextPayload(),
         chapter,
-        section: target,
+        section: effectiveTarget,
         methods: selectedMethodNames(),
         section_prompt: sectionPrompt,
         citations: state.citations,
@@ -2651,6 +2713,7 @@ async function loadWorkspace() {
     renderSvgPreview();
     state.frameworkSaved = true;
   }
+  await refreshFormulaAvailability();
 }
 
 function downloadMarkdown() {
@@ -3158,7 +3221,7 @@ async function runRiskScan() {
       });
       if (chapterContent.length) {
         chapters.push({
-          title: chapterDisplayTitle(chapter),
+          title: chapterDisplayTitle(chapter, ci),
           number: String(ci + 1),
           content: chapterContent.join("\n\n"),
         });
@@ -3900,63 +3963,11 @@ async function pollPptTask(taskId, pptType, cfg, count) {
   renderTaskLog(data.logs || [], `#${cfg.log}`);
 
   if (data.status === "awaiting_confirm") {
-    // Show design spec for user confirmation
+    // Show design spec modal for user confirmation with editable slides
     const spec = data.design_spec || {};
-    const slides = spec.slides || [];
     const colors = spec.color_scheme || {};
     const fonts = spec.fonts || {};
-    const layoutHints = { title: "封面", toc: "目录", content: "内容", section: "章节", thanks: "致谢" };
-
-    let slidesHtml = slides.map((s, i) => {
-      const hint = layoutHints[s.layout_hint] || s.layout_hint || "内容";
-      return `<tr><td class="confirm-slide-id">${s.id}</td><td>${escHtml(s.name)}</td><td class="confirm-slide-hint">${hint}</td><td class="confirm-slide-desc">${escHtml(s.description || "")}</td></tr>`;
-    }).join("");
-
-    const colorSwatch = (hex, label) =>
-      `<span class="confirm-swatch" style="background:${hex}" title="${label}: ${hex}"></span>`;
-
-    if (result) result.innerHTML = `
-      <div class="confirm-spec-card">
-        <h4>📋 幻灯片目录确认</h4>
-        <div class="confirm-meta">
-          <span>共 <strong>${slides.length}</strong> 页</span>
-          <span>配色：${colorSwatch(colors.primary, "主色")} ${colorSwatch(colors.accent, "强调色")} ${colorSwatch(colors.bg, "背景")} ${colorSwatch(colors.text, "正文")}</span>
-          <span>字体：${escHtml(fonts.title || "Microsoft YaHei")}</span>
-        </div>
-        <table class="confirm-slides-table">
-          <thead><tr><th>#</th><th>名称</th><th>类型</th><th>描述</th></tr></thead>
-          <tbody>${slidesHtml}</tbody>
-        </table>
-        <div class="confirm-actions">
-          <button class="primary" id="confirmPptBtn">确认，开始生成</button>
-          <button class="ghost" id="cancelPptBtn">取消</button>
-        </div>
-      </div>`;
-
-    $(`#confirmPptBtn`).addEventListener("click", async () => {
-      if (result) result.innerHTML = `<p style="padding:20px;">正在启动生成…</p>`;
-      try {
-        await fetch("/api/ppt/confirm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ task_id: taskId }),
-        });
-        pollPptTask(taskId, pptType, cfg, 0);
-      } catch (e) {
-        if (status) status.textContent = "确认失败";
-        button.disabled = false;
-        button.textContent = "重新生成";
-      }
-    });
-
-    $(`#cancelPptBtn`).addEventListener("click", () => {
-      if (status) status.textContent = "已取消";
-      if (result) result.innerHTML = "";
-      button.disabled = false;
-      button.textContent = "重新生成";
-      try { localStorage.removeItem(`ppt_task_${pptType}`); } catch (_) {}
-    });
-
+    showPptConfirmModal(taskId, pptType, cfg, spec, colors, fonts);
     if (status) status.textContent = "请确认幻灯片目录";
     return;
   }
@@ -3986,6 +3997,152 @@ async function pollPptTask(taskId, pptType, cfg, count) {
   }
 
   setTimeout(() => pollPptTask(taskId, pptType, cfg, count + 1), 2000);
+}
+
+function showPptConfirmModal(taskId, pptType, cfg, spec, colors, fonts) {
+  const slides = JSON.parse(JSON.stringify(spec.slides || []));
+  const layoutHints = ["title", "toc", "content", "section", "thanks", "two_column", "big_number", "quote", "blank"];
+  const layoutNames = { title: "封面", toc: "目录", content: "内容", section: "章节", thanks: "致谢", two_column: "双栏", big_number: "大数字", quote: "引用", blank: "空白" };
+
+  let nextId = (slides.length + 1).toString().padStart(2, "0");
+
+  function renderSlides() {
+    return slides.map((s, i) => `
+      <tr class="ppt-edit-row">
+        <td class="ppt-edit-id">${escHtml(s.id)}</td>
+        <td><input class="ppt-edit-name" data-idx="${i}" value="${escHtml(s.name)}" placeholder="幻灯片名称"></td>
+        <td>
+          <select class="ppt-edit-hint" data-idx="${i}">
+            ${layoutHints.map(h => `<option value="${h}" ${s.layout_hint === h ? "selected" : ""}>${layoutNames[h] || h}</option>`).join("")}
+          </select>
+        </td>
+        <td><input class="ppt-edit-desc" data-idx="${i}" value="${escHtml(s.description || "")}" placeholder="描述"></td>
+        <td><button class="ghost ppt-remove-slide" data-idx="${i}" title="移除">✕</button></td>
+      </tr>`).join("");
+  }
+
+  function buildSlidesSpec() {
+    return slides.map((s, i) => {
+      const row = modalEl.querySelector(`.ppt-edit-name[data-idx="${i}"]`);
+      const hintSel = modalEl.querySelector(`.ppt-edit-hint[data-idx="${i}"]`);
+      const desc = modalEl.querySelector(`.ppt-edit-desc[data-idx="${i}"]`);
+      return {
+        id: s.id,
+        name: (row ? row.value : s.name).trim() || s.name,
+        description: desc ? desc.value.trim() : (s.description || ""),
+        layout_hint: hintSel ? hintSel.value : s.layout_hint,
+      };
+    });
+  }
+
+  const colorSwatch = (hex, label) =>
+    `<span class="confirm-swatch" style="background:${hex}" title="${label}: ${hex}"></span>`;
+
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.id = "pptConfirmOverlay";
+
+  const modal = document.createElement("div");
+  modal.className = "modal-container ppt-confirm-modal";
+  modal.innerHTML = `
+    <div class="modal-header">
+      <h3>📋 幻灯片目录确认</h3>
+      <button class="modal-close" id="pptModalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="ppt-confirm-meta">
+        <span>共 <strong id="pptSlideCount">${slides.length}</strong> 页</span>
+        <span>配色：${colorSwatch(colors.primary, "主色")} ${colorSwatch(colors.accent, "强调色")} ${colorSwatch(colors.bg, "背景")} ${colorSwatch(colors.text, "正文")}</span>
+        <span>字体：${escHtml(fonts.title || "Microsoft YaHei")}</span>
+      </div>
+      <div class="ppt-edit-table-wrap">
+        <table class="ppt-edit-table">
+          <thead><tr><th style="width:40px">#</th><th style="width:180px">名称</th><th style="width:80px">类型</th><th>描述</th><th style="width:40px"></th></tr></thead>
+          <tbody>${renderSlides()}</tbody>
+        </table>
+      </div>
+      <button class="ghost" id="pptAddSlide" style="margin-top:8px;">+ 添加幻灯片</button>
+    </div>
+    <div class="modal-footer">
+      <button class="primary" id="confirmPptBtn">确认，开始生成</button>
+      <button class="ghost" id="cancelPptBtn">取消</button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(modal);
+  const modalEl = modal;
+
+  // Helper to refresh table after add/remove
+  function refreshTable() {
+    const tbody = modalEl.querySelector(".ppt-edit-table tbody");
+    tbody.innerHTML = renderSlides();
+    modalEl.querySelector("#pptSlideCount").textContent = slides.length;
+    bindSlideEvents();
+  }
+
+  function bindSlideEvents() {
+    modalEl.querySelectorAll(".ppt-remove-slide").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.idx);
+        slides.splice(idx, 1);
+        refreshTable();
+      });
+    });
+  }
+  bindSlideEvents();
+
+  // Add slide
+  modalEl.querySelector("#pptAddSlide").addEventListener("click", () => {
+    slides.push({ id: nextId, name: "", description: "", layout_hint: "content" });
+    nextId = (parseInt(nextId) + 1).toString().padStart(2, "0");
+    refreshTable();
+  });
+
+  // Close button (top-right X)
+  modalEl.querySelector("#pptModalClose").addEventListener("click", closeModal);
+
+  // Cancel
+  modalEl.querySelector("#cancelPptBtn").addEventListener("click", closeModal);
+
+  function closeModal() {
+    modalEl.remove();
+    overlay.remove();
+    const status = $(`#${cfg.status}`);
+    const button = $(`#${cfg.btn}`);
+    const result = $(`#${cfg.result}`);
+    if (status) status.textContent = "已取消";
+    if (result) result.innerHTML = "";
+    if (button) { button.disabled = false; button.textContent = "重新生成"; }
+    try { localStorage.removeItem(`ppt_task_${pptType}`); } catch (_) {}
+  }
+
+  // Confirm
+  modalEl.querySelector("#confirmPptBtn").addEventListener("click", async () => {
+    const slidesSpec = buildSlidesSpec();
+    modalEl.querySelector("#confirmPptBtn").disabled = true;
+    modalEl.querySelector("#confirmPptBtn").textContent = "提交中…";
+
+    const result = $(`#${cfg.result}`);
+    try {
+      await fetch("/api/ppt/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId, slides_spec: slidesSpec }),
+      });
+      modalEl.remove();
+      overlay.remove();
+      if (result) result.innerHTML = `<p style="padding:20px;">正在生成幻灯片…</p>`;
+      pollPptTask(taskId, pptType, cfg, 0);
+    } catch (e) {
+      modalEl.querySelector("#confirmPptBtn").disabled = false;
+      modalEl.querySelector("#confirmPptBtn").textContent = "确认，开始生成";
+      const status = $(`#${cfg.status}`);
+      if (status) status.textContent = "确认失败，请重试";
+    }
+  });
+
+  // Close on overlay click
+  overlay.addEventListener("click", closeModal);
 }
 
 // ============ AIGC 率评估 / AIGC 降重 ============
@@ -4227,7 +4384,7 @@ function buildCitationOutline() {
 
     return `
       <div class="cite-outline-chapter">
-        <h3>${chapterDisplayTitle(chapter)}</h3>
+        <h3>${chapterDisplayTitle(chapter, chapterIndex)}</h3>
         ${sectionsHtml}
       </div>`;
   }).join("");
@@ -4270,8 +4427,10 @@ function openCitationSubsectionPanel(draftKey) {
   // Reset library offset
   libState.offset = 0;
 
+  const retestBtn = $("#retestRelevanceBtn");
+  if (retestBtn) retestBtn.style.display = "";
   renderScopedChecklist(draftKey);
-  loadLibrary();
+  loadLibrary().then(() => fetchRelevance(draftKey));
   renderCitationOutline();
 
   // Scroll panel into view
@@ -4280,12 +4439,16 @@ function openCitationSubsectionPanel(draftKey) {
 
 function closeCitationSubsectionPanel() {
   citationPageState.activeDraftKey = null;
+  libState._relevanceResults = null;
+  const retestBtn = $("#retestRelevanceBtn");
+  if (retestBtn) retestBtn.style.display = "none";
   const panel = $("#citationSubsectionPanel");
   if (panel) panel.hidden = true;
   renderCitationOutline();
+  renderLibrary();
 }
 
-function renderScopedChecklist(draftKey) {
+async function renderScopedChecklist(draftKey) {
   const tbody = $("#scopedChecklistTableBody");
   const emptyEl = $("#scopedChecklistEmpty");
   const countEl = $("#scopedChecklistCount");
@@ -4301,35 +4464,69 @@ function renderScopedChecklist(draftKey) {
   }
   if (emptyEl) emptyEl.hidden = true;
 
-  const cards = cardIds.map((cid) => {
+  const buildCards = () => cardIds.map((cid) => {
     let card = citationPageState.cardCache[cid];
-    if (!card) {
-      card = libState.library.find((c) => c.card_id === cid);
-    }
+    if (!card) card = libState.library.find((c) => c.card_id === cid);
     return card || { card_id: cid, formatted: `[未找到: ${cid}]`, ref_type: "", year: "", verified: 0, quality_score: 0 };
   });
 
-  tbody.innerHTML = cards.map((c) => {
-    const labels = { "1": "已确认", "-2": "格式问题", "-1": "虚假", "0": "未校验" };
-    const cls = { "1": "lib-status-ok", "-2": "lib-status-warn", "-1": "lib-status-fake", "0": "lib-status-pend" };
-    const v = String(c.verified || 0);
-    const score = (c.quality_score || 0).toFixed(1);
-    return `<tr>
-      <td class="lib-cell-text" title="${escHtml(c.formatted || "")}">${escHtml((c.formatted || c.title || "").substring(0, 200))}</td>
-      <td>${escHtml(c.ref_type || "")}</td>
-      <td>${escHtml(String(c.year || ""))}</td>
-      <td><span class="${cls[v] || ""}">${labels[v] || "未校验"} ${score}</span></td>
-      <td class="lib-actions-cell">
-        <button class="ghost scoped-remove-btn" data-draft-key="${escHtml(draftKey)}" data-cardid="${escHtml(c.card_id)}">移除</button>
-      </td>
-    </tr>`;
-  }).join("");
+  const relMap = {};
+  if (libState._relevanceResults) {
+    for (const r of libState._relevanceResults) { relMap[r.card_id] = r; }
+  }
 
-  tbody.querySelectorAll(".scoped-remove-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      removeFromSubsectionChecklist(btn.dataset.draftKey, btn.dataset.cardid);
+  const renderRows = (cards) => {
+    tbody.innerHTML = cards.map((c) => {
+      const labels = { "1": "已确认", "-2": "格式问题", "-1": "虚假", "0": "未校验" };
+      const cls = { "1": "lib-status-ok", "-2": "lib-status-warn", "-1": "lib-status-fake", "0": "lib-status-pend" };
+      const v = String(c.verified || 0);
+      const score = (c.quality_score || 0).toFixed(1);
+      const rel = relMap[c.card_id];
+      let relCell = `<td class="lib-rel-cell">-</td>`;
+      if (rel) {
+        const rs = rel.relevance_score || 0;
+        const stars = rel.grade || "";
+        const relCls = rs >= 85 ? "rel-high" : rs >= 65 ? "rel-mid" : rs >= 45 ? "rel-low" : "rel-none";
+        relCell = `<td class="lib-rel-cell ${relCls}">${stars} ${rs.toFixed(0)}%</td>`;
+      }
+      return `<tr>
+        <td class="lib-cell-text" title="${escHtml(c.formatted || "")}">${escHtml((c.formatted || c.title || "").substring(0, 200))}</td>
+        <td>${escHtml(c.ref_type || "")}</td>
+        <td>${escHtml(String(c.year || ""))}</td>
+        ${relCell}
+        <td><span class="${cls[v] || ""}">${labels[v] || "未校验"} ${score}</span></td>
+        <td class="lib-actions-cell">
+          <button class="ghost scoped-remove-btn" data-draft-key="${escHtml(draftKey)}" data-cardid="${escHtml(c.card_id)}">移除</button>
+        </td>
+      </tr>`;
+    }).join("");
+
+    tbody.querySelectorAll(".scoped-remove-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        removeFromSubsectionChecklist(btn.dataset.draftKey, btn.dataset.cardid);
+      });
     });
-  });
+  };
+
+  // Render with what we have immediately
+  renderRows(buildCards());
+
+  // Fetch missing cards from backend, then re-render
+  const missingIds = cardIds.filter(cid =>
+    !citationPageState.cardCache[cid] && !libState.library.find((c) => c.card_id === cid)
+  );
+  if (missingIds.length) {
+    try {
+      const data = await api("/api/citation-cards/batch", {
+        method: "POST",
+        body: JSON.stringify({ card_ids: missingIds }),
+      });
+      for (const c of (data.cards || [])) {
+        citationPageState.cardCache[c.card_id] = c;
+      }
+      renderRows(buildCards());
+    } catch (e) { /* ignore */ }
+  }
 }
 
 function addToSubsectionChecklist(cardId) {
@@ -4482,6 +4679,30 @@ function libActiveFilters() {
 
 // --- Library (global citation_cards) ---
 
+async function fetchRelevance(draftKey) {
+  const scopedIds = state.sectionCitations[draftKey] || [];
+  const libIds = (libState.library || []).map(c => c.card_id);
+  const cardIds = [...new Set([...libIds, ...scopedIds])].filter(Boolean);
+  if (!cardIds.length) { libState._relevanceResults = null; renderScopedChecklist(draftKey); return; }
+  const statusEl = $("#relStatus");
+  if (statusEl) { statusEl.style.display = "inline"; statusEl.textContent = "计算中..."; statusEl.style.color = "var(--muted)"; }
+  try {
+    const data = await api("/api/citation-cards/relevance", {
+      method: "POST",
+      body: JSON.stringify({ card_ids: cardIds, draft_key: draftKey }),
+    });
+    libState._relevanceResults = data.results || [];
+    libState._relevanceAt = Date.now();
+    if (statusEl) { statusEl.textContent = "已完成"; statusEl.style.color = "var(--green)"; setTimeout(() => { statusEl.style.display = "none"; }, 3000); }
+  } catch (e) {
+    console.error("fetchRelevance", e);
+    libState._relevanceResults = null;
+    if (statusEl) { statusEl.textContent = "失败"; statusEl.style.color = "var(--red)"; setTimeout(() => { statusEl.style.display = "none"; }, 4000); }
+  }
+  renderLibrary();
+  renderScopedChecklist(draftKey);
+}
+
 async function loadLibrary() {
   const f = libActiveFilters();
   const params = new URLSearchParams({
@@ -4494,6 +4715,10 @@ async function loadLibrary() {
     libState.library = data.cards || [];
     libState.total = data.total || 0;
     renderLibrary();
+    // Re-fetch relevance for new page if subsection panel is open
+    if (citationPageState.activeDraftKey) {
+      fetchRelevance(citationPageState.activeDraftKey);
+    }
   } catch (e) {
     console.error("loadLibrary", e);
   }
@@ -4505,24 +4730,51 @@ function renderLibrary() {
   $("#libraryCount").textContent = `(共 ${libState.total} 条，当前 ${count} 条)`;
 
   if (!count) {
-    tbody.innerHTML = `<tr><td colspan="5" class="lib-empty-cell">没有匹配的引用卡片</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="lib-empty-cell">没有匹配的引用卡片</td></tr>`;
     return;
+  }
+
+  // Build relevance cache lookup if available
+  const relMap = {};
+  if (libState._relevanceResults) {
+    for (const r of libState._relevanceResults) {
+      relMap[r.card_id] = r;
+    }
   }
 
   tbody.innerHTML = libState.library.map((c) => {
     const labels = {'1':'已确认', '-2':'格式问题', '-1':'虚假', '0':'未校验'};
-    const cls = {'1':'lib-status-ok', '-2':'lib-status-warn', '-1':'lib-status-fake', '0':'lib-status-pend'};
     const v = String(c.verified || 0);
-    const score = (c.quality_score || 0).toFixed(1);
+    const qs = Number(c.quality_score) || 0;
+    // Grade badge
+    let gradeBadge = "";
+    if (qs > 0) {
+      if (qs >= 90) gradeBadge = `<span class="grade-badge grade-a">A ${qs.toFixed(0)}</span>`;
+      else if (qs >= 75) gradeBadge = `<span class="grade-badge grade-b">B ${qs.toFixed(0)}</span>`;
+      else if (qs >= 60) gradeBadge = `<span class="grade-badge grade-c">C ${qs.toFixed(0)}</span>`;
+      else gradeBadge = `<span class="grade-badge grade-d">D ${qs.toFixed(0)}</span>`;
+    } else {
+      gradeBadge = `<span class="grade-badge grade-none">未评分</span>`;
+    }
+    // Relevance column
+    const rel = relMap[c.card_id];
+    let relCell = `<td class="lib-rel-cell">-</td>`;
+    if (rel) {
+      const rs = rel.relevance_score || 0;
+      const stars = rel.grade || "";
+      const cls2 = rs >= 85 ? "rel-high" : rs >= 65 ? "rel-mid" : rs >= 45 ? "rel-low" : "rel-none";
+      relCell = `<td class="lib-rel-cell ${cls2}" title="${escHtml(JSON.stringify(rel.dimensions || {}))}">${stars} ${rs.toFixed(0)}%</td>`;
+    }
     const activeDraftKey = citationPageState.activeDraftKey;
     const inChecklist = activeDraftKey
       ? (state.sectionCitations[activeDraftKey] || []).includes(c.card_id)
       : libState.checklistIds.has(c.card_id);
     return `<tr>
-      <td class="lib-cell-text" title="${escHtml(c.formatted || '')}">${escHtml((c.formatted || c.title || '').substring(0, 200))}</td>
+      <td class="lib-cell-text" title="${escHtml(c.formatted || '')}">${escHtml((c.formatted || c.title || '').substring(0, 180))}</td>
       <td>${escHtml(c.ref_type || '')}</td>
       <td>${escHtml(String(c.year || ''))}</td>
-      <td><span class="${cls[v] || ''}" title="${escHtml(c.verification_note || '')}">${labels[v] || '未校验'} ${score}</span></td>
+      <td>${gradeBadge}</td>
+      ${relCell}
       <td class="lib-actions-cell">
         ${inChecklist
           ? `<span class="lib-added-label">已添加</span>`
@@ -4835,6 +5087,150 @@ function bindLibraryEvents() {
     if (e.target === $("#cmEditModal")) $("#cmEditModal").hidden = true;
   });
 
+  // ── Score all citations ───────────────────────────
+  let _addCitationPreview = [];
+
+  function openAddCitationModal() {
+    const textarea = $("#cmAddCitationText");
+    if (textarea) textarea.value = "";
+    _addCitationPreview = [];
+    $("#cmAddInputArea").hidden = false;
+    $("#cmAddSubmitRow").hidden = false;
+    $("#cmAddPreview").hidden = true;
+    $("#cmAddCitationSubmit").disabled = false;
+    $("#cmAddCitationSubmit").textContent = "解析并预览";
+    $("#cmAddCitationModal").hidden = false;
+    if (textarea) setTimeout(() => textarea.focus(), 100);
+  }
+
+  function closeAddCitationModal() {
+    $("#cmAddCitationModal").hidden = true;
+    _addCitationPreview = [];
+  }
+
+  async function submitAddCitationParse() {
+    const rawText = $("#cmAddCitationText")?.value?.trim();
+    if (!rawText) { alert("请粘贴引用文本"); return; }
+    const btn = $("#cmAddCitationSubmit");
+    if (btn) { btn.disabled = true; btn.textContent = "解析中..."; }
+    try {
+      const data = await api("/api/citation-cards/parse-and-add", {
+        method: "POST",
+        body: JSON.stringify({ raw_text: rawText, dry_run: true }),
+      });
+      if (data.status === "ok" && data.results?.length) {
+        _addCitationPreview = data.results;
+        renderAddPreview();
+      } else {
+        alert("未能解析出有效引用，请检查格式后重试");
+      }
+    } catch (e) {
+      alert("解析失败：" + e.message);
+    }
+    if (btn) { btn.disabled = false; btn.textContent = "解析并预览"; }
+  }
+
+  function renderAddPreview() {
+    const items = _addCitationPreview;
+    $("#cmAddInputArea").hidden = true;
+    $("#cmAddSubmitRow").hidden = true;
+    const preview = $("#cmAddPreview");
+    preview.hidden = false;
+
+    const okCount = items.filter(r => r.validation.is_citation && r.validation.is_valid).length;
+    const warnCount = items.filter(r => r.validation.is_citation && !r.validation.is_valid).length;
+    const badCount = items.filter(r => !r.validation.is_citation).length;
+    $("#cmPreviewCount").textContent = `解析结果：${items.length} 条`;
+    let hint = [];
+    if (okCount) hint.push(`${okCount} 条格式完整`);
+    if (warnCount) hint.push(`${warnCount} 条字段缺失`);
+    if (badCount) hint.push(`${badCount} 条可能不是引用`);
+    $("#cmPreviewHint").textContent = hint.join(" · ");
+    $("#cmPreviewHint").className = warnCount || badCount ? "cm-preview-hint" : "";
+
+    $("#cmPreviewList").innerHTML = items.map((r, i) => {
+      const p = r.parsed;
+      const v = r.validation;
+      const checked = v.is_citation ? "checked" : "";
+      const rowClass = v.is_citation ? "selected" : "excluded";
+      const completeness = Math.round(v.completeness * 100);
+      let tags = `<span class="cm-preview-tag cm-tag-type">${escHtml(p.ref_type)}</span>`;
+      if (p.year) tags += `<span class="cm-preview-tag cm-tag-year">${escHtml(p.year)}</span>`;
+      if (p.doi) tags += `<span class="cm-preview-tag cm-tag-doi">DOI</span>`;
+      if (v.is_citation) {
+        tags += completeness >= 80
+          ? `<span class="cm-preview-tag cm-tag-complete">完整度 ${completeness}%</span>`
+          : `<span class="cm-preview-tag cm-tag-incomplete">完整度 ${completeness}%</span>`;
+      } else {
+        tags += `<span class="cm-preview-tag cm-tag-no-citation">可能非引用</span>`;
+      }
+      let issuesHtml = "";
+      if (v.issues.length) {
+        issuesHtml = `<ul class="cm-preview-issues">${v.issues.map(s => `<li>${escHtml(s)}</li>`).join("")}</ul>`;
+      }
+      return `<div class="cm-preview-card ${rowClass}">
+        <div class="cm-preview-card-header">
+          <input type="checkbox" data-preview-idx="${i}" ${checked} />
+          <span class="cm-preview-formatted">${escHtml(p.formatted.substring(0, 300))}</span>
+        </div>
+        <div class="cm-preview-meta">${tags}</div>
+        ${issuesHtml}
+      </div>`;
+    }).join("");
+
+    // Checkbox change → toggle card highlight
+    $("#cmPreviewList").querySelectorAll("input[type='checkbox']").forEach(cb => {
+      cb.addEventListener("change", () => {
+        const card = cb.closest(".cm-preview-card");
+        if (card) card.classList.toggle("selected", cb.checked);
+        card?.classList.toggle("excluded", !cb.checked);
+      });
+    });
+  }
+
+  async function confirmAddCitations() {
+    const checked = Array.from($("#cmPreviewList").querySelectorAll("input[type='checkbox']:checked"));
+    const selectedIndices = checked.map(cb => Number(cb.dataset.previewIdx));
+    if (!selectedIndices.length) { alert("请至少选择一条引用"); return; }
+
+    const selectedTexts = selectedIndices
+      .map(i => _addCitationPreview[i]?.raw_text || "")
+      .filter(Boolean)
+      .join("\n\n");
+
+    const btn = $("#cmAddConfirmBtn");
+    if (btn) { btn.disabled = true; btn.textContent = "添加中..."; }
+    try {
+      const data = await api("/api/citation-cards/parse-and-add", {
+        method: "POST",
+        body: JSON.stringify({ raw_text: selectedTexts, dry_run: false }),
+      });
+      if (data.status === "ok") {
+        alert(`成功添加 ${data.inserted} 条引用`);
+        closeAddCitationModal();
+        loadLibrary();
+      }
+    } catch (e) {
+      alert("添加失败：" + e.message);
+    }
+    if (btn) { btn.disabled = false; btn.textContent = "确认添加选中引用"; }
+  }
+
+  $("#openAddCitationBtn")?.addEventListener("click", openAddCitationModal);
+  $("#cmAddCitationClose")?.addEventListener("click", closeAddCitationModal);
+  $("#cmAddCitationCancel")?.addEventListener("click", closeAddCitationModal);
+  $("#cmAddCancel2")?.addEventListener("click", closeAddCitationModal);
+  $("#cmAddCitationSubmit")?.addEventListener("click", submitAddCitationParse);
+  $("#cmAddConfirmBtn")?.addEventListener("click", confirmAddCitations);
+  $("#cmAddBackBtn")?.addEventListener("click", () => {
+    $("#cmAddInputArea").hidden = false;
+    $("#cmAddSubmitRow").hidden = false;
+    $("#cmAddPreview").hidden = true;
+  });
+  $("#cmAddCitationModal").addEventListener("click", (e) => {
+    if (e.target === $("#cmAddCitationModal")) closeAddCitationModal();
+  });
+
 }
 
 // Override: load library when entering citations page
@@ -4851,6 +5247,14 @@ activeStep = function(id) {
       if (closeBtn) closeBtn.onclick = closeCitationSubsectionPanel;
       const clearBtn = $("#scopedClearChecklist");
       if (clearBtn) clearBtn.onclick = clearSubsectionChecklist;
+      const retestBtn = $("#retestRelevanceBtn");
+      if (retestBtn) retestBtn.addEventListener("click", () => {
+        const dk = citationPageState.activeDraftKey;
+        if (dk) {
+          retestBtn.disabled = true; retestBtn.textContent = "重测中...";
+          fetchRelevance(dk).finally(() => { retestBtn.disabled = false; retestBtn.textContent = "重测适配度"; });
+        }
+      });
     });
     loadLibrary();
   }

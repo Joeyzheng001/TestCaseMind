@@ -267,6 +267,7 @@ def _build_aggregate_summary(
             by_type.setdefault(item["type"], []).append({
                 **item,
                 "chapter": chapter_block["chapter"],
+                "section_key": chapter_block.get("section_key", ""),
             })
 
     all_methods = by_type.get("method", [])
@@ -494,10 +495,12 @@ def build_unresolved_warning(memory: Dict[str, Any], current_section_key: str) -
     def _fmt_sk(sk: str) -> str:
         return sk or "?"
 
-    # 收集所有前文的承诺项
+    # 收集所有前文的承诺项（方法类承诺已在一致性约束中覆盖，跳过避免重复）
     all_items = []
     for c in previous:
         for item in c.get("items", []):
+            if item.get("type") == "method":
+                continue
             all_items.append(f"  小节{_fmt_sk(c.get('section_key', '?'))}: {item['raw']}")
 
     if not all_items:

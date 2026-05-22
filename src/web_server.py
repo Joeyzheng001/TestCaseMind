@@ -479,7 +479,9 @@ def update_memory_from_draft(
                 _term, f"{_term}：本文采用的关键理论或方法。"
             )
 
-    memory = merge_commitments_to_memory(memory, chapter_key, draft_key, content)
+    # 第1章（绪论）不提取承诺，避免概述性描述被误判为方法承诺
+    if chapter_key != "1":
+        memory = merge_commitments_to_memory(memory, chapter_key, draft_key, content)
     memory["updated_at"] = time.time()
     return memory
 
@@ -2349,10 +2351,43 @@ JSON 结构：
             [c for c in merged if c["id"] not in used][: expected_count - len(balanced)]
         )
 
+    # === 第五阶段：质量过滤（弃用 B 级以下，优先 A 级） ===
+    from src.citation_scorer import score_citation_offline
+
+    scored_citations = []
+    discarded = 0
+    for c in balanced:
+        try:
+            s = score_citation_offline({
+                "formatted": c.get("formatted", ""),
+                "title": c.get("title", ""),
+                "authors": c.get("authors", ""),
+                "year": c.get("year", ""),
+                "ref_type": c.get("type", "期刊文章"),
+                "language": c.get("language", "zh"),
+                "verified": c.get("verified", 0),
+            })
+            c["_quality_score"] = s.get("quality_score", 0)
+            c["_grade"] = s.get("grade", "D")
+            if s.get("quality_score", 0) >= 75:
+                scored_citations.append(c)
+            else:
+                discarded += 1
+        except Exception:
+            scored_citations.append(c)  # Keep if scoring fails
+
+    # Sort: A first, then B
+    scored_citations.sort(key=lambda c: c.get("_quality_score", 0), reverse=True)
+
+    if task_id and discarded > 0:
+        task_log(task_id, f"质量过滤：弃用 {discarded} 条低分引用（B级以下），保留 {len(scored_citations)} 条")
+        with TASK_LOCK:
+            TASKS[task_id]["progress"] = 95
+
     result = {
         "status": "ok",
         "message": llm_status,
-        "citations": balanced[:expected_count],
+        "citations": scored_citations[:expected_count],
         "local_citations": merged_local,
         "llm_citations": llm_final,
         "local_count": len(merged_local),
@@ -2363,6 +2398,12 @@ JSON 结构：
         "allocation": {
             "direction_quota": direction_quota,
             "methods_quota_total": methods_quota_total,
+        },
+        "quality_filter": {
+            "discarded": discarded,
+            "kept": len(scored_citations),
+            "a_count": sum(1 for c in scored_citations if c.get("_grade") == "A"),
+            "b_count": sum(1 for c in scored_citations if c.get("_grade") == "B"),
         },
     }
     save_workspace_value("citations", result["citations"])
@@ -3791,11 +3832,11 @@ def _build_llm_client_and_provider(config: Any = None) -> tuple:
         config = load_llm_config()
     if config.provider == "openai":
         import openai
-        kwargs: Dict[str, Any] = {"api_key": config.api_key, "timeout": 60}
+        kwargs: Dict[str, Any] = {"api_key": config.api_key, "timeout": 180}
         if config.base_url:
             kwargs["base_url"] = config.base_url
         return openai.OpenAI(**kwargs), "openai"
-    client_kwargs: Dict[str, Any] = {"api_key": config.api_key, "timeout": 60}
+    client_kwargs: Dict[str, Any] = {"api_key": config.api_key, "timeout": 180}
     if config.auth_mode == "auth_token" and config.auth_token:
         client_kwargs["auth_token"] = config.auth_token
     else:
@@ -3829,11 +3870,14 @@ def _llm_create_message(
         if system:
             api_messages.append({"role": "system", "content": system})
         api_messages.extend(messages)
-        return client.chat.completions.create(
+        response = client.chat.completions.create(
             model=config.model,
             max_tokens=max_tokens,
             messages=api_messages,
         )
+        resp_text = response.choices[0].message.content or ""
+        logger.info("LLM response (%s chars):\n%s", len(resp_text), resp_text[:2000])
+        return response
     kwargs: Dict[str, Any] = dict(
         model=config.model,
         max_tokens=max_tokens,
@@ -3844,7 +3888,10 @@ def _llm_create_message(
         kwargs["thinking"] = {"type": "disabled"}
     if tools:
         kwargs["tools"] = tools
-    return client.messages.create(**kwargs)
+    response = client.messages.create(**kwargs)
+    resp_text = _response_text(response)
+    logger.info("LLM response (%s chars):\n%s", len(resp_text), resp_text[:2000])
+    return response
 
 
 def strip_markdown(text: str) -> str:
@@ -4672,8 +4719,8 @@ def _generate_ppt_phase2(task_id: str, ppt_type: str, payload: Dict[str, Any],
     import json
     import shutil
     from pathlib import Path
-    from ppt_engine import generate_pptx, finalize_svgs
-    from ppt_engine.config import OUTPUT_DIR
+    from src.ppt_engine import generate_pptx, finalize_svgs
+    from src.ppt_engine.config import OUTPUT_DIR
 
     def log(msg: str) -> None:
         task = TASKS.get(task_id)
@@ -4745,26 +4792,36 @@ def _generate_ppt_phase2(task_id: str, ppt_type: str, payload: Dict[str, Any],
 
 只输出 SVG 代码，不要任何解释文字。"""
 
-            try:
-                svg_response = _llm_create_message(
-                    client, provider, config,
-                    system="你是专业的学术PPT SVG设计器。只输出SVG代码，不要解释。",
-                    messages=[{"role": "user", "content": svg_prompt}],
-                    max_tokens=min(config.max_tokens, 8000),
-                )
-                svg_text = _llm_response_text(svg_response, provider)
+            svg_content = ""
+            for attempt in range(3):
+                try:
+                    svg_response = _llm_create_message(
+                        client, provider, config,
+                        system="你是专业的学术PPT SVG设计器。只输出SVG代码，不要解释。",
+                        messages=[{"role": "user", "content": svg_prompt}],
+                        max_tokens=min(config.max_tokens, 8000),
+                    )
+                    svg_text = _llm_response_text(svg_response, provider)
 
-                svg_match = re.search(r'<svg[\s\S]*?</svg>', svg_text, re.IGNORECASE)
-                if svg_match:
-                    svg_content = svg_match.group(0)
-                else:
-                    svg_content = svg_text
+                    svg_match = re.search(r'<svg[\s\S]*?</svg>', svg_text, re.IGNORECASE)
+                    if svg_match:
+                        svg_content = svg_match.group(0)
+                    else:
+                        svg_content = svg_text
 
+                    if svg_content.strip():
+                        break
+                    log(f"  ⚠ P{slide_id} 第{attempt+1}次返回空内容，重试...")
+                    time.sleep(2)
+                except Exception as e:
+                    log(f"  ⚠ P{slide_id} 第{attempt+1}次失败: {e}")
+                    time.sleep(2)
+
+            if svg_content.strip():
                 svg_path = svg_dir / f"{slide_id}_{slide_name}.svg"
                 svg_path.write_text(svg_content, encoding='utf-8')
-            except Exception as e:
-                log(f"  ⚠ P{slide_id} 生成失败: {e}")
-                continue
+            else:
+                log(f"  ❌ P{slide_id} 3次重试均无内容，跳过")
 
         svg_count = len(list(svg_dir.glob("*.svg")))
         log(f"  ✓ 共生成 {svg_count} 页 SVG")
@@ -5177,6 +5234,33 @@ def clean_generated_content(text: str, section: Dict[str, Any] | None = None) ->
     return "\n".join(output).strip()
 
 
+def _fix_latex_errors(text: str) -> str:
+    """Fix common LLM LaTeX syntax errors: missing subscript underscores, concatenated Greek commands."""
+    GREEK = r'(alpha|beta|gamma|delta|epsilon|varepsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega)'
+
+    # Fix 1: Greek command followed by digit(s) → add subscript underscore
+    # \beta1 → \beta_{1}, \beta2 → \beta_{2}
+    text = re.sub(rf'\\({GREEK})(\d+)', r'\\\1_{\2}', text)
+
+    # Fix 2: Known Greek commands concatenated with single lowercase letter
+    # \deltar → \delta_{r}, \gammat → \gamma_{t}
+    text = re.sub(
+        r'\\(delta|gamma|theta|sigma|lambda|omega|epsilon|rho|tau|phi|chi|psi|xi|eta|mu|nu)([a-z])(?![a-zA-Z_{])',
+        r'\\\1_{\2}', text,
+    )
+
+    # Fix 3: Inside $...$ blocks, add missing underscore before subscript braces
+    # Y{it} → Y_{it}, but not \frac{1}{2} (where letter is part of command name)
+    def _fix_dollar_block(m):
+        block = m.group(0)
+        # Standalone letter (not part of \command) directly followed by {text}
+        block = re.sub(r'(?<![\\A-Za-z])([A-Za-z])\{', r'\1_{', block)
+        return block
+    text = re.sub(r'\$[^$]+\$', _fix_dollar_block, text)
+
+    return text
+
+
 def _get_formula_guidance(selected_methods: List[str], chapter_number: str = "", section_title: str = "") -> str:
     """Extract formula content from FORMULA.md for selected research methods.
     Only returns content when the context is appropriate (Ch2 or method-related sections).
@@ -5227,6 +5311,34 @@ def _get_formula_guidance(selected_methods: List[str], chapter_number: str = "",
     return header + "\n\n---\n\n".join(parts)
 
 
+def _methods_have_formulas(selected_methods: List[str]) -> Dict[str, bool]:
+    """Check which selected methods have formula definitions in FORMULA.md.
+    Returns {method_name: has_formulas} dict.
+    """
+    if not selected_methods:
+        return {}
+    formula_path = PROJECT_ROOT / "skills" / "FORMULA.md"
+    if not formula_path.exists():
+        return {m: False for m in selected_methods}
+    from src.risk_checker import _resolve_method_name
+    resolved = set()
+    for m in selected_methods:
+        canon = _resolve_method_name(m)
+        if canon:
+            resolved.add(canon)
+    if not resolved:
+        return {m: False for m in selected_methods}
+    content = formula_path.read_text(encoding="utf-8")
+    result = {}
+    for m in selected_methods:
+        canon = _resolve_method_name(m)
+        if not canon:
+            result[m] = False
+            continue
+        result[m] = canon in content
+    return result
+
+
 def _should_inject_formula(chapter_number: str, chapter_title: str, section_title: str) -> bool:
     """Determine if formula guidance should be injected for this section."""
     ch_num = str(chapter_number).strip()
@@ -5245,6 +5357,7 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
     topic = payload.get("topic", "论文主题")
     title = section.get("title", "本节")
     words = section.get("estimated_words", 800)
+    allow_formulas = section.get("allow_formulas", False) if isinstance(section, dict) else False
     methods = "、".join(payload.get("methods", [])[:8]) or "未指定"
     section_prompt = clean_generated_content(payload.get("section_prompt", ""))[:1800]
     memory = merge_memory_schema(load_workspace_value("thesis_memory", {}) or {})
@@ -5292,7 +5405,7 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
 
     # Inject formula guidance for method-heavy sections (Ch2, theory, etc.)
     formula_guidance = ""
-    if _should_inject_formula(
+    if allow_formulas and _should_inject_formula(
         str(chapter.get("number", "")),
         str(chapter.get("title", "")),
         title,
@@ -5382,6 +5495,28 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
     _citation_section = _esc(citation_section)
     _ref_text = _esc(reference_text or "未检索到高相关资料。")
 
+    if allow_formulas:
+        _formula_rule = (
+            "8. LaTeX 数学公式规范（严格遵守）："
+            "所有变量、符号、下标、希腊字母必须用 `$...$` 包裹为行内公式。"
+            "下标语法：必须用下划线 `_` 加大括号，`Y_{it}` 正确，`Y{it}` 错误（缺少下划线）。"
+            "希腊字母是独立命令，下标必须用 `_` 隔开：`\\beta_{1}` 正确，`\\beta1` 错误（缺少下划线）。"
+            "同理：`\\delta_{r}` 正确，`\\deltar` 错误（会把 `\\deltar` 当成不存在的命令）。"
+            "禁止把希腊命令和数字/字母直接拼在一起。每个公式里出现的下标都要写成 `_{...}`。"
+            "例：`$Y_{it} = \\alpha + \\beta_{1} X_{it} + \\delta_{r} + \\gamma_{t} + \\varepsilon_{it}$`。"
+            "例：`$\\theta \\mathbf{X}_{it}$` 正确，`$\\theta \\mathbf{X}{it}$` 错误。"
+            "禁止 Markdown 加粗/斜体/标题/代码块/反引号。"
+        )
+    else:
+        _formula_rule = (
+            "8. 严禁使用任何 Markdown 或 LaTeX 语法。"
+            "禁止：**加粗**、*斜体*、# 标题、列表符号、代码块、反引号、`$...$`、`$$...$$`。"
+            "禁止：LaTeX 命令（如 \\alpha、\\beta、\\frac、\\sum、\\varepsilon、\\times）。"
+            "禁止：下标记法 `x_{it}`、分式、大括号分组。"
+            "所有数学符号改为中文表述：如 alpha 写为阿尔法、beta 写为贝塔、sum 写为求和。"
+            "所有公式改为中文文字描述。数据、百分比以中文呈现（如 60%、1.5 倍）。"
+        )
+
     prompt = f"""请为工程管理硕士论文生成章节内容。
 
 论文主题：{_topic}
@@ -5418,7 +5553,7 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
 5. 必须与长期记忆中的研究对象、问题、方案和指标保持一致。
 6. 必须优先满足"用户对本小节的补充要求"，但不能违背论文长期记忆和已确认大纲。
 7. {_citation_rule}
-8. 严禁使用 Markdown 语法（LaTeX 数学公式除外），禁止出现 **加粗**、*斜体*、# 标题、列表符号、代码块、反引号。所有数学符号、变量、公式必须用 `$` 包裹成行内公式。**每个下标、每个分式都必须出现在 `$...$` 内部，不包裹则公式会损坏。** 例：`$x_{{ij}}$`、`$w_i = \\frac{{1}}{{n}}$`、`$\\lambda_{{\\max}}$`。禁止用中文描述代替公式。
+{_formula_rule}
 9. 不要输出"以下是"等寒暄，直接给正文。
 {_citation_section}
 
@@ -5433,6 +5568,13 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
             max_tokens=_token_budget(config, "default"),
         )
         content = clean_generated_content(_llm_response_text(response, provider), section)
+        if allow_formulas:
+            content = _fix_latex_errors(content)
+        if not allow_formulas:
+            # 安全网：公式禁用时清理 LLM 不听指令输出的 LaTeX 裸命令
+            content = re.sub(r'\$+', '', content)
+            content = re.sub(r'\\[a-zA-Z]+(?:\{[^}]*\})*', '', content)
+            content = re.sub(r'[_^]\{[^}]*\}', '', content)
         consistency = verify_commitments(content, memory, section_number)
         citation_check = verify_citations(
             content,
@@ -6208,6 +6350,13 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 from src.method_registry import get_method_catalog
                 _json_response(self, {"catalog": get_method_catalog()})
                 return
+            if path == "/api/methods/have-formulas":
+                payload = _read_json(self)
+                methods = payload.get("methods", []) if isinstance(payload, dict) else []
+                result = _methods_have_formulas(methods)
+                any_has = any(result.values()) if result else False
+                _json_response(self, {"has_any": any_has, "per_method": result})
+                return
             if path == "/api/projects":
                 _json_response(
                     self,
@@ -6465,7 +6614,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
 
             # ── PPT Engine API (read-only) ──
             if path == "/api/ppt/templates":
-                from ppt_engine import list_defense_templates
+                from src.ppt_engine import list_defense_templates
                 _json_response(self, {"templates": list_defense_templates()})
                 return
 
@@ -6476,7 +6625,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 if not filename or ".." in filename:
                     self.send_error(400)
                     return
-                from ppt_engine.config import OUTPUT_DIR as _PPT_OUTPUT_DIR
+                from src.ppt_engine.config import OUTPUT_DIR as _PPT_OUTPUT_DIR
                 filepath = _PPT_OUTPUT_DIR / filename
                 if not filepath.exists():
                     self.send_error(404)
@@ -7077,6 +7226,173 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _json_response(self, {"status": "ok", "deleted": len(card_ids)})
                 return
 
+            # ── Citation scoring ──────────────────────────────
+            if path == "/api/citation-cards/score":
+                card_id = str(payload.get("card_id", "")).strip()
+                if not card_id:
+                    _json_response(self, {"status": "error", "message": "card_id required"}, status=400)
+                    return
+                from src.paper_store import PAPER_DB_PATH
+                conn = sqlite3.connect(str(PAPER_DB_PATH))
+                conn.row_factory = sqlite3.Row
+                row = conn.execute("SELECT * FROM citation_cards WHERE card_id = ?", (card_id,)).fetchone()
+                conn.close()
+                if not row:
+                    _json_response(self, {"status": "error", "message": "卡片不存在"}, status=404)
+                    return
+                from src.citation_scorer import score_citation
+                card = dict(row)
+                card["methods"] = json.loads(card.get("methods_json", "[]"))
+                card["doi"] = card.get("doi", "")
+                external = bool(payload.get("verify_external", True))
+                result = score_citation(card, verify_external=external)
+                # Update quality_score in DB
+                conn2 = sqlite3.connect(str(PAPER_DB_PATH))
+                conn2.execute(
+                    "UPDATE citation_cards SET quality_score = ?, verification_note = ? WHERE card_id = ?",
+                    (result["quality_score"], result.get("verification_note", ""), card_id),
+                )
+                conn2.commit()
+                conn2.close()
+                _json_response(self, {"status": "ok", "card_id": card_id, **result})
+                return
+
+            if path == "/api/citation-cards/score-batch":
+                card_ids = payload.get("card_ids", [])
+                external = bool(payload.get("verify_external", False))
+                from src.paper_store import PAPER_DB_PATH
+                conn = sqlite3.connect(str(PAPER_DB_PATH))
+                conn.row_factory = sqlite3.Row
+                if card_ids:
+                    placeholders = ",".join("?" for _ in card_ids)
+                    rows = conn.execute(
+                        f"SELECT * FROM citation_cards WHERE card_id IN ({placeholders})",
+                        card_ids,
+                    ).fetchall()
+                else:
+                    rows = conn.execute("SELECT * FROM citation_cards").fetchall()
+                conn.close()
+                if not rows:
+                    _json_response(self, {"status": "ok", "updated": 0, "scores": []})
+                    return
+                from src.citation_scorer import score_citation
+                scores = []
+                updated = 0
+                conn2 = sqlite3.connect(str(PAPER_DB_PATH))
+                for row in rows:
+                    card = dict(row)
+                    card["methods"] = json.loads(card.get("methods_json", "[]"))
+                    card["doi"] = card.get("doi", "")
+                    result = score_citation(card, verify_external=external)
+                    result["card_id"] = card["card_id"]
+                    scores.append(result)
+                    conn2.execute(
+                        "UPDATE citation_cards SET quality_score = ?, verification_note = ? WHERE card_id = ?",
+                        (result["quality_score"], result.get("verification_note", ""), card["card_id"]),
+                    )
+                    updated += 1
+                conn2.commit()
+                conn2.close()
+                _json_response(self, {"status": "ok", "updated": updated, "scores": scores})
+                return
+
+            # ── Citation relevance ──────────────────────────
+            if path == "/api/citation-cards/relevance":
+                card_ids = payload.get("card_ids", [])
+                draft_key = str(payload.get("draft_key", "")).strip()
+                chapter_number = str(payload.get("chapter_number", "")).strip()
+                section_title = str(payload.get("section_title", "")).strip()
+                section_text = str(payload.get("section_text", "")).strip()
+                section_methods = payload.get("section_methods", [])
+
+                if not draft_key and not section_text:
+                    _json_response(self, {"status": "error", "message": "draft_key or section_text required"}, status=400)
+                    return
+
+                # Load draft text if draft_key provided
+                if draft_key and not section_text:
+                    stored_key = f"{current_project_id()}:{draft_key}"
+                    with workspace_connection() as wc:
+                        row = wc.execute(
+                            "SELECT content FROM drafts WHERE draft_key = ?", (stored_key,)
+                        ).fetchone()
+                    section_text = str(row[0]) if row else ""
+
+                # Parse chapter number from draft_key (e.g., "2.1.3" → "2")
+                if not chapter_number and draft_key:
+                    chapter_number = draft_key.split(".", 1)[0]
+
+                from src.paper_store import PAPER_DB_PATH
+                conn = sqlite3.connect(str(PAPER_DB_PATH))
+                conn.row_factory = sqlite3.Row
+                if card_ids:
+                    placeholders = ",".join("?" for _ in card_ids)
+                    rows = conn.execute(
+                        f"SELECT * FROM citation_cards WHERE card_id IN ({placeholders})",
+                        card_ids,
+                    ).fetchall()
+                else:
+                    rows = conn.execute("SELECT * FROM citation_cards LIMIT 200").fetchall()
+                conn.close()
+
+                from src.citation_relevance import score_relevance
+                results = []
+                for row in rows:
+                    card = dict(row)
+                    card["methods"] = json.loads(card.get("methods_json", "[]"))
+                    r = score_relevance(
+                        card,
+                        section_text=section_text,
+                        section_title=section_title,
+                        section_methods=section_methods,
+                        chapter_number=chapter_number,
+                    )
+                    r["card_id"] = card["card_id"]
+                    results.append(r)
+
+                _json_response(self, {"status": "ok", "count": len(results), "results": results})
+                return
+
+            if path == "/api/citation-cards/relevance-quick":
+                card_id = str(payload.get("card_id", "")).strip()
+                draft_key = str(payload.get("draft_key", "")).strip()
+                if not card_id:
+                    _json_response(self, {"status": "error", "message": "card_id required"}, status=400)
+                    return
+
+                from src.paper_store import PAPER_DB_PATH
+                conn = sqlite3.connect(str(PAPER_DB_PATH))
+                conn.row_factory = sqlite3.Row
+                row = conn.execute("SELECT * FROM citation_cards WHERE card_id = ?", (card_id,)).fetchone()
+                conn.close()
+                if not row:
+                    _json_response(self, {"status": "error", "message": "卡片不存在"}, status=404)
+                    return
+
+                card = dict(row)
+                card["methods"] = json.loads(card.get("methods_json", "[]"))
+
+                section_text = ""
+                chapter_number = ""
+                if draft_key:
+                    stored_key = f"{current_project_id()}:{draft_key}"
+                    with workspace_connection() as wc:
+                        row = wc.execute(
+                            "SELECT content FROM drafts WHERE draft_key = ?", (stored_key,)
+                        ).fetchone()
+                    section_text = str(row[0]) if row else ""
+                    chapter_number = draft_key.split(".", 1)[0]
+
+                from src.citation_relevance import score_relevance
+                result = score_relevance(
+                    card,
+                    section_text=section_text,
+                    chapter_number=chapter_number,
+                )
+                result["card_id"] = card_id
+                _json_response(self, {"status": "ok", **result})
+                return
+
             if path == "/api/best-practices":
                 action = str(payload.get("action", "save")).strip()
                 if action == "delete":
@@ -7202,7 +7518,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 if not raw_text:
                     _json_response(self, {"status": "error", "message": "引用文本不能为空"}, status=400)
                     return
-                # Split on blank lines for multi-citation paste
+                dry_run = bool(payload.get("dry_run", False))
                 blocks = [b.strip() for b in re.split(r"\n\s*\n", raw_text) if b.strip()]
                 if len(blocks) > 20:
                     _json_response(self, {"status": "error", "message": "最多支持20条引用"}, status=400)
@@ -7214,32 +7530,15 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                     return
                 client, provider = _build_llm_client_and_provider(config)
 
-                numbered = "\n\n".join(
-                    f"[{i+1}] {b}" for i, b in enumerate(blocks)
-                )
-                parse_prompt = (
-                    f"你是学术引用解析专家。请解析以下参考文献，提取结构化字段。\n\n"
-                    f"每条引用的字段：\n"
-                    f"- formatted: 完整的格式化引用文本（保留原始格式）\n"
-                    f"- title: 文献题名\n"
-                    f"- authors: 作者（多个用分号分隔）\n"
-                    f"- year: 出版年份（如 \"2024\"）\n"
-                    f"- ref_type: 期刊文章/学位论文/会议论文/图书/标准/报告/专利/报纸/电子资源/其他\n"
-                    f"- language: zh（中文）或 en（英文）\n\n"
-                    f"规则：\n"
-                    f"1. 支持 GB/T 7714、APA、MLA、Chicago 等任何引用格式\n"
-                    f"2. 无法确定的字段留空字符串\n"
-                    f"3. 如果文本不是参考文献，所有字段留空\n\n"
-                    f"参考文献文本：\n{numbered}\n\n"
-                    f"只输出JSON数组（不要markdown代码块）：\n"
-                    f'[{{"formatted": "...", "title": "...", "authors": "...", "year": "...", "ref_type": "期刊文章", "language": "zh"}}]'
-                )
+                from src.citation_parser import build_llm_parse_prompt, validate_gbt7714, build_parse_result
+                from src.citation_scorer import score_citation_offline
+                parse_prompt = build_llm_parse_prompt(blocks)
                 try:
                     response = _llm_create_message(
                         client, provider, config,
                         system="You are a citation parser. Extract structured fields from citation text. Return ONLY JSON.",
                         messages=[{"role": "user", "content": parse_prompt}],
-                        max_tokens=min(config.max_tokens, 200 + len(blocks) * 300),
+                        max_tokens=min(config.max_tokens, 200 + len(blocks) * 400),
                         disable_thinking=True,
                     )
                     raw_resp = _llm_response_text(response, provider).strip()
@@ -7252,33 +7551,57 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                     _json_response(self, {"status": "error", "message": "LLM解析失败，请检查引用格式"}, status=500)
                     return
 
-                from src.paper_store import upsert_citation_card as _upsert, PAPER_DB_PATH as _PAPER_DB2
+                results = []
                 inserted = 0
+                from src.paper_store import upsert_citation_card as _upsert, PAPER_DB_PATH as _PAPER_DB2
                 for item in parsed:
                     text = (item.get("formatted") or item.get("raw") or "").strip()
-                    if not text:
+                    if not text or len(text) < 15 or text.startswith("http"):
                         continue
-                    # Skip non-citation text (too short, URLs, chapter headers)
-                    if len(text) < 15 or text.startswith("http"):
-                        continue
-                    card = {
-                        "formatted": text,
-                        "title": item.get("title", "") or text[:120],
-                        "authors": item.get("authors", ""),
-                        "year": item.get("year", ""),
-                        "ref_type": item.get("ref_type", "期刊文章"),
-                        "language": item.get("language", "zh"),
-                        "verified": 0,
-                        "quality_score": 0.0,
-                        "paper_id": "",
-                        "direction_id": "",
-                        "direction_label": "",
-                        "methods": [],
-                        "source_section": "用户添加",
-                    }
-                    _upsert(card, db_path=_PAPER_DB2)
-                    inserted += 1
-                _json_response(self, {"status": "ok", "inserted": inserted})
+                    result = build_parse_result(
+                        text if len(text) <= 500 else text[:497] + "...",
+                        item,
+                    )
+                    results.append(result)
+
+                    if not dry_run and result["validation"]["is_citation"]:
+                        # Run full 5-dimension scoring (offline, uses verified=1)
+                        card_for_score = {
+                            "formatted": text,
+                            "title": item.get("title", "") or text[:120],
+                            "authors": item.get("authors", ""),
+                            "year": item.get("year", ""),
+                            "ref_type": result["validation"]["ref_type"],
+                            "language": item.get("language", "zh"),
+                            "verified": 1,  # LLM just parsed it = verified
+                        }
+                        score_result = score_citation_offline(card_for_score)
+                        card = {
+                            "formatted": text,
+                            "title": item.get("title", "") or text[:120],
+                            "authors": item.get("authors", ""),
+                            "year": item.get("year", ""),
+                            "ref_type": result["validation"]["ref_type"],
+                            "language": item.get("language", "zh"),
+                            "verified": 1,
+                            "quality_score": score_result.get("quality_score", 0),
+                            "verification_note": score_result.get("verification_note", ""),
+                            "paper_id": "",
+                            "direction_id": "",
+                            "direction_label": "",
+                            "methods": [],
+                            "source_section": "用户添加",
+                        }
+                        _upsert(card, db_path=_PAPER_DB2)
+                        inserted += 1
+
+                _json_response(self, {
+                    "status": "ok",
+                    "dry_run": dry_run,
+                    "inserted": inserted,
+                    "total": len(results),
+                    "results": results,
+                })
                 return
 
             self.send_error(404)

@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ThesisMind 论文辅助工作台</title>
-  <link rel="stylesheet" href="/styles.css?v=35" />
+  <link rel="stylesheet" href="/styles.css?v=45" />
   <link rel="stylesheet" href="/admin.css?v=1" />
 </head>
 
@@ -363,6 +363,7 @@
           <div class="head-actions">
             <button class="primary" id="generateCitationsBtn">AI生成引用</button>
             <button class="ghost" id="classifyCitationsBtn">LLM分类</button>
+            <button class="ghost" id="openAddCitationBtn">新增引用</button>
             <span class="save-tip" id="citationStatus"></span>
           </div>
         </div>
@@ -386,6 +387,7 @@
         <div class="citation-subsection-panel" id="citationSubsectionPanel" hidden>
           <div class="citation-subsection-head">
             <h3 id="citationSubsectionTitle">引用管理</h3>
+            <button class="ghost" id="retestRelevanceBtn" style="display:none;font-size:13px">重测适配度</button>
             <button class="ghost" id="citationSubsectionClose">收起</button>
           </div>
           <!-- Scoped checklist for active subsection -->
@@ -403,6 +405,7 @@
                     <th>引用内容</th>
                     <th class="lib-col-type">类型</th>
                     <th class="lib-col-year">年份</th>
+                    <th class="lib-col-status">适配度</th>
                     <th class="lib-col-status">状态/质量</th>
                     <th class="lib-col-actions">操作</th>
                   </tr>
@@ -492,7 +495,8 @@
                     <th>引用内容</th>
                     <th class="lib-col-type">类型</th>
                     <th class="lib-col-year">年份</th>
-                    <th class="lib-col-status">状态/质量</th>
+                    <th class="lib-col-status">评分</th>
+                    <th class="lib-col-rel">适配度 <span id="relStatus" style="display:none;font-weight:400;font-size:11px"></span></th>
                     <th class="lib-col-actions">操作</th>
                   </tr>
                 </thead>
@@ -898,23 +902,38 @@
         </div>
         <button class="ghost icon-button" id="cmAddCitationClose" type="button">&times;</button>
       </div>
-      <div class="form-grid">
+      <div class="form-grid" id="cmAddInputArea">
         <label class="field wide">
           <span>引用文本（支持 GB/T 7714 / APA / MLA 等格式，多条用空行分隔）</span>
           <textarea id="cmAddCitationText" rows="8" placeholder="粘贴完整引用文本..."></textarea>
         </label>
       </div>
-      <div class="actions split">
+      <div class="actions split" id="cmAddSubmitRow">
         <span class="hint">支持多格式自动识别。多条引用请用空行分隔。</span>
-        <div>
+        <div class="row-btns">
           <button class="ghost" id="cmAddCitationCancel" type="button">取消</button>
-          <button class="primary" id="cmAddCitationSubmit" type="button">解析并添加</button>
+          <button class="primary" id="cmAddCitationSubmit" type="button">解析并预览</button>
+        </div>
+      </div>
+      <!-- Preview area (shown after parsing) -->
+      <div id="cmAddPreview" hidden>
+        <div class="cm-preview-summary">
+          <span id="cmPreviewCount"></span>
+          <span id="cmPreviewHint"></span>
+        </div>
+        <div class="cm-preview-list" id="cmPreviewList"></div>
+        <div class="actions split">
+          <button class="ghost" id="cmAddBackBtn" type="button">返回编辑</button>
+          <div class="row-btns">
+            <button class="ghost" id="cmAddCancel2" type="button">取消</button>
+            <button class="primary" id="cmAddConfirmBtn" type="button">确认添加选中引用</button>
+          </div>
         </div>
       </div>
     </section>
   </div>
-  <script src="/app.js?v=68" defer></script>
-  <script src="/admin.js?v=1" defer></script>
+  <script src="/app.js?v=86" defer></script>
+  <script src="/admin.js?v=3" defer></script>
 </body>
 
 </html>

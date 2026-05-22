@@ -445,13 +445,15 @@ def _clear_document_body(document: Any) -> None:
         body.remove(child)
 
 
-def _set_run_font(run, font_name: str, size=None, bold=False):
+def _set_run_font(run, font_name: str, size=None, bold=False, color=None):
     """设置 run 的拉丁和东亚字体。"""
     run.font.name = font_name
     run._element.rPr.rFonts.set('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}eastAsia', font_name)
     if size:
         run.font.size = size
     run.bold = bold
+    if color:
+        run.font.color.rgb = color
 
 
 def _png_dims_inches(buf: io.BytesIO, dpi: int = 150) -> Tuple[float, float]:
@@ -512,7 +514,7 @@ def _add_body_paragraph(document, text: str) -> None:
 def export_docx(outline: Dict[str, Any], drafts: Dict[str, str], citations: List[Dict[str, Any]] = None) -> Path:
     from docx import Document
     from docx.enum.text import WD_ALIGN_PARAGRAPH
-    from docx.shared import Pt, Inches
+    from docx.shared import Pt, Inches, RGBColor
     from docx.oxml.ns import qn
 
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
@@ -542,11 +544,11 @@ def export_docx(outline: Dict[str, Any], drafts: Dict[str, str], citations: List
             paragraph = document.add_paragraph()
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             run = paragraph.add_run(text)
-            _set_run_font(run, "黑体", Pt(18), bold=True)
+            _set_run_font(run, "黑体", Pt(18), bold=True, color=RGBColor(0, 0, 0))
         elif level in {1, 2, 3}:
             paragraph = document.add_heading(text, level=min(level, 3))
             for run in paragraph.runs:
-                _set_run_font(run, "黑体", bold=True)
+                _set_run_font(run, "黑体", bold=True, color=RGBColor(0, 0, 0))
         else:
             segments = _split_content_segments(text)
             for seg in segments:
@@ -593,7 +595,7 @@ def export_docx(outline: Dict[str, Any], drafts: Dict[str, str], citations: List
     if citations:
         ref_heading = document.add_heading("参考文献", level=1)
         for run in ref_heading.runs:
-            _set_run_font(run, "黑体", bold=True)
+            _set_run_font(run, "黑体", bold=True, color=RGBColor(0, 0, 0))
 
         for i, c in enumerate(citations):
             formatted = c.get("formatted", "").strip()

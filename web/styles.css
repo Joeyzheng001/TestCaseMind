@@ -6,8 +6,8 @@
   --panel-2: #f2f8ff;
   --line: #c6d9eb;
   --line-strong: #8eb6dc;
-  --text: #18324d;
-  --muted: #637d96;
+  --text: #000;
+  --muted: #666;
   --primary: #1f7bd7;
   --primary-strong: #155fa9;
   --green: #2d9a68;
@@ -1515,6 +1515,40 @@ textarea:focus {
   border-top: 1px solid #e7f0f8;
 }
 
+/* ── PPT confirm modal ─────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 9998;
+}
+.modal-container {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: #fff; border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.18);
+  z-index: 9999; max-width: 820px; width: 95vw; max-height: 85vh; display: flex; flex-direction: column;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 22px; border-bottom: 1px solid var(--line);
+}
+.modal-header h3 { margin: 0; font-size: 17px; }
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #999; padding: 4px 8px; border-radius: 6px; }
+.modal-close:hover { background: #f0f0f0; color: #333; }
+.modal-body { padding: 18px 22px; overflow-y: auto; flex: 1; }
+.modal-footer { display: flex; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--line); justify-content: flex-end; }
+
+.ppt-confirm-modal { max-width: 860px; }
+.ppt-confirm-meta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; font-size: 13px; color: var(--muted); }
+.ppt-confirm-meta strong { color: var(--text); }
+.ppt-edit-table-wrap { max-height: 50vh; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; }
+.ppt-edit-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ppt-edit-table th { background: #f5f8fb; padding: 8px 10px; text-align: left; font-weight: 600; position: sticky; top: 0; }
+.ppt-edit-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+.ppt-edit-row:hover td { background: #fafcfe; }
+.ppt-edit-id { color: var(--muted); font-weight: 600; text-align: center; width: 40px; }
+.ppt-edit-table input { width: 100%; border: 1px solid #dde; border-radius: 4px; padding: 5px 8px; font-size: 13px; }
+.ppt-edit-table input:focus { border-color: var(--primary); outline: none; }
+.ppt-edit-table select { width: 100%; border: 1px solid #dde; border-radius: 4px; padding: 5px 6px; font-size: 13px; background: #fff; }
+.ppt-remove-slide { color: #d33 !important; padding: 4px 8px !important; font-size: 14px !important; }
+.ppt-remove-slide:hover { background: #fdf0f0 !important; }
+
 .chapter-card {
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -1557,6 +1591,10 @@ textarea:focus {
 
 .writing-chapter-head {
   align-items: flex-start;
+}
+
+.writing-chapter-head strong {
+  color: #000;
 }
 
 .writing-chapter-head small {
@@ -1628,6 +1666,24 @@ textarea:focus {
   line-height: 1.45;
 }
 
+.formula-toggle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: #6f879e;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.formula-toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
 .subsection-line input:not(.word-input) {
   height: 30px;
   padding: 0 8px;
@@ -1638,7 +1694,7 @@ textarea:focus {
   padding: 7px 8px;
   border: 1px solid #c8dbea;
   border-radius: 10px;
-  color: #41637f;
+  color: #000;
   background: #f6fbff;
   text-align: center;
   font-size: 12px;
@@ -1664,7 +1720,7 @@ textarea:focus {
 
 .word-summary,
 .actual-chip {
-  color: #41637f;
+  color: #000;
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
@@ -1734,6 +1790,11 @@ textarea:focus {
 
 .writing-section {
   border-bottom: 1px solid #edf3f9;
+}
+
+.writing-section .section-title span,
+.writing-section .section-title strong {
+  color: #000;
 }
 
 .writing-section:last-child {
@@ -3553,3 +3614,168 @@ textarea:focus {
     transform: rotate(90deg);
   }
 }
+
+/* ── Citation add modal preview ────────────────────────────── */
+.cm-add-citation-modal {
+  max-width: 680px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.cm-preview-summary {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+
+.cm-preview-summary span:first-child {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cm-preview-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.cm-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.cm-preview-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--panel);
+}
+
+.cm-preview-card.selected {
+  border-color: var(--line-strong);
+  background: var(--bg);
+}
+
+.cm-preview-card.excluded {
+  opacity: 0.55;
+  background: #fafafa;
+}
+
+.cm-preview-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cm-preview-card-header input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+.row-btns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cm-preview-formatted {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  flex: 1;
+  word-break: break-all;
+}
+
+.cm-preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.cm-preview-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.cm-tag-type {
+  background: #e8f0fe;
+  color: #1a73e8;
+}
+
+.cm-tag-year {
+  background: #e6f4ea;
+  color: #137333;
+}
+
+.cm-tag-doi {
+  background: #fef7e0;
+  color: #b06000;
+}
+
+.cm-tag-complete {
+  background: #e6f4ea;
+  color: #137333;
+}
+
+.cm-tag-incomplete {
+  background: #fce8e6;
+  color: #c5221f;
+}
+
+.cm-tag-no-citation {
+  background: #f1f3f4;
+  color: #5f6368;
+}
+
+.cm-preview-issues {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #c5221f;
+  line-height: 1.5;
+}
+
+.cm-preview-issues li {
+  margin: 0;
+  padding: 0;
+  list-style: disc inside;
+}
+
+/* ── Grade badges ────────────────────────────────────── */
+.grade-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.grade-a { background: #e6f4ea; color: #137333; }
+.grade-b { background: #e8f0fe; color: #1a73e8; }
+.grade-c { background: #fef7e0; color: #b06000; }
+.grade-d { background: #fce8e6; color: #c5221f; }
+.grade-none { background: #f1f3f4; color: #5f6368; }
+
+/* ── Relevance column ────────────────────────────────── */
+.lib-col-rel { width: 78px; text-align: center; }
+.lib-rel-cell { text-align: center; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.lib-rel-cell.rel-high { color: #137333; }
+.lib-rel-cell.rel-mid  { color: #1a73e8; }
+.lib-rel-cell.rel-low  { color: #b06000; }
+.lib-rel-cell.rel-none { color: #999; }

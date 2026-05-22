@@ -981,8 +981,11 @@ def start_paper_pipeline_task(doc_id: str = "") -> str:
 
 def _safe_static_path(route: str) -> Path:
     relative = route.lstrip("/") or "index.html"
-    path = (WEB_ROOT / relative).resolve()
-    if not str(path).startswith(str(WEB_ROOT.resolve())):
+    web_root = WEB_ROOT.resolve()
+    path = (web_root / relative).resolve()
+    try:
+        path.relative_to(web_root)
+    except ValueError:
         raise ValueError("invalid path")
     if path.is_dir():
         path = path / "index.html"
@@ -6296,38 +6299,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _json_response(self, {"templates": list_defense_templates()})
                 return
 
-            if path == "/api/ppt/confirm":
-                if not _check_license_api(self, path):
-                    return
-                task_id = str(payload.get("task_id", "")).strip()
-                if not task_id:
-                    _json_response(self, {"status": "error", "message": "缺少 task_id"}, status=400)
-                    return
-                with TASK_LOCK:
-                    task = TASKS.get(task_id)
-                if not task:
-                    _json_response(self, {"status": "error", "message": "任务不存在"}, status=404)
-                    return
-                if task.get("status") != "awaiting_confirm":
-                    _json_response(self, {"status": "error", "message": "任务状态不正确"}, status=409)
-                    return
-
-                design_spec = task.get("design_spec", {})
-                slides_spec = payload.get("slides_spec") or design_spec.get("slides", [])
-                colors = design_spec.get("color_scheme", {})
-                fonts = design_spec.get("fonts", {})
-
-                TASKS[task_id].update({"status": "running", "progress": 25, "message": "用户已确认，开始生成…"})
-
-                thread = threading.Thread(
-                    target=_generate_ppt_phase2,
-                    args=(task_id, task.get("ppt_type", "defense"), payload,
-                          slides_spec, colors, fonts),
-                    daemon=True,
-                )
-                thread.start()
-                _json_response(self, {"status": "ok"})
-                return
+            # GET-only PPT endpoints end here; ppt/confirm is POST-only below
 
             if path.startswith("/api/ppt/download/"):
                 filename = path.rsplit("/", 1)[-1]
@@ -6792,6 +6764,39 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                     return
                 task_id = start_ppt_generate_task(ppt_type, payload)
                 _json_response(self, {"status": "queued", "task_id": task_id})
+                return
+
+            if path == "/api/ppt/confirm":
+                if not _check_license_api(self, path):
+                    return
+                task_id = str(payload.get("task_id", "")).strip()
+                if not task_id:
+                    _json_response(self, {"status": "error", "message": "缺少 task_id"}, status=400)
+                    return
+                with TASK_LOCK:
+                    task = TASKS.get(task_id)
+                if not task:
+                    _json_response(self, {"status": "error", "message": "任务不存在"}, status=404)
+                    return
+                if task.get("status") != "awaiting_confirm":
+                    _json_response(self, {"status": "error", "message": "任务状态不正确"}, status=409)
+                    return
+
+                design_spec = task.get("design_spec", {})
+                slides_spec = payload.get("slides_spec") or design_spec.get("slides", [])
+                colors = design_spec.get("color_scheme", {})
+                fonts = design_spec.get("fonts", {})
+
+                TASKS[task_id].update({"status": "running", "progress": 25, "message": "用户已确认，开始生成…"})
+
+                thread = threading.Thread(
+                    target=_generate_ppt_phase2,
+                    args=(task_id, task.get("ppt_type", "defense"), payload,
+                          slides_spec, colors, fonts),
+                    daemon=True,
+                )
+                thread.start()
+                _json_response(self, {"status": "ok"})
                 return
 
             if path == "/api/blind-review-check":

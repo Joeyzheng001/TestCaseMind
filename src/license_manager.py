@@ -420,7 +420,7 @@ class LicenseManager:
             "tier": "free",
             "tier_label": "免费版(未激活)",
             "days_left": 0,
-            "features": ["workflow"],
+            "features": [],
             "trial_active": False,
             "trial_days_left": 0,
             "message": "请先开始免费试用或激活许可证",

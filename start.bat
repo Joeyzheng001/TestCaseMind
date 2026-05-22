@@ -44,12 +44,12 @@ if not exist ".env" (
 echo =========================================
 echo   ThesisMind
 echo.
-echo   Opening: http://localhost:8222
+echo   Opening: http://localhost:8765
 echo   Press Ctrl+C to stop
 echo =========================================
 echo.
 
-start http://localhost:8222
-python src\web_server.py --port 8222
+start http://localhost:8765
+python src\web_server.py --port 8765
 
 pause

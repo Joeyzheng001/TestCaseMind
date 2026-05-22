@@ -445,8 +445,9 @@ def verify_commitments(
                     committed_def = item.get("definition", "")
                     if committed_def:
                         # 在内容中查找该术语被重新定义的情况
+                        source_ch = chapter_block.get("chapter", sk.split(".")[0] if sk else "")
                         drift = _check_definition_drift(
-                            content, identifier, committed_def, ch
+                            content, identifier, committed_def, source_ch
                         )
                         if drift:
                             definition_drifts.append(drift)

@@ -69,7 +69,12 @@ pip download -r requirements.txt -d "${WHEELS_DIR}" -q 2>&1 || true
 
 WHEEL_COUNT=$(ls -1 "${WHEELS_DIR}"/*.whl 2>/dev/null | wc -l)
 WHEELS_SIZE=$(du -sh "${WHEELS_DIR}" | cut -f1)
-echo "  ✓ ${WHEEL_COUNT} 个 wheel 包 (${WHEELS_SIZE})"
+if [ "${WHEEL_COUNT}" -eq 0 ]; then
+    echo "  ⚠ 警告：未下载到任何 wheel 包！网络可能不通，离线安装将不可用。"
+    echo "     如需离线包，请检查网络后重新运行 build_release.sh。"
+else
+    echo "  ✓ ${WHEEL_COUNT} 个 wheel 包 (${WHEELS_SIZE})"
+fi
 
 # ── 5. 向量索引 ──
 if [ -f "knowledge_base/vector_store.sqlite3" ]; then

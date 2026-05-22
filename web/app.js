@@ -1518,13 +1518,13 @@ function markdownTableToHtml(md) {
 
   let html = title + "<table>";
   if (headerCells.length) {
-    html += "<thead><tr>" + headerCells.map(c => `<th>${c}</th>`).join("") + "</tr></thead>";
+    html += "<thead><tr>" + headerCells.map(c => `<th>${escHtml(c)}</th>`).join("") + "</tr></thead>";
   }
   html += "<tbody>";
   for (const line of bodyLines) {
     const cells = parseTableRow(line);
     if (cells.length) {
-      html += "<tr>" + cells.map(c => `<td>${c}</td>`).join("") + "</tr>";
+      html += "<tr>" + cells.map(c => `<td>${escHtml(c)}</td>`).join("") + "</tr>";
     }
   }
   html += "</tbody></table>";

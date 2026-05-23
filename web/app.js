@@ -112,7 +112,7 @@ function activeStep(id) {
   }
   const chatTitle = $("#chatFloatTitle");
   if (chatTitle) {
-    const labels = { welcome:"欢迎首页", setup:"配置引导", paper_info:"论文信息引导", methods:"方法论引导", framework:"框架引导", outline:"大纲引导", citations:"引文引导", writing:"写作引导", blind_review:"盲审引导", proposal:"开题报告引导", ppt_proposal:"开题PPT制作", ppt_midterm:"中期PPT制作", ppt_defense:"答辩PPT制作", table_generator:"表格生成器", aigc_check:"AIGC率评估", aigc_reduce:"AIGC降重" };
+    const labels = { welcome:"欢迎首页", setup:"配置引导", paper_info:"论文信息引导", methods:"方法论引导", framework:"框架引导", outline:"大纲引导", citations:"文献引用", writing:"写作引导", blind_review:"盲审引导", proposal:"开题报告引导", ppt_proposal:"开题PPT制作", ppt_midterm:"中期PPT制作", ppt_defense:"答辩PPT制作", table_generator:"表格生成器", aigc_check:"AIGC率评估", aigc_reduce:"AIGC降重" };
     chatTitle.textContent = labels[id] || "论文助手";
   }
   persistChatHistory();
@@ -540,11 +540,10 @@ function renderStaleChapterWarnings(staleChapters) {
 function setCitationProgress(done, total, message = "") {
   const box = $("#citationProgress");
   if (!box) return;
-  if (!box) return;
   const percent = total ? Math.min(100, Math.max(0, Math.round((done / total) * 100))) : 0;
   box.hidden = false;
   $("#citationSnailRunner").style.left = `calc(${percent}% - 18px)`;
-  $("#citationProgressText").textContent = message || `正在生成引用 ${done}/${total}`;
+  $("#citationProgressText").textContent = message || `正在检索真实文献 ${done}/${total}`;
 }
 
 function hideCitationProgress() {
@@ -1817,70 +1816,48 @@ async function saveOutlineState(message = "大纲和字数已保存", skipStale 
   $("#outlineStatus").textContent = message;
 }
 
-async function generateCitations() {
-  const direction = selectedDirection();
-  const btn = $("#generateCitationsBtn");
-  if (btn) { btn.disabled = true; btn.textContent = "生成中..."; }
-  $("#citationStatus").textContent = "正在创建引用生成任务...";
-  const logEl = $("#citationLog");
-  if (logEl) logEl.innerHTML = "";
-  try {
-    const expectedCount = Math.max(10, Math.min(150, Number(($("#citationCount") && $("#citationCount").value) || 100)));
-    const data = await api("/api/citations/generate", {
-      method: "POST",
-      body: JSON.stringify({
-        topic: $("#topicInput").value.trim(),
-        project_context: projectContextPayload(),
-        direction: direction.id,
-        direction_name: direction.name,
-        methods: selectedMethodNames(),
-        phase_methods: phaseMethodsPayload(),
-        expected_count: expectedCount,
-      }),
-    });
-    if (!data.task_id) {
-      throw new Error("未能创建引用生成任务");
-    }
-    pollCitationTask(data.task_id, 0);
-  } catch (error) {
-    $("#citationStatus").textContent = `引用生成失败：${error.message}`;
-    if (btn) { btn.disabled = false; btn.textContent = "生成引用"; }
+const _subsectionHunterState = {};
+
+function _initSubsectionHunterState(draftKey) {
+  if (!_subsectionHunterState[draftKey]) {
+    _subsectionHunterState[draftKey] = { results: [], running: false, taskId: null };
   }
 }
 
-async function pollCitationTask(taskId, count) {
+async function pollCitationTask(taskId, count, draftKey) {
   const data = await api(`/api/tasks/${taskId}`);
-  $("#citationStatus").textContent = `${data.message || data.status} · ${Math.max(count, 1)} 次检查`;
-  renderTaskLog(data.logs || [], "#citationLog");
+  const st = _subsectionHunterState[draftKey];
+  if (!st || st.taskId !== taskId) return; // stale poll
 
-  // 更新进度条
-  const progress = data.progress || 0;
-  setCitationProgress(progress, 100, data.message || "正在生成引用...");
+  const progressEl = $("#hunterProgress");
+  const progressText = $("#hunterProgressText");
+  const logEl = $("#hunterLog");
+  if (progressEl) progressEl.hidden = false;
+  if (logEl) logEl.innerHTML = (data.logs || []).map(l => `<div><time>${l.time}</time> ${l.message}</div>`).join("");
 
   if (data.status === "done") {
     const result = data.result || {};
-    state.citations = result.citations || [];
-    state.localCitations = result.local_citations || [];
-    state.llmCitations = result.llm_citations || [];
-    renderCitations();
-    const alloc = result.allocation || {};
-    $("#citationStatus").textContent = `${result.message || "引用已生成"} · 方向 ${result.direction_count || 0} 条 + 方法 ${result.local_count - (result.direction_count || 0)} 条 + LLM ${result.llm_count || 0} 条`;
-    setCitationProgress(100, 100, "引用生成完成");
-    setTimeout(hideCitationProgress, 4000);
-    const genBtn = $("#generateCitationsBtn");
-    if (genBtn) { genBtn.disabled = false; genBtn.textContent = "重新生成"; }
+    st.results = result.citations || [];
+    st.running = false;
+    renderHunterResults(draftKey);
+    if (progressEl) progressEl.hidden = true;
+    const btn = $("#subsectionHunterBtn");
+    if (btn) { btn.disabled = false; btn.textContent = "真实文献猎手"; }
+    $("#citationStatus").textContent = `猎手完成 · 找到 ${st.results.length} 篇`;
     return;
   }
 
   if (data.status === "error") {
-    $("#citationStatus").textContent = `引用生成失败：${data.message || "未知错误"}`;
-    hideCitationProgress();
-    const failBtn = $("#generateCitationsBtn");
-    if (failBtn) { failBtn.disabled = false; failBtn.textContent = "重试"; }
+    st.running = false;
+    if (progressEl) progressEl.hidden = true;
+    const btn = $("#subsectionHunterBtn");
+    if (btn) { btn.disabled = false; btn.textContent = "真实文献猎手"; }
+    $("#citationStatus").textContent = `检索失败：${data.message || "未知错误"}`;
     return;
   }
 
-  setTimeout(() => pollCitationTask(taskId, count + 1), 1500);
+  if (progressText) progressText.textContent = data.message || "正在检索...";
+  setTimeout(() => pollCitationTask(taskId, count + 1, draftKey), 1500);
 }
 
 
@@ -1906,73 +1883,8 @@ async function pollClassifyTask(taskId, count, btn) {
   setTimeout(() => pollClassifyTask(taskId, count + 1, btn), 2000);
 }
 
-function renderCitations() {
-  const localItems = state.localCitations || [];
-  const llmItems = state.llmCitations || [];
-  const items = state.citations || [];
-
-  if (!items.length && !localItems.length && !llmItems.length) {
-    $("#citationList").innerHTML = `<div class="empty-state">暂无引用。如果需要，请先生成引用清单。</div>`;
-    $("#citationList").removeAttribute("hidden");
-    return;
-  }
-
-  // 按 source 分组本地引用：方向 vs 方法
-  const dirItems = localItems.filter(c => c.source === "local_direction");
-  const methodItems = localItems.filter(c => c.source === "local_method");
-
-  // 方法引用按方法名分组
-  const methodGroups = {};
-  methodItems.forEach(c => {
-    const methodNames = (c.methods || []).filter(m => m !== state.currentDirection?.name);
-    const key = methodNames.length ? methodNames.join(" + ") : "其他方法";
-    if (!methodGroups[key]) methodGroups[key] = [];
-    methodGroups[key].push(c);
-  });
-
-  const renderGroup = (title, groupItems, startIndex, colorClass, icon) => {
-    if (!groupItems.length) return "";
-    const text = groupItems
-      .map((item, i) => `[${startIndex + i}] ${item.formatted || item.title || ""}`)
-      .join("\n\n");
-    return `<details class="citation-group" open>
-      <summary class="citation-group-header ${colorClass}">
-        <span>${icon || "📄"} ${title}</span>
-        <span class="citation-group-count">${groupItems.length} 条</span>
-      </summary>
-      <textarea class="citation-group-text" readonly>${text}</textarea>
-    </details>`;
-  };
-
-  // 方向引用
-  const directionName = state.currentDirection?.name || "研究方向";
-  const dirHtml = renderGroup(`${directionName}相关引用（配额 ~20%）`, dirItems, 1, "citation-local", "📚");
-
-  // 每个方法分组
-  const methodGroupEntries = Object.entries(methodGroups);
-  let runningIndex = dirItems.length + 1;
-  const methodGroupHtmls = methodGroupEntries.map(([methodName, refs]) => {
-    const html = renderGroup(`${methodName}`, refs, runningIndex, "citation-method", "🔬");
-    runningIndex += refs.length;
-    return html;
-  });
-
-  // LLM 补充
-  const llmHtml = renderGroup("大模型补充检索", llmItems, runningIndex, "citation-llm", "🤖");
-
-  // 合并清单
-  const mergedHtml = items.length ? renderGroup("合并引用清单（中英文平衡 · 最终输出）", items, 1, "citation-merged", "📋") : "";
-
-  $("#citationList").innerHTML = `
-    ${dirHtml || ""}
-    ${methodGroupHtmls.join("") || ""}
-    ${llmHtml ? `<div class="citation-llm-section">${llmHtml}</div>` : ""}
-    ${mergedHtml ? `<div class="citation-merged-section">${mergedHtml}</div>` : ""}
-  `;
-  if (items.length || localItems.length || llmItems.length) {
-    $("#citationList").removeAttribute("hidden");
-  }
-}
+// Global citation list removed — now per-subsection. Kept as no-op for callers.
+function renderCitations() {}
 
 async function saveCitations() {
   const data = await api("/api/citations/save", {
@@ -2858,7 +2770,7 @@ async function testConnection() {
         "| 方法论选择 | 从知识库扫描可用研究方法 |",
         "| 研究框架 | 生成方法论与主题的映射框架图 |",
         "| 章节大纲 | 生成三级目录并分配字数 |",
-        "| 引用生成 | 匹配本地文献生成 GB/T 7714 引用 |",
+        "| 真实文献猎手 | 联网寻找 3-5 篇可验证高价值引用 |",
         "| 章节写作 | 逐节扩写，一键串行完成 |",
         "",
         "有任何疑问随时问我，我会全程陪伴你完成论文！"
@@ -4533,6 +4445,17 @@ function openCitationSubsectionPanel(draftKey) {
 
   const retestBtn = $("#retestRelevanceBtn");
   if (retestBtn) retestBtn.style.display = "";
+  const huntBtn = $("#subsectionHunterBtn");
+  if (huntBtn) huntBtn.style.display = "";
+  // Restore hunter results if any
+  _initSubsectionHunterState(draftKey);
+  const hst = _subsectionHunterState[draftKey];
+  if (hst.results && hst.results.length > 0) {
+    renderHunterResults(draftKey);
+  } else {
+    const hunterSection = $("#hunterResultsSection");
+    if (hunterSection) hunterSection.hidden = true;
+  }
   renderScopedChecklist(draftKey);
   loadLibrary().then(() => fetchRelevance(draftKey));
   renderCitationOutline();
@@ -4541,11 +4464,166 @@ function openCitationSubsectionPanel(draftKey) {
   panel?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
+async function huntForSubsection() {
+  const draftKey = citationPageState.activeDraftKey;
+  if (!draftKey) return;
+  const btn = $("#subsectionHunterBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "检索中..."; }
+
+  // Resolve subsection title
+  let sectionTitle = draftKey;
+  const chapters = state.outline?.chapters || [];
+  for (const ch of chapters) {
+    for (const sec of (ch.sections || [])) {
+      for (const sub of (sec.subsections || [])) {
+        if (draftKeyFor(ch, sec, sub) === draftKey) {
+          sectionTitle = `${ch.title} → ${sec.title} → ${sub.title}`;
+        }
+      }
+      if (draftKeyFor(ch, sec, null) === draftKey) {
+        sectionTitle = `${ch.title} → ${sec.title}`;
+      }
+    }
+  }
+
+  _initSubsectionHunterState(draftKey);
+  const st = _subsectionHunterState[draftKey];
+  st.running = true;
+  st.results = [];
+
+  // Show hunter section
+  const section = $("#hunterResultsSection");
+  if (section) { section.hidden = false; setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100); }
+  const empty = $("#hunterResultsEmpty");
+  if (empty) empty.hidden = true;
+  const tbody = $("#hunterResultsTbody");
+  if (tbody) tbody.innerHTML = `<tr><td colspan="4" class="lib-empty-cell">正在检索真实文献...</td></tr>`;
+  $("#hunterResultsCount").textContent = "";
+
+  const direction = selectedDirection();
+  try {
+    const data = await api("/api/citations/generate", {
+      method: "POST",
+      body: JSON.stringify({
+        topic: $("#topicInput").value.trim(),
+        project_context: projectContextPayload(),
+        direction: direction.id,
+        direction_name: direction.name,
+        methods: selectedMethodNames(),
+        phase_methods: phaseMethodsPayload(),
+        expected_count: 5,
+        section_title: sectionTitle,
+        section_key: draftKey,
+      }),
+    });
+    if (!data.task_id) throw new Error("未能创建真实文献猎手任务");
+    st.taskId = data.task_id;
+    pollCitationTask(data.task_id, 0, draftKey);
+  } catch (error) {
+    st.running = false;
+    if (btn) { btn.disabled = false; btn.textContent = "真实文献猎手"; }
+    if (tbody) tbody.innerHTML = `<tr><td colspan="4" class="lib-empty-cell">检索失败：${escHtml(error.message)}</td></tr>`;
+  }
+}
+
+function renderHunterResults(draftKey) {
+  const st = _subsectionHunterState[draftKey];
+  if (!st) return;
+  const tbody = $("#hunterResultsTbody");
+  const countEl = $("#hunterResultsCount");
+  const empty = $("#hunterResultsEmpty");
+  const section = $("#hunterResultsSection");
+  if (section) section.hidden = false;
+  if (countEl) countEl.textContent = `(${st.results.length} 篇)`;
+
+  if (!st.results.length) {
+    if (tbody) tbody.innerHTML = "";
+    if (empty) empty.hidden = false;
+    return;
+  }
+  if (empty) empty.hidden = true;
+
+  tbody.innerHTML = st.results.map((c) => {
+    const cardId = c.card_id || c.id || "";
+    // Check if already in local KB
+    const inKB = libState.library.some(lc => lc.card_id === cardId) || citationPageState.cardCache[cardId];
+    const sourceLabel = inKB ? "本地知识库" : (c.source === "real_literature_hunter" ? "猎手查询" : "猎手查询");
+    const actionBtn = inKB
+      ? `<span class="lib-added-label">已入库</span>`
+      : `<button class="primary lib-add-btn" data-hunter-cid="${escHtml(cardId)}">加入引用库</button>`;
+    return `<tr>
+      <td class="lib-cell-text" title="${escHtml(c.formatted || '')}">${escHtml((c.formatted || c.title || '').substring(0, 180))}</td>
+      <td>${escHtml(sourceLabel)}</td>
+      <td>${escHtml(String(c.year || ''))}</td>
+      <td class="lib-actions-cell">${actionBtn}</td>
+    </tr>`;
+  });
+
+  // Wire add-to-library buttons
+  tbody.querySelectorAll("[data-hunter-cid]").forEach(btn => {
+    btn.addEventListener("click", async function() {
+      const cid = this.dataset.hunterCid;
+      const citation = st.results.find(c => (c.card_id || c.id) === cid);
+      if (!citation) return;
+      this.disabled = true;
+      this.textContent = "校验中...";
+      try {
+        await addHunterCitationToLibrary(citation, draftKey);
+        this.textContent = "已入库";
+        this.className = "lib-added-label";
+        this.disabled = false;
+        // Update source label
+        const srcTd = this.closest("tr").querySelector("td:nth-child(2)");
+        if (srcTd) srcTd.textContent = "本地知识库";
+      } catch (e) {
+        console.error("addHunterCitationToLibrary failed:", e);
+        this.disabled = false;
+        this.textContent = e.isVerificationRejection ? "未通过" : "重试";
+      }
+    });
+  });
+}
+
+async function addHunterCitationToLibrary(citation, draftKey) {
+  const direction = selectedDirection();
+  const data = await api("/api/citation-cards/verify-and-add", {
+    method: "POST",
+    body: JSON.stringify({
+      formatted: citation.formatted || "",
+      title: citation.title || "",
+      authors: citation.authors || "",
+      year: String(citation.year || ""),
+      ref_type: citation.type || citation.ref_type || "其他",
+      doi: citation.doi || "",
+      methods: citation.methods || selectedMethodNames(),
+      direction: direction.id,
+      direction_label: direction.name,
+    }),
+  });
+  if (!data.added) {
+    const err = new Error(data.reason || "文献真实性未通过校验");
+    err.isVerificationRejection = true;
+    throw err;
+  }
+  // Add to local cache
+  const card = data.card;
+  if (card) {
+    citationPageState.cardCache[card.card_id] = card;
+    // Also add to libState.library so it appears in local KB immediately
+    libState.library.unshift(card);
+  }
+  return data;
+}
+
 function closeCitationSubsectionPanel() {
   citationPageState.activeDraftKey = null;
   libState._relevanceResults = null;
   const retestBtn = $("#retestRelevanceBtn");
   if (retestBtn) retestBtn.style.display = "none";
+  const huntBtn = $("#subsectionHunterBtn");
+  if (huntBtn) huntBtn.style.display = "none";
+  const hunterSection = $("#hunterResultsSection");
+  if (hunterSection) hunterSection.hidden = true;
   const panel = $("#citationSubsectionPanel");
   if (panel) panel.hidden = true;
   renderCitationOutline();
@@ -5087,7 +5165,6 @@ function openLibraryEdit(cardId) {
 
 function bindLibraryEvents() {
   // Generate citations
-  $("#generateCitationsBtn")?.addEventListener("click", () => generateCitations());
 
   // LLM classify
   $("#classifyCitationsBtn")?.addEventListener("click", async () => {
@@ -5321,6 +5398,23 @@ function bindLibraryEvents() {
   }
 
   $("#openAddCitationBtn")?.addEventListener("click", openAddCitationModal);
+  $("#scoreUnratedBtn")?.addEventListener("click", async () => {
+    const btn = $("#scoreUnratedBtn");
+    if (!btn) return;
+    btn.disabled = true;
+    btn.textContent = "评分中...";
+    try {
+      const data = await api("/api/citation-cards/score-unrated", { method: "POST", body: "{}" });
+      $("#citationStatus").textContent = data.message || `已评分 ${data.updated || 0} 张`;
+      if (data.updated > 0) loadLibrary();
+      setTimeout(() => { if ($("#citationStatus").textContent === (data.message || `已评分 ${data.updated || 0} 张`)) $("#citationStatus").textContent = ""; }, 5000);
+    } catch (e) {
+      $("#citationStatus").textContent = `评分失败：${e.message}`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "增量评分";
+    }
+  });
   $("#cmAddCitationClose")?.addEventListener("click", closeAddCitationModal);
   $("#cmAddCitationCancel")?.addEventListener("click", closeAddCitationModal);
   $("#cmAddCancel2")?.addEventListener("click", closeAddCitationModal);
@@ -5351,6 +5445,8 @@ activeStep = function(id) {
       if (closeBtn) closeBtn.onclick = closeCitationSubsectionPanel;
       const clearBtn = $("#scopedClearChecklist");
       if (clearBtn) clearBtn.onclick = clearSubsectionChecklist;
+      const huntBtn = $("#subsectionHunterBtn");
+      if (huntBtn) huntBtn.addEventListener("click", huntForSubsection);
       const retestBtn = $("#retestRelevanceBtn");
       if (retestBtn) retestBtn.addEventListener("click", () => {
         const dk = citationPageState.activeDraftKey;

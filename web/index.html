@@ -26,7 +26,7 @@
         <button class="step" data-step="methods"><span>03</span>方法论选择<small class="step-stars">★★★★</small></button>
         <button class="step" data-step="framework"><span>04</span>研究框架<small class="step-stars">★★★</small></button>
         <button class="step" data-step="outline"><span>05</span>章节大纲<small class="step-stars">★★★★★</small></button>
-        <button class="step" data-step="citations"><span>06</span>引用生成<small class="step-stars">★★★★</small></button>
+        <button class="step" data-step="citations"><span>06</span>文献引用<small class="step-stars">★★★★</small></button>
         <button class="step" data-step="writing"><span>07</span>章节写作<small class="step-stars">★★★</small></button>
         <button class="step services-toggle" id="servicesToggle" hidden><span>08</span>增值服务 <span class="chevron" id="servicesChevron">▸</span></button>
       </nav>
@@ -106,7 +106,7 @@
             <div class="wstep-arrow">→</div>
             <div class="wstep"><span>05</span>章节大纲</div>
             <div class="wstep-arrow">→</div>
-            <div class="wstep"><span>06</span>引用生成</div>
+            <div class="wstep"><span>06</span>真实文献猎手</div>
             <div class="wstep-arrow">→</div>
             <div class="wstep"><span>07</span>章节写作</div>
           </div>
@@ -350,43 +350,32 @@
         <div id="outlinePreview" class="outline-preview"></div>
         <div class="actions split">
           <button class="ghost" data-next="framework">上一步</button>
-          <button class="primary" data-next="citations">进入引用生成</button>
+          <button class="primary" data-next="citations">进入文献引用</button>
         </div>
       </section>
 
       <section class="panel page" id="citations">
         <div class="page-head compact">
           <div>
-            <p class="eyebrow">引用生成</p>
+            <p class="eyebrow">文献引用</p>
             <h2>按小节管理引用文献</h2>
           </div>
           <div class="head-actions">
-            <button class="primary" id="generateCitationsBtn">AI生成引用</button>
             <button class="ghost" id="classifyCitationsBtn">LLM分类</button>
+            <button class="ghost" id="scoreUnratedBtn">增量评分</button>
             <button class="ghost" id="openAddCitationBtn">新增引用</button>
             <span class="save-tip" id="citationStatus"></span>
           </div>
         </div>
-        <div id="citationProgress" class="serial-progress" hidden>
-          <div class="snail-track">
-            <div class="snail" id="citationSnailRunner" aria-hidden="true">
-              <span class="snail-shell"></span>
-              <span class="snail-body"></span>
-              <span class="snail-eye"></span>
-            </div>
-          </div>
-          <div class="serial-progress-text" id="citationProgressText">准备生成引用</div>
-        </div>
-        <div id="citationLog" class="task-log" hidden></div>
-        <div id="citationList" class="citation-list" hidden></div>
 
-        <!-- ===== TOP: 章节大纲树（仅第一、二章） ===== -->
+        <!-- ===== TOP: 章节大纲树 ===== -->
         <div class="citation-outline" id="citationOutline"></div>
 
         <!-- ===== BOTTOM: 按小节的引用管理面板 ===== -->
         <div class="citation-subsection-panel" id="citationSubsectionPanel" hidden>
           <div class="citation-subsection-head">
             <h3 id="citationSubsectionTitle">引用管理</h3>
+            <button class="primary" id="subsectionHunterBtn" style="display:none;font-size:13px">真实文献猎手</button>
             <button class="ghost" id="retestRelevanceBtn" style="display:none;font-size:13px">重测适配度</button>
             <button class="ghost" id="citationSubsectionClose">收起</button>
           </div>
@@ -505,6 +494,31 @@
             </div>
             <div class="cm-pagination" id="libraryPagination"></div>
             <div class="library-empty" id="libraryEmpty" hidden>没有匹配的引用卡片</div>
+          </div>
+          <!-- Hunter results (per-subsection) -->
+          <div class="library-section" id="hunterResultsSection" hidden>
+            <div class="library-head">
+              <h3>🌐 猎手查询结果 <span id="hunterResultsCount"></span></h3>
+            </div>
+            <div id="hunterProgress" class="serial-progress" hidden>
+              <div class="snail-track"><div class="snail"><span class="snail-shell"></span><span class="snail-body"></span><span class="snail-eye"></span></div></div>
+              <div class="serial-progress-text" id="hunterProgressText">正在检索...</div>
+            </div>
+            <div id="hunterLog" class="task-log" hidden></div>
+            <div class="library-table-wrap">
+              <table class="library-table">
+                <thead>
+                  <tr>
+                    <th>引用内容</th>
+                    <th class="lib-col-type">来源</th>
+                    <th class="lib-col-year">年份</th>
+                    <th class="lib-col-actions">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="hunterResultsTbody"></tbody>
+              </table>
+            </div>
+            <div class="library-empty" id="hunterResultsEmpty" hidden>暂无猎手查询结果。点击上方"真实文献猎手"按钮开始检索。</div>
           </div>
         </div>
 

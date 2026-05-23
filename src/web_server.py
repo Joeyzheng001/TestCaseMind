@@ -1585,6 +1585,33 @@ def _citation_language(text: str) -> str:
     return "en" if ascii_chars > chinese_chars * 1.5 else "zh"
 
 
+_CITATION_NUM_PREFIX_RE = re.compile(
+    r"^\s*\[\s*(?:\d+(?:\s*[,\uff0c\u3001\s-]\s*\d+)*)\s*\]\s*"
+)
+
+
+def _strip_citation_number_prefix(text: str) -> str:
+    """Strip leading reference-number bracket like [1], [1,2], [3-5] from citation text."""
+    if not text:
+        return text
+    return _CITATION_NUM_PREFIX_RE.sub("", text, count=1)
+
+
+_APPENDIX_BOUNDARY_RE = re.compile(r"(?:浙江大学)?附录[一二三四五六七八九十\d]*[：:\s]?")
+
+
+def _clean_citation_formatted(text: str) -> str:
+    """Strip [N] prefix and truncate at appendix/survey content boundary."""
+    if not text:
+        return text
+    text = _strip_citation_number_prefix(text)
+    # Truncate at appendix boundary (PDF parser incorrectly merges appendix content)
+    parts = _APPENDIX_BOUNDARY_RE.split(text, maxsplit=1)
+    if len(parts) > 1 and len(parts[0].strip()) > 10:
+        text = parts[0].strip()
+    return text
+
+
 def _reference_section(text: str) -> str:
     if not text:
         return ""
@@ -1799,7 +1826,7 @@ def build_citation_index(task_id: str = "") -> Dict[str, Any]:
                     {
                         "id": uuid.uuid5(uuid.NAMESPACE_URL, f"{source_path}-{index}").hex,
                         "title": formatted[:120],
-                        "formatted": formatted,
+                        "formatted": _clean_citation_formatted(formatted),
                         "source_path": source_path,
                         "converted_path": kb_relative,
                         "language": _citation_language(formatted),
@@ -2020,9 +2047,11 @@ def _normalize_citations(raw_items: List[Dict[str, Any]]) -> List[Dict[str, Any]
                 if item.get("language") in {"zh", "en"}
                 else _citation_language(title),
                 "type": strip_markdown(str(item.get("type") or item.get("ref_type", "期刊/图书"))).strip(),
-                "formatted": strip_markdown(str(item.get("formatted", ""))).strip()
-                or strip_markdown(str(item.get("gbt7714", ""))).strip()
-                or title,
+                "formatted": _strip_citation_number_prefix(
+                    strip_markdown(str(item.get("formatted", ""))).strip()
+                    or strip_markdown(str(item.get("gbt7714", ""))).strip()
+                    or title
+                ),
                 "directions": item.get("directions", []),
                 "methods": item.get("methods", []),
                 "reason": strip_markdown(str(item.get("reason", ""))).strip(),
@@ -2178,239 +2207,72 @@ def _cards_to_citations(cards: List[Dict[str, Any]], source: str = "local") -> L
 
 
 def generate_citations(payload: Dict[str, Any], task_id: str = "") -> Dict[str, Any]:
-    from src.paper_store import get_cards_by_direction_and_methods, search_cards, get_paper_stats, _diversify_cards
+    from src.literature_hunter import hunt_real_literature
 
     topic = payload.get("topic", "论文主题")
     project_context = persist_project_context(payload)
     direction = payload.get("direction") or ""
     direction_name = payload.get("direction_name") or direction or "工程管理"
     methods = payload.get("methods") or []
-    expected_count = max(10, min(150, int(payload.get("expected_count", 100) or 100)))
+    expected_count = max(3, min(5, int(payload.get("expected_count", 5) or 5)))
 
-    # 配额分配：有方法时方向占 20%；纯方向检索时方向占 100%
-    if methods:
-        direction_quota = max(2, round(expected_count * 0.2))
-        methods_quota_total = expected_count - direction_quota
-    else:
-        direction_quota = expected_count
-        methods_quota_total = 0
-
-    stats = get_paper_stats()
     if task_id:
-        task_log(task_id, f"开始生成引用：方向={direction_name}，方法={len(methods)}个，期望 {expected_count} 条")
-        task_log(task_id, f"配额：方向 {direction_quota} + 方法汇总 {methods_quota_total} 条")
-        task_log(task_id, f"论文库：{stats['papers']} 篇论文，{stats['cards']} 张引用卡片")
+        task_log(task_id, f"真实文献猎手启动：方向={direction_name}，方法={len(methods)}个，目标 {expected_count} 篇")
+        task_log(task_id, "规则：只返回 OpenAlex 等公开学术索引中可验证的真实文献，不生成伪引用")
         with TASK_LOCK:
-            TASKS[task_id]["progress"] = 5
+            TASKS[task_id]["progress"] = 10
 
-    # === 第一阶段：方向检索（先内容过滤，再多样性，保证每条引用都匹配方法） ===
-    dir_cards_raw = get_cards_by_direction_and_methods(
-        direction, methods, limit=300, verified_only=False,
-    )
-    dir_cards_filtered = _content_filter_cards(dir_cards_raw, methods)
-    dir_cards = _diversify_cards(dir_cards_filtered, direction_quota * 2, max_per_source=2)
-    dir_citations = _cards_to_citations(dir_cards, source="local_direction")
-    if task_id:
-        task_log(task_id, f"方向检索（内容级匹配+多样性）：{len(dir_citations)} 条（配额 {direction_quota}）")
-        with TASK_LOCK:
-            TASKS[task_id]["progress"] = 20
+    search_payload = {
+        **payload,
+        "topic": topic,
+        "project_context": project_context,
+        "direction": direction,
+        "direction_name": direction_name,
+        "methods": methods,
+    }
 
-    # === 第二阶段：方法汇总检索（多方法合并查询，非逐方法单独查） ===
-    method_citations_map: Dict[str, List[Dict[str, Any]]] = {}
-    if methods:
-        m_cards_raw = get_cards_by_direction_and_methods(
-            direction, methods, limit=500,
-        )
-        m_cards_filtered = _content_filter_cards(m_cards_raw, methods)
-        m_cards = _diversify_cards(m_cards_filtered, methods_quota_total * 2, max_per_source=4)
-        m_cits = _cards_to_citations(m_cards, source="local_method")
-        # 按方法拆分统计（仅用于日志，不影响合并检索）
-        for method in methods:
-            method_citations_map[method] = [
-                c for c in m_cits if method in (c.get("methods") or [])
-            ]
+    def _hunter_log(message: str) -> None:
         if task_id:
-            task_log(task_id, f"  方法汇总检索：{len(m_cits)} 条（配额 {methods_quota_total}）")
-            for method in methods:
-                task_log(task_id, f"    {method}: {len(method_citations_map.get(method, []))} 条")
-        with TASK_LOCK:
-            TASKS[task_id]["progress"] = 55
-    else:
-        m_cits = []
+            task_log(task_id, message)
 
-    # 合并去重：方向优先，方法补充
-    dir_final = dir_citations[:direction_quota]
-    used_titles = {c["title"] for c in dir_final}
-
-    method_final = [c for c in m_cits if c["title"] not in used_titles][:methods_quota_total]
-    for c in method_final:
-        used_titles.add(c["title"])
-
-    local_citations = dir_final + method_final
+    hunter_result = hunt_real_literature(
+        search_payload,
+        limit=expected_count,
+        log=_hunter_log if task_id else None,
+    )
+    citations = hunter_result.get("citations", [])
 
     if task_id:
         task_log(
             task_id,
-            f"本地检索完成：方向引用 {len(dir_final)} 条 + 方法引用 {len(method_final)} 条 = {len(local_citations)} 条",
+            f"检索完成：候选 {hunter_result.get('candidate_count', 0)} 篇，精选 {len(citations)} 篇",
         )
-        with TASK_LOCK:
-            TASKS[task_id]["progress"] = 55
-
-    # === 第三阶段：LLM 补充 ===
-    config = load_llm_config()
-    llm_citations: List[Dict[str, Any]] = []
-    llm_status = "未配置 API Key，仅返回本地引用候选"
-    gap = expected_count - len(local_citations)
-
-    if config.api_key and gap > 0:
-        if task_id:
-            task_log(task_id, f"本地缺口 {gap} 条，调用大模型补充：{config.model}")
-            with TASK_LOCK:
-                TASKS[task_id]["progress"] = 60
-        client, provider = _build_llm_client_and_provider(config)
-
-        methods_quota_desc = "、".join(
-            f"{m}" for m in methods[:8]
-        ) if methods else "无"
-
-        prompt = f"""请为工程管理硕士论文补充参考文献候选清单。
-
-论文主题：{topic}
-项目背景与论文思路：
-{project_context[:2400] or "用户未填写。"}
-
-研究方向：{direction_name}（配额约 {direction_quota} 篇，含该领域经典理论与近期进展）
-研究方法与配额：{methods_quota_desc}
-期望总引用数量：约 {expected_count} 篇，当前本地已检索到 {len(local_citations)} 篇，需要补充约 {gap} 篇
-
-本地已检索候选（不要重复这些）：
-{json.dumps(local_citations[: min(20, len(local_citations))], ensure_ascii=False)}
-
-要求：
-1. 研究方向「{direction_name}」相关：提供该领域的中外经典理论书籍、综述文章、高被引用刊论文。
-2. 每个研究方法：提供与该方法的理论基础、应用案例、近期（近3年）高水平期刊文章。
-3. 不要重复本地已有的候选条目。
-4. 严禁捏造。无法确认作者、题名、年份或来源真实性的条目不要输出。
-5. formatted 字段必须使用 GB/T 7714—2015 参考文献格式。
-6. 中英文比例约 5:5。
-7. 只输出 JSON，不要 Markdown，不要解释。
-
-JSON 结构：
-{{"citations":[{{"formatted":"GB/T 7714—2015格式参考文献","title":"文献题名","authors":"作者","year":"年份","language":"zh或en","type":"图书或期刊文章","methods":["相关方法"],"reason":"研究方向/方法对应说明","verify_status":"需人工核验"}}]}}
-"""
-        try:
-            response = _llm_create_message(
-                client, provider, config,
-                system="你是工程管理硕士论文参考文献规划助手，擅长补充真实可核验的学术参考文献。只输出你能确认存在的文献，不确定的不要输出。",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=max(config.max_tokens, 6000),
-            )
-            raw = _extract_json_object(_llm_response_text(response, provider))
-            llm_citations = _normalize_citations(raw.get("citations", []))
-            for c in llm_citations:
-                c["source"] = "llm_supplement"
-                c["verify_status"] = "LLM补充，需核验"
-            llm_status = f"LLM 补充返回 {len(llm_citations)} 条引用候选；建议导出前人工核验"
-            if task_id:
-                task_log(task_id, llm_status)
-                with TASK_LOCK:
-                    TASKS[task_id]["progress"] = 85
-        except Exception as exc:
-            llm_status = f"LLM 引用补充失败：{exc}"
-            if task_id:
-                task_log(task_id, llm_status)
-                with TASK_LOCK:
-                    TASKS[task_id]["progress"] = 80
-    elif task_id:
-        if gap <= 0:
-            task_log(task_id, "本地检索已满足配额，跳过大模型补充")
-        else:
-            task_log(task_id, "未配置 API Key，跳过 LLM 补充")
-        with TASK_LOCK:
-            TASKS[task_id]["progress"] = 80
-
-    # === 第四阶段：LLM 去重 + 中英文平衡 ===
-    if task_id:
-        task_log(task_id, "合并去重，按配额裁剪...")
-
-    llm_final = [c for c in llm_citations if c["title"] not in used_titles]
-    for c in llm_final:
-        used_titles.add(c["title"])
-
-    merged_local = dir_final + method_final
-    merged = merged_local + llm_final
-
-    # 中英文平衡
-    zh = [c for c in merged if c.get("language") == "zh"]
-    en = [c for c in merged if c.get("language") == "en"]
-    half = max(1, expected_count // 2)
-    balanced = (zh[:half] + en[:half]) if en else merged[:expected_count]
-    if len(balanced) < min(expected_count, len(merged)):
-        used = {c["id"] for c in balanced}
-        balanced.extend(
-            [c for c in merged if c["id"] not in used][: expected_count - len(balanced)]
-        )
-
-    # === 第五阶段：质量过滤（弃用 B 级以下，优先 A 级） ===
-    from src.citation_scorer import score_citation_offline
-
-    scored_citations = []
-    discarded = 0
-    for c in balanced:
-        try:
-            s = score_citation_offline({
-                "formatted": c.get("formatted", ""),
-                "title": c.get("title", ""),
-                "authors": c.get("authors", ""),
-                "year": c.get("year", ""),
-                "ref_type": c.get("type", "期刊文章"),
-                "language": c.get("language", "zh"),
-                "verified": c.get("verified", 0),
-            })
-            c["_quality_score"] = s.get("quality_score", 0)
-            c["_grade"] = s.get("grade", "D")
-            if s.get("quality_score", 0) >= 75:
-                scored_citations.append(c)
-            else:
-                discarded += 1
-        except Exception:
-            scored_citations.append(c)  # Keep if scoring fails
-
-    # Sort: A first, then B
-    scored_citations.sort(key=lambda c: c.get("_quality_score", 0), reverse=True)
-
-    if task_id and discarded > 0:
-        task_log(task_id, f"质量过滤：弃用 {discarded} 条低分引用（B级以下），保留 {len(scored_citations)} 条")
         with TASK_LOCK:
             TASKS[task_id]["progress"] = 95
 
     result = {
         "status": "ok",
-        "message": llm_status,
-        "citations": scored_citations[:expected_count],
-        "local_citations": merged_local,
-        "llm_citations": llm_final,
-        "local_count": len(merged_local),
-        "llm_count": len(llm_final),
-        "direction_count": len(dir_final),
-        "method_counts": {m: len(method_citations_map.get(m, [])) for m in methods},
-        "index_entry_count": stats.get("cards", 0),
+        "message": hunter_result.get("message", "真实文献猎手检索完成"),
+        "citations": citations,
+        "local_citations": [],
+        "llm_citations": citations,
+        "local_count": 0,
+        "llm_count": len(citations),
+        "direction_count": 0,
+        "method_counts": {m: len(citations) for m in methods},
+        "index_entry_count": hunter_result.get("candidate_count", 0),
         "allocation": {
-            "direction_quota": direction_quota,
-            "methods_quota_total": methods_quota_total,
+            "target_count": expected_count,
+            "source": hunter_result.get("source", "OpenAlex"),
         },
-        "quality_filter": {
-            "discarded": discarded,
-            "kept": len(scored_citations),
-            "a_count": sum(1 for c in scored_citations if c.get("_grade") == "A"),
-            "b_count": sum(1 for c in scored_citations if c.get("_grade") == "B"),
-        },
+        "queries": hunter_result.get("queries", []),
+        "candidate_count": hunter_result.get("candidate_count", 0),
     }
     save_workspace_value("citations", result["citations"])
     if task_id:
         task_log(
             task_id,
-            f"引用生成完成：输出 {len(result['citations'])} 条（方向 {len(dir_final)} + 方法 {len(method_final)} + LLM {len(llm_final)}）",
+            f"真实文献猎手完成：输出 {len(result['citations'])} 篇真实可验证文献",
         )
         with TASK_LOCK:
             TASKS[task_id]["progress"] = 100
@@ -2869,16 +2731,16 @@ def _run_scan_verify_task(task_id: str, payload: Dict[str, Any]) -> None:
 def _run_citation_generate_task(task_id: str, payload: Dict[str, Any]) -> None:
     with TASK_LOCK:
         TASKS[task_id].update(
-            {"status": "running", "message": "正在生成引用...", "progress": 0}
+            {"status": "running", "message": "真实文献猎手正在检索...", "progress": 0}
         )
     try:
-        task_log(task_id, "任务开始：引用生成")
+        task_log(task_id, "任务开始：真实文献猎手")
         result = generate_citations(payload, task_id=task_id)
         with TASK_LOCK:
             TASKS[task_id].update(
                 {
                     "status": "done",
-                    "message": "引用生成完成",
+                    "message": "真实文献猎手完成",
                     "result": result,
                     "finished_at": time.time(),
                     "progress": 100,
@@ -2902,11 +2764,11 @@ def start_citation_generate_task(payload: Dict[str, Any]) -> str:
             "kind": CITATION_GENERATE_TASK_KIND,
             "permission_menu": TASK_PERMISSION_BY_KIND[CITATION_GENERATE_TASK_KIND],
             "status": "queued",
-            "message": "引用生成任务已创建",
+            "message": "真实文献猎手任务已创建",
             "logs": [
                 {
                     "time": time.strftime("%H:%M:%S"),
-                    "message": "引用生成任务已创建，等待后台执行",
+                    "message": "真实文献猎手任务已创建，等待后台执行",
                 }
             ],
             "created_at": time.time(),
@@ -3876,7 +3738,7 @@ def _llm_create_message(
             messages=api_messages,
         )
         resp_text = response.choices[0].message.content or ""
-        logger.info("LLM response (%s chars):\n%s", len(resp_text), resp_text[:2000])
+        logger.info("LLM response (%s chars):\n%s", len(resp_text), resp_text)
         return response
     kwargs: Dict[str, Any] = dict(
         model=config.model,
@@ -3890,7 +3752,7 @@ def _llm_create_message(
         kwargs["tools"] = tools
     response = client.messages.create(**kwargs)
     resp_text = _response_text(response)
-    logger.info("LLM response (%s chars):\n%s", len(resp_text), resp_text[:2000])
+    logger.info("LLM response (%s chars):\n%s", len(resp_text), resp_text)
     return response
 
 
@@ -3915,7 +3777,7 @@ CHAT_SYSTEM_PROMPT = """你是 ThesisMind 论文辅助工作台的智能引导�
 03 方法论选择 — 从知识库扫描可用研究方法，分配到"发现问题/解决问题/验证问题"三个阶段
 04 研究框架 — 生成研究框架 SVG 图（方法论与论文主题的映射关系）
 05 章节大纲 — 生成三级目录结构，分配字数，支持后续手动编辑
-06 引用生成 — 从本地知识库匹配真实文献，生成 GB/T 7714 格式引用
+06 真实文献猎手 — 联网寻找 3-5 篇可验证高价值引用，生成 GB/T 7714 格式引用
 07 章节写作 — 按小节扩写/重写，支持一键串行完成所有小节
 
 ## 你的职责
@@ -6353,13 +6215,6 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 from src.method_registry import get_method_catalog
                 _json_response(self, {"catalog": get_method_catalog()})
                 return
-            if path == "/api/methods/have-formulas":
-                payload = _read_json(self)
-                methods = payload.get("methods", []) if isinstance(payload, dict) else []
-                result = _methods_have_formulas(methods)
-                any_has = any(result.values()) if result else False
-                _json_response(self, {"has_any": any_has, "per_method": result})
-                return
             if path == "/api/projects":
                 _json_response(
                     self,
@@ -7015,6 +6870,13 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _json_response(self, compile_thesis())
                 return
 
+            if path == "/api/methods/have-formulas":
+                methods = payload.get("methods", []) if isinstance(payload, dict) else []
+                result = _methods_have_formulas(methods)
+                any_has = any(result.values()) if result else False
+                _json_response(self, {"has_any": any_has, "per_method": result})
+                return
+
             if path == "/api/method-supplement":
                 _json_response(self, _supplement_method(payload))
                 return
@@ -7299,6 +7161,142 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _json_response(self, {"status": "ok", "updated": updated, "scores": scores})
                 return
 
+            if path == "/api/citation-cards/verify-and-add":
+                formatted = str(payload.get("formatted", "")).strip()
+                title = str(payload.get("title", "")).strip()
+                authors = str(payload.get("authors", "")).strip()
+                year = str(payload.get("year", "")).strip()
+                ref_type = str(payload.get("ref_type", payload.get("type", "其他"))).strip()
+                doi = str(payload.get("doi", "")).strip()
+                methods = payload.get("methods", [])
+                direction = str(payload.get("direction", "")).strip()
+                direction_label = str(payload.get("direction_label", "")).strip()
+                if not formatted:
+                    _json_response(self, {"status": "error", "message": "formatted citation text required"}, status=400)
+                    return
+
+                # Call LLM to verify
+                config = load_llm_config()
+                if not config.api_key:
+                    _json_response(self, {"status": "error", "message": "未配置 LLM API Key"}, status=400)
+                    return
+                client, provider = _build_llm_client_and_provider(config)
+                user_msg = f"""请验证以下参考文献：
+
+作者：{authors or '(未知)'}
+年份：{year}
+类型：{ref_type}
+引用格式：{formatted[:500]}"""
+                try:
+                    response = client.messages.create(
+                        model=config.model, max_tokens=256,
+                        thinking={"type": "disabled"},
+                        system="""你是一位学术文献审核专家。你的任务是凭借你的学术知识储备，验证一条参考文献引用的真实性。
+
+规则：
+1. 不要提及任何具体数据库名称或假装执行搜索——只依赖你的训练知识判断。
+2. DOI 是文献真实存在的强信号，有 DOI 的文献极大概率真实。
+3. 判断依据：作者姓名是否合理、期刊/会议/出版社是否知名存在、标题是否有学术含义（非乱码/无意义拼接）。
+4. 格式小问题（缺少空格、标点不规范、类型标记缺失）不代表文献虚构。
+5. 如果文献信息完整、来自知名出版源但你不能100%确认，倾向于判定为真实。
+6. 仅当文献有明显伪造特征（标题乱码、作者名虚构、期刊不存在）时才判为 fake。
+
+回复严格 JSON，不要包含其他文字：
+- 文献真实可确认：{"status": "verified"}
+- 文献真实但格式有问题：{"status": "format_error", "note": "格式问题（20字内）"}
+- 明确伪造或不存在：{"status": "fake", "note": "原因（20字内）"}""",
+                        messages=[{"role": "user", "content": user_msg}],
+                    )
+                    text = ""
+                    for block in response.content:
+                        if getattr(block, "type", "") == "text":
+                            text += block.text
+                    text = text.strip()
+                    if text.startswith("```"):
+                        text = text.split("\n", 1)[-1]
+                        if text.endswith("```"):
+                            text = text[:-3]
+                        text = text.strip()
+                    result = json.loads(text)
+                except Exception as e:
+                    _json_response(self, {"status": "error", "message": f"LLM 校验失败: {e}"}, status=500)
+                    return
+
+                status = result.get("status", "fake")
+                if status == "fake":
+                    _json_response(self, {
+                        "status": "ok", "added": False,
+                        "reason": result.get("note", "文献真实性未通过校验"),
+                        "verified": -1,
+                    })
+                    return
+
+                # Valid citation — upsert to cards table
+                import uuid as _uuid
+                from src.paper_store import PAPER_DB_PATH, upsert_citation_card
+                card_id = f"CITE-{_uuid.uuid4().hex[:8].upper()}"
+                verified = 1 if status == "verified" else -2
+                verification_note = result.get("note", "")[:200] if status == "format_error" else ""
+                card = {
+                    "card_id": card_id,
+                    "formatted": formatted,
+                    "title": title,
+                    "authors": authors,
+                    "year": year,
+                    "ref_type": ref_type,
+                    "language": "zh" if any("一" <= c <= "鿿" for c in formatted[:100]) else "en",
+                    "doi": doi,
+                    "methods": methods if isinstance(methods, list) else [],
+                    "direction_id": direction,
+                    "direction_label": direction_label,
+                    "verified": verified,
+                    "verification_note": verification_note,
+                    "source": "hunter_verified",
+                }
+                upsert_citation_card(card)
+                _json_response(self, {
+                    "status": "ok", "added": True,
+                    "card_id": card_id,
+                    "card": card,
+                    "verified": verified,
+                    "verification_note": verification_note,
+                })
+                return
+
+            # ── Incremental scoring for unrated cards ─────────
+            if path == "/api/citation-cards/score-unrated":
+                from src.paper_store import PAPER_DB_PATH
+                from src.paper_pipeline import _compute_card_quality
+                conn = sqlite3.connect(str(PAPER_DB_PATH))
+                conn.row_factory = sqlite3.Row
+                rows = conn.execute(
+                    "SELECT * FROM citation_cards WHERE quality_score = 0 OR quality_score IS NULL"
+                ).fetchall()
+                if not rows:
+                    conn.close()
+                    _json_response(self, {"status": "ok", "updated": 0, "message": "无未评分卡片"})
+                    return
+
+                updated = 0
+                for row in rows:
+                    card = dict(row)
+                    formatted = card.get("formatted", "")
+                    ref_type = card.get("ref_type", "其他")
+                    try:
+                        methods = json.loads(card.get("methods_json", "[]"))
+                    except (json.JSONDecodeError, TypeError):
+                        methods = []
+                    score = _compute_card_quality(formatted, ref_type, methods)
+                    conn.execute(
+                        "UPDATE citation_cards SET quality_score = ? WHERE card_id = ?",
+                        (score, card["card_id"]),
+                    )
+                    updated += 1
+                conn.commit()
+                conn.close()
+                _json_response(self, {"status": "ok", "updated": updated, "message": f"已评分 {updated} 张卡片"})
+                return
+
             # ── Citation relevance ──────────────────────────
             if path == "/api/citation-cards/relevance":
                 card_ids = payload.get("card_ids", [])
@@ -7320,6 +7318,56 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                             "SELECT content FROM drafts WHERE draft_key = ?", (stored_key,)
                         ).fetchone()
                     section_text = str(row[0]) if row else ""
+
+                    # Fallback: build section context from outline when no draft yet
+                    if not section_text:
+                        outline = load_workspace_value("outline")
+                        if outline and isinstance(outline, dict):
+                            parts = draft_key.split(".")
+                            chapters = outline.get("chapters", [])
+                            if len(parts) >= 3 and chapters:
+                                try:
+                                    ch_idx = int(parts[0]) - 1
+                                    sec_idx = int(parts[1]) - 1
+                                    sub_idx = int(parts[2]) - 1
+                                except (ValueError, TypeError):
+                                    _json_response(self, {"status": "error", "message": "Invalid draft_key format"}, status=400)
+                                    return
+                                if 0 <= ch_idx < len(chapters):
+                                    ch = chapters[ch_idx]
+                                    # Build rich context: chapter + all section/subsection titles
+                                    ctx_parts = [ch.get("title", "")]
+                                    sections = ch.get("sections") or []
+                                    for si, s in enumerate(sections):
+                                        ctx_parts.append(s.get("title", ""))
+                                        subs = s.get("subsections") or []
+                                        for ss in subs:
+                                            ctx_parts.append(ss.get("title", ""))
+                                    # Add project topic as broader context
+                                    project_topic = load_workspace_value("project_context", "")
+                                    if isinstance(project_topic, dict):
+                                        project_topic = project_topic.get("topic", "")
+                                    if project_topic and isinstance(project_topic, str):
+                                        ctx_parts.append(project_topic)
+                                    section_text = " ".join(ctx_parts)
+                                    # Set section_title to the specific subsection title
+                                    if 0 <= sec_idx < len(sections):
+                                        sec = sections[sec_idx]
+                                        subs = sec.get("subsections") or []
+                                        if 0 <= sub_idx < len(subs):
+                                            section_title = subs[sub_idx].get("title", "")
+
+                    # When no section_methods from frontend, extract from section context
+                    if not section_methods and section_text:
+                        import re as _re
+                        # Extract Chinese method patterns: XXX法, XXX分析, XXX模型, XXX理论
+                        method_patterns = _re.findall(
+                            r"[一-鿿]{2,8}(?:法|分析|模型|理论|评估|检验|调查|研究|实验|访谈)",
+                            section_text,
+                        )
+                        # Also extract English acronyms (PDCA, PMBOK, SWOT, etc.)
+                        acronyms = _re.findall(r"\b[A-Z]{2,6}\b", section_text)
+                        section_methods = list(set(m.strip() for m in method_patterns + acronyms if m.strip()))
 
                 # Parse chapter number from draft_key (e.g., "2.1.3" → "2")
                 if not chapter_number and draft_key:
@@ -7497,7 +7545,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 inserted = 0
                 for c in citations:
                     card = {
-                        "formatted": c.get("formatted", ""),
+                        "formatted": _clean_citation_formatted(c.get("formatted", "")),
                         "title": c.get("title", c.get("formatted", "")[:120]),
                         "authors": c.get("authors", ""),
                         "year": c.get("year", ""),
@@ -7558,7 +7606,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 inserted = 0
                 from src.paper_store import upsert_citation_card as _upsert, PAPER_DB_PATH as _PAPER_DB2
                 for item in parsed:
-                    text = (item.get("formatted") or item.get("raw") or "").strip()
+                    text = _clean_citation_formatted((item.get("formatted") or item.get("raw") or "").strip())
                     if not text or len(text) < 15 or text.startswith("http"):
                         continue
                     result = build_parse_result(

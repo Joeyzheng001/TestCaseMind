@@ -59,7 +59,7 @@ def _get_embedding_model():
         model_name = "BAAI/bge-small-zh-v1.5"
         _embedding_model = SentenceTransformer(model_name)
         return _embedding_model
-    except ImportError:
+    except Exception:
         return None
 
 

@@ -448,6 +448,10 @@ def _is_reference_garbage(text: str) -> bool:
         r"[\d.]+\s+(?:权重|得分|评分)\s*[\d.]+",
         # 纯数字统计表行（如 "1 3.45 2.18 4.01 3.92" 连续4+个数字）
         r"^[\d.]{1,6}\s+[\d.]{1,6}\s+[\d.]{1,6}\s+[\d.]{1,6}",
+        # 满意度五级量表连续文本
+        r"(?:很不满意|不满意|一般|满意|很满意).{0,30}(?:很不满意|不满意|一般|满意|很满意)",
+        # 人口统计问题
+        r"您的?(?:部门|职位|岗位|年龄|性别|学历|工作年限)",
     ]
     for pat in garbage_patterns:
         if re.search(pat, text):
@@ -576,7 +580,7 @@ def _find_reference_start(text: str) -> int:
 def _guess_ref_title(entry: str) -> str:
     """从引用条目猜测文献标题。"""
     # 期刊格式: 作者. 题名[J]. 刊名
-    m = re.search(r"[.)]\s*(.+?)(?:\[[JMCNDP]]|，?\d{4})", entry)
+    m = re.search(r"[.)]\s*(.+?)(?:\[(?:J|M|C|D|S|R|P|N|EB/OL|EB)\]|，?\d{4})", entry)
     if m:
         return m.group(1).strip()[:120]
     return entry[:120]

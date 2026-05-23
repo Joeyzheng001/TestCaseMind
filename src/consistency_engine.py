@@ -318,9 +318,9 @@ def build_commitment_brief(memory: Dict[str, Any]) -> str:
                 lines.append(f"  小节{_fmt_sk(q.get('section_key', q.get('chapter', '?')))}: {q['raw']}")
 
     promised = summary.get("promised_methods", [])
+    seen_m = set()
     if promised:
         lines.append("- 已承诺使用的方法（后续小节必须实际应用，不能只提名字）：")
-        seen_m = set()
         for m in promised:
             key = m.get("method", "")
             if key not in seen_m:

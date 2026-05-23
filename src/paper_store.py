@@ -152,12 +152,22 @@ def upsert_paper(paper: Dict[str, Any], db_path: Optional[Path] = None) -> str:
 
 def upsert_citation_card(card: Dict[str, Any], db_path: Optional[Path] = None) -> str:
     """插入或更新一张引用卡片。"""
+    import re
     import sqlite3
 
     path = db_path or PAPER_DB_PATH
     conn = sqlite3.connect(str(path))
     now = time.time()
     card_id = card.get("card_id") or f"CITE-{uuid.uuid4().hex[:8].upper()}"
+
+    # Strip leading [N], [N,M], [N-M] and truncate at appendix boundary
+    formatted = card.get("formatted", "")
+    if formatted:
+        formatted = re.sub(r"^\s*\[\s*(?:\d+(?:\s*[,，、\s-]\s*\d+)*)\s*\]\s*", "", formatted, count=1)
+        # Truncate at appendix content (PDF parser bug)
+        parts = re.split(r"(?:浙江大学)?附录[一二三四五六七八九十\d]*[：:\s]?", formatted, maxsplit=1)
+        if len(parts) > 1 and len(parts[0].strip()) > 10:
+            formatted = parts[0].strip()
 
     conn.execute("""
         INSERT OR REPLACE INTO citation_cards (
@@ -169,7 +179,7 @@ def upsert_citation_card(card: Dict[str, Any], db_path: Optional[Path] = None) -
     """, (
         card_id,
         card.get("paper_id", ""),
-        card.get("formatted", ""),
+        formatted,
         card.get("title", ""),
         card.get("authors", ""),
         str(card.get("year", "")),

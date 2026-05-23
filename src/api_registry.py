@@ -85,6 +85,7 @@ API_MENU_MAP: Dict[str, str] = {
     "/api/chat": "workflow",
     "/api/chat/history": "workflow",
     "/api/chat/test": "workflow",
+    "/api/methods/have-formulas": "methods",
     "/api/method-supplement": "methods",
     "/api/method-assignments/save": "methods",
     "/api/method-pool/save": "methods",

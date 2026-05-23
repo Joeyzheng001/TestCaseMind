@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from md_cleaner import clean_all_md_files, KB_ROOT, KB_CLEANED_ROOT
-from paper_extractor import extract_paper, DIRECTION_LABELS
+from paper_extractor import extract_paper, DIRECTION_LABELS, _is_reference_garbage
 from paper_store import (
     init_paper_db, upsert_paper, upsert_citation_card, get_paper_stats,
 )
@@ -24,14 +24,20 @@ from anthropic import Anthropic
 from llm_config import load_llm_config
 
 # Prompt for citation verification gating
-_VERIFY_PROMPT = """你是一位学术文献审核专家。你的任务是在互联网知识范围内，验证一条参考文献引用的真实性。
+_VERIFY_PROMPT = """你是一位学术文献审核专家。你的任务是凭借你的学术知识储备，验证一条参考文献引用的真实性。
 
-请判断作者、标题、期刊/会议/出版社的组合是否指向一篇真实的学术文献。格式小问题（缺少空格、DOI格式异常等）不代表文献不存在——请区分「文献虚构」和「文献真实但格式不规范」。
+规则：
+1. 不要提及任何具体数据库名称或假装执行搜索——只依赖你的训练知识判断。
+2. DOI 是文献真实存在的强信号，有 DOI 的文献极大概率真实。
+3. 判断依据：作者姓名是否合理、期刊/会议/出版社是否知名存在、标题是否有学术含义（非乱码/无意义拼接）。
+4. 格式小问题（缺少空格、标点不规范、类型标记缺失）不代表文献虚构。
+5. 如果文献信息完整、来自知名出版源但你不能100%确认，倾向于判定为真实。
+6. 仅当文献有明显伪造特征（标题乱码、作者名虚构、期刊不存在）时才判为 fake。
 
 回复严格 JSON，不要包含其他文字：
 - 文献真实可确认：{"status": "verified"}
 - 文献真实但格式有问题：{"status": "format_error", "note": "格式问题（20字内）"}
-- 明确无法查到或虚构：{"status": "fake", "note": "原因（20字内）"}"""
+- 明确伪造或不存在：{"status": "fake", "note": "原因（20字内）"}"""
 
 _VERIFY_CONCURRENCY = 20
 
@@ -225,6 +231,26 @@ def _verify_citation_batch(cards: List[Dict[str, Any]], log) -> List[Dict[str, A
     model = config.model
     log(f"  正在验证 {len(cards)} 条引用真实性 ({model}, {_VERIFY_CONCURRENCY}并发)...")
 
+    def _call_verify_llm(user_msg: str) -> dict:
+        """Call LLM and parse JSON response. Raises on failure."""
+        response = client.messages.create(
+            model=model, max_tokens=256,
+            thinking={"type": "disabled"},
+            system=_VERIFY_PROMPT,
+            messages=[{"role": "user", "content": user_msg}],
+        )
+        text = ""
+        for block in response.content:
+            if getattr(block, "type", "") == "text":
+                text += block.text
+        text = text.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[-1]
+            if text.endswith("```"):
+                text = text[:-3]
+            text = text.strip()
+        return json.loads(text)
+
     def _verify_one(card: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Returns card with verified set, or None if fake."""
         formatted = card.get("formatted", "")
@@ -238,49 +264,17 @@ def _verify_citation_batch(cards: List[Dict[str, Any]], log) -> List[Dict[str, A
 类型：{ref_type}
 引用格式：{formatted[:500]}"""
 
-        try:
-            response = client.messages.create(
-                model=model, max_tokens=256,
-                thinking={"type": "disabled"},
-                system=_VERIFY_PROMPT,
-                messages=[{"role": "user", "content": user_msg}],
-            )
-            text = ""
-            for block in response.content:
-                if getattr(block, "type", "") == "text":
-                    text += block.text
-            text = text.strip()
-            if text.startswith("```"):
-                text = text.split("\n", 1)[-1]
-                if text.endswith("```"):
-                    text = text[:-3]
-                text = text.strip()
-            result = json.loads(text)
-        except Exception:
-            # Retry once
+        result = None
+        for attempt in range(2):
             try:
-                response = client.messages.create(
-                    model=model, max_tokens=256,
-                    thinking={"type": "disabled"},
-                    system=_VERIFY_PROMPT,
-                    messages=[{"role": "user", "content": user_msg}],
-                )
-                text = ""
-                for block in response.content:
-                    if getattr(block, "type", "") == "text":
-                        text += block.text
-                text = text.strip()
-                if text.startswith("```"):
-                    text = text.split("\n", 1)[-1]
-                    if text.endswith("```"):
-                        text = text[:-3]
-                    text = text.strip()
-                result = json.loads(text)
+                result = _call_verify_llm(user_msg)
+                break
             except Exception:
-                # On double failure, admit the card (conservative)
-                card["verified"] = 0
-                card["verification_note"] = ""
-                return card
+                if attempt == 1:
+                    # On double failure, admit the card (conservative)
+                    card["verified"] = 0
+                    card["verification_note"] = ""
+                    return card
 
         status = result.get("status", "fake")
         if status == "fake":
@@ -339,34 +333,6 @@ def _clean_citation_text(text: str) -> str:
     return text.strip()
 
 
-def _is_citation_garbage(text: str) -> bool:
-    """检测是否是非引用的垃圾文本（问卷选项、部门调查等混入参考文献区）。"""
-    patterns = [
-        r"\(?(?:单选|多选|可多选|不定项选)\)?",
-        r"[A-Ea-e][.、）\)]\s*.{1,30}\s+[B-Eb-e][.、）\)]",
-        r"(?:非常(?:满意|了解|需要|及时|愿意|同意|符合|好|高|强|大))"
-        r".{0,30}(?:比较(?:满意|了解|需要|及时|愿意|同意|符合|好|高|强|大))",
-        r"(?:研发部|质量部|生产部|管理部|销售部|财务部|人事部).{0,10}"
-        r"(?:研发部|质量部|生产部|管理部|销售部|财务部|人事部)",
-        r"(?:很不满意|不满意|一般|满意|很满意).{0,30}(?:很不满意|不满意|一般|满意|很满意)",
-        r"您的?(?:部门|职位|岗位|年龄|性别|学历|工作年限)",
-        # Likert 数字编码 (1=非常不同意 2=不同意)
-        r"\d\s*[=＝]\s*(?:非常|比较|一般|不太|很|较为|极其)",
-        # 编号开头的问卷题目
-        r"^(?:\d+[.、)]\s*|第[一二三四五六七八九十\d]+题[:：]?\s*)"
-        r"(?:您|请|是否|如何|什么|哪些|请问|认为|觉得|了解|知道|同意)",
-        r"(?:问题\d+|Q\d+|题目\d+)[:：\s]",
-        # 纯数字统计表行
-        r"^[\d.]{1,6}\s+[\d.]{1,6}\s+[\d.]{1,6}\s+[\d.]{1,6}",
-        # 评分/权重残留
-        r"^(?:权重|得分|评分|均值|标准差)\s*[\d.]+\s*",
-    ]
-    for pat in patterns:
-        if re.search(pat, text):
-            return True
-    return False
-
-
 def _build_citation_card(
     paper: Dict[str, Any], ref: Dict[str, str]
 ) -> Optional[Dict[str, Any]]:
@@ -374,7 +340,7 @@ def _build_citation_card(
     formatted = _clean_citation_text(_strip_ref_number(ref.get("formatted", "")))
     if len(formatted) < 15:
         return None
-    if _is_citation_garbage(formatted):
+    if _is_reference_garbage(formatted):
         return None
 
     ref_type = ref.get("type", "其他")

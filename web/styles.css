@@ -198,6 +198,15 @@ button {
   background: #edf7ff;
 }
 
+.step-stars {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #d4a017;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
 .services-toggle,
 .vip-toggle {
   width: 100%;

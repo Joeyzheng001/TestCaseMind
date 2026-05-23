@@ -235,6 +235,18 @@ function normalizeDraftContent(text, target = null) {
   const title = cleanHeadingTitle(target?.title || "", number);
   const lines = value.split(/\r?\n/).map((line) => line.trim());
   const cleaned = [];
+  // Merge consecutive CJK-fragment lines (1–2 CJK chars) that LLMs sometimes emit
+  let fragBuf = [];
+  function _flushFragBuf() {
+    if (fragBuf.length) {
+      // Join fragments without spaces, then try to re-split at common word boundaries
+      const joined = fragBuf.join("");
+      // Insert space before 法/分析/模型/理论/研究/评估/检验/调查/实验/访谈 when preceded by 2+ CJK chars
+      const reSplit = joined.replace(/([一-鿿]{2,8})(法|分析|模型|理论|评估|检验|调查|实验|访谈|研究)/g, "$1$2 ");
+      cleaned.push(reSplit.trim());
+      fragBuf = [];
+    }
+  }
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
     const bare = cleanHeadingTitle(line, number);
@@ -253,9 +265,17 @@ function normalizeDraftContent(text, target = null) {
         continue;
       }
     }
+    // Detect 1–2 char CJK fragments (LLM emitting keywords char-by-char)
+    const isCjkFrag = /^[一-鿿]{1,2}$/.test(line);
+    if (isCjkFrag) {
+      fragBuf.push(line);
+      continue;
+    }
+    _flushFragBuf();
     if (line && cleaned[cleaned.length - 1] === line) continue;
     cleaned.push(line);
   }
+  _flushFragBuf();
   return cleaned.join("\n").trim();
 }
 
@@ -361,6 +381,27 @@ function rollupOutlineWords(kind = "estimated_words") {
   if (kind === "estimated_words") syncWordSelect(total);
   updateWordSummary();
   return total;
+}
+
+function distributeWordsToChildren(parent, childKey, oldParentValue, newParentValue) {
+  const children = parent[childKey] || [];
+  if (!children.length || oldParentValue <= 0) return;
+  const ratio = newParentValue / oldParentValue;
+  let allocated = 0;
+  children.forEach((child, i) => {
+    const oldChild = child.estimated_words || 0;
+    if (i === children.length - 1) {
+      child.estimated_words = Math.max(1, newParentValue - allocated);
+    } else {
+      child.estimated_words = Math.max(1, Math.round(oldChild * ratio));
+      allocated += child.estimated_words;
+    }
+    // Recursively distribute to nested subsections
+    const subs = child.subsections || [];
+    if (subs.length && oldChild > 0) {
+      distributeWordsToChildren(child, "subsections", oldChild, child.estimated_words);
+    }
+  });
 }
 
 function updateWordSummary() {
@@ -642,6 +683,8 @@ function resetWorkspaceView() {
   state.markdown = "";
   state.citations = [];
   state.drafts = {};
+  state.chatMessages = [];
+  state.chatHistoryLoaded = false;
   state.methodAssignments = { discover: new Set(), solve: new Set(), validate: new Set() };
   state.methodPools = { discover: new Set(), solve: new Set(), validate: new Set() };
   state.sectionCitations = {};
@@ -1980,16 +2023,30 @@ function renderOutline() {
   });
   $$("#outlinePreview input[data-kind='words']").forEach((input) => {
     input.addEventListener("blur", () => {
+      const newValue = Number(input.value) || 0;
       const chapter = state.outline.chapters[Number(input.dataset.chapter)];
+
       if (input.dataset.section === undefined) {
-        chapter.estimated_words = Number(input.value) || 0;
+        // Editing chapter word count — distribute delta proportionally to sections
+        const oldValue = chapter.estimated_words || 0;
+        chapter.estimated_words = newValue;
+        distributeWordsToChildren(chapter, "sections", oldValue, newValue);
       } else {
         const section = chapter.sections[Number(input.dataset.section)];
         if (input.dataset.subsection === undefined) {
-          section.estimated_words = Number(input.value) || 0;
+          // Editing section word count
+          const subs = section.subsections || [];
+          if (subs.length) {
+            const oldValue = section.estimated_words || 0;
+            section.estimated_words = newValue;
+            distributeWordsToChildren(section, "subsections", oldValue, newValue);
+          } else {
+            section.estimated_words = newValue;
+          }
         } else {
+          // Editing subsection word count
           const subsection = section.subsections[Number(input.dataset.subsection)];
-          subsection.estimated_words = Number(input.value) || 0;
+          subsection.estimated_words = newValue;
         }
       }
       const total = rollupOutlineWords("estimated_words");
@@ -3287,23 +3344,23 @@ async function runRiskScan() {
     (data.chapter_results || []).forEach((cr) => {
       const triggered = (cr.results || []).filter((r) => r.triggered);
       if (!triggered.length) return;
-      html += `<div class="risk-chapter"><h3>${cr.chapter_title || cr.chapter_number}</h3>`;
+      html += `<div class="risk-chapter"><h3>${escHtml(cr.chapter_title || cr.chapter_number)}</h3>`;
       triggered.forEach((r) => {
         const c = sevColor[r.severity] || "#666";
         html += `<div class="risk-card" style="border-left:4px solid ${c}">
           <div class="risk-card-head">
             <span class="risk-sev" style="background:${c}">${sevLabel[r.severity] || r.severity}</span>
-            <strong>${r.risk_name}</strong>
-            <span class="risk-cat">${r.category || ""}</span>
+            <strong>${escHtml(r.risk_name)}</strong>
+            <span class="risk-cat">${escHtml(r.category || "")}</span>
           </div>`;
         if (r.evidence && r.evidence.length) {
-          html += `<div class="risk-evidence"><small>相关片段：</small><ul>${r.evidence.map((e) => `<li>${e.substring(0, 200)}</li>`).join("")}</ul></div>`;
+          html += `<div class="risk-evidence"><small>相关片段：</small><ul>${r.evidence.map((e) => `<li>${escHtml(e.substring(0, 200))}</li>`).join("")}</ul></div>`;
         }
         if (r.check_questions && r.check_questions.length) {
-          html += `<details class="risk-detail"><summary>检查问题 (${r.check_questions.length})</summary><ul>${r.check_questions.map((q) => `<li>${q}</li>`).join("")}</ul></details>`;
+          html += `<details class="risk-detail"><summary>检查问题 (${r.check_questions.length})</summary><ul>${r.check_questions.map((q) => `<li>${escHtml(q)}</li>`).join("")}</ul></details>`;
         }
         if (r.fix_strategy && r.fix_strategy.length) {
-          html += `<details class="risk-detail"><summary>修复建议 (${r.fix_strategy.length})</summary><ul>${r.fix_strategy.map((s) => `<li>${s}</li>`).join("")}</ul></details>`;
+          html += `<details class="risk-detail"><summary>修复建议 (${r.fix_strategy.length})</summary><ul>${r.fix_strategy.map((s) => `<li>${escHtml(s)}</li>`).join("")}</ul></details>`;
         }
         html += "</div>";
       });
@@ -4384,12 +4441,26 @@ function escapeHtml(str) {
 
 function buildCitationOutline() {
   const chapters = state.outline?.chapters || [];
-  const targetChapters = chapters.slice(0, 2);
 
-  return targetChapters.map((chapter, chapterIndex) => {
+  return chapters.map((chapter, chapterIndex) => {
     const sectionsHtml = (chapter.sections || []).map((section) => {
       const subsections = (section.subsections || []);
-      if (!subsections.length) return "";
+      // Sections without subsections: show as single row
+      if (!subsections.length) {
+        const draftKey = draftKeyFor(chapter, section, null);
+        const checklist = state.sectionCitations[draftKey] || [];
+        const title = cleanHeadingTitle(section.title, section.number);
+        const isActive = citationPageState.activeDraftKey === draftKey;
+        return `
+          <div class="cite-outline-section">
+            <div class="cite-outline-row${isActive ? " active" : ""}" data-draft-key="${draftKey}">
+              <span class="cite-outline-num">${section.number}</span>
+              <span class="cite-outline-title" title="${escHtml(title)}">${escHtml(title)}</span>
+              <span class="cite-outline-count">${checklist.length} 篇引用</span>
+              <button class="ghost cite-manage-btn" data-draft-key="${draftKey}">引用管理</button>
+            </div>
+          </div>`;
+      }
       const subsHtml = subsections.map((subsection) => {
         const draftKey = draftKeyFor(chapter, section, subsection);
         const checklist = state.sectionCitations[draftKey] || [];
@@ -4436,11 +4507,14 @@ function renderCitationOutline() {
 function openCitationSubsectionPanel(draftKey) {
   citationPageState.activeDraftKey = draftKey;
 
-  // Resolve subsection display name
+  // Resolve subsection/section display name
   let displayName = draftKey;
   const chapters = state.outline?.chapters || [];
   for (const ch of chapters) {
     for (const sec of (ch.sections || [])) {
+      if (draftKeyFor(ch, sec, null) === draftKey) {
+        displayName = `${sec.number} ${cleanHeadingTitle(sec.title, sec.number)}`;
+      }
       for (const sub of (sec.subsections || [])) {
         if (draftKeyFor(ch, sec, sub) === draftKey) {
           displayName = `${sub.number} ${cleanHeadingTitle(sub.title, sub.number)}`;

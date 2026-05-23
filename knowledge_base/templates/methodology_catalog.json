@@ -1,5 +1,5 @@
 {
-  "built_at": "2026-05-22 09:48:05",
+  "built_at": "2026-05-23 11:00:41",
   "items": [
     {
       "id": "method_5w1h",
@@ -251,14 +251,14 @@
       "type": "method",
       "source_count": 8,
       "sources": [
-        "cleaned/templates/3.0 论文格式_复旦MEM硕士论文参考模版_飞哥ProMax版2025✅(1).md",
-        "cleaned/templates/3.00 复旦MEM硕士毕业论文模板(2025).md",
-        "cleaned/templates/复旦大学研究生学位论文预审表（附预审专家评审意见） (1).md",
         "cleaned/papers/其他/软件质量模型的演进与应用.md",
         "cleaned/papers/其他/软件过程工程元模型（SPEM）：理论框架、核心构成与通用应用.md",
         "cleaned/papers/其他/FURPS+模型与规模化敏捷开发质量因素对应表（基于表3-6适配）.md",
         "cleaned/papers/其他/SPEM 在基金风控_敏捷场景中的应用.md",
-        "cleaned/papers/其他/基于演化博弈的建筑工程材料送检监督策略研究_王骁彬.md"
+        "cleaned/papers/其他/基于演化博弈的建筑工程材料送检监督策略研究_王骁彬.md",
+        "cleaned/papers/其他/模型驱动架构（MDA）：定义、核心架构与实践逻辑.md",
+        "cleaned/papers/其他/FURPS_FURPS+模型：内涵、演进与质量管理论文资料体系.md",
+        "cleaned/papers/其他/ISO 15939：软件测量的国际标准框架与实践应用.md"
       ],
       "phases": [
         "solve"
@@ -709,6 +709,27 @@
       "summary": "双重差分法（Difference-in-Differences，简称DID）是一种面板数据因果推断方法，由John Snow（1855）和早期计量经济学家逐步形式化，后经Ashenfelter & Card（1985）等学者发展为现代因果识别框架。其核心思想是通过比较干预组与对照组在干预前后结果变量 - 评估某地区新施工安全法规实施后，事故率在不同项目群中的净影响。\n- 测算引入BIM协同平台对工程变更指令响应时间的政策效应。\n- 检验智慧工地推广计划对重点管控项目与普通项目工期偏差的差异化效果。\n- 分析强制性绿色建筑标准升级对开发商项目成本绩效的因果效应。\n- 考察工程款支付保障条例出台前后 - 仅凭组内前后对比或组间对比得出结论，未正确构造双重差分估计量。\n- 忽略平行趋势检验的统计检验，仅依靠视觉判断，导致虚假因果推断。\n- 对面板数据使用普通标准误，而未对组别或项目进行聚类，严重低估标准误。\n- 将DID交互项系数直接解释为干预组干预前后的变化，而非两组变化差异。\n- 未考虑干预可 - 必须清晰陈述平行趋势假设，并提供干预前统计检验或图形证据，不得省略。\n- 估计时必须使用聚"
     },
     {
+      "id": "method_custom_esia分析法",
+      "name": "ESIA分析法",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "solve"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "user_created",
+      "summary": "待补充。 待补充。"
+    },
+    {
       "id": "method_fmea",
       "name": "FMEA失效模式与影响分析",
       "type": "method",
@@ -747,6 +768,27 @@
       "conflicts_with": [],
       "source_type": "builtin",
       "summary": "Gompertz增长模型（Gompertz Growth Model）是由英国数学家Benjamin Gompertz于1825年提出的一种S型曲线（Sigmoid Curve）数学模型，最初用于描述人口 mortality 规律。在工程管理领域，该模型被广泛用于描述因资源、技术或市场容量存在上限而 - **新兴技术成熟度预测**：验证某项工程技术的性能指标（如光伏电池转换效率）是否遵循Gompertz规律，并预测其物理极限。\n- **基础设施市场扩散验证**：验证某一新基建项目（如5G基站、充电桩）的市场渗透率历史数据，并预测其在饱和前的用户采纳路径。\n- **工程系统可靠性增长验证**：在设 1.  **方法定位错误**：在“问题分析”或“现状描述”章节随意使用，而未将其作为验证假设或预测目标的严格工具。\n2.  **忽视“饱和”前提**：对明显呈指数增长、尚无任何减速迹象的早期数据强行套用Gompertz模型，导致预测严重失真。\n3.  **数据点过少**：使用少于10个数据点拟合复杂 1.  **必须阐明上限K的设定依据**：无论 \\(K\\) 是自由估计还是外生给定，均需在文中"
+    },
+    {
+      "id": "method_custom_heart框架",
+      "name": "HEART框架",
+      "type": "method",
+      "source_count": 0,
+      "sources": [],
+      "phases": [
+        "validate"
+      ],
+      "detected_by": "platform_card",
+      "domains": [
+        "process_optimization"
+      ],
+      "difficulty": "intermediate",
+      "data_type": [],
+      "outputs": [],
+      "pairs_with": [],
+      "conflicts_with": [],
+      "source_type": "user_created",
+      "summary": "待补充。 待补充。"
     },
     {
       "id": "method_okr",
@@ -4915,8 +4957,8 @@
       "summary": "验收通过率分析是一种工程管理研究方法。通过一次验收通过率、验收问题数量等指标评价质量管理成果。 - 工程项目管理中的项目质量管理领域相关问题研究。 1. 必须结合具体的项目案例或数据展开论述。\n2. 需说明方法的选型理由和适用边界。\n3. 在论文中呈现实际应用过程和结果。"
     },
     {
-      "id": "method_custom_esia分析法",
-      "name": "ESIA分析法",
+      "id": "method_custom_ecrs分析法",
+      "name": "ECRS分析法",
       "type": "method",
       "source_count": 0,
       "sources": [
@@ -4927,7 +4969,7 @@
       ],
       "detected_by": "method_card",
       "domains": [
-        "process_optimization"
+        "quality_management"
       ],
       "difficulty": "intermediate",
       "data_type": [],
@@ -4938,19 +4980,19 @@
       "summary": "待补充。 待补充。"
     },
     {
-      "id": "method_custom_heart框架",
-      "name": "HEART框架",
+      "id": "method_custom_流程优化法",
+      "name": "流程优化法",
       "type": "method",
       "source_count": 0,
       "sources": [
         "来自方法知识库"
       ],
       "phases": [
-        "validate"
+        "solve"
       ],
       "detected_by": "method_card",
       "domains": [
-        "process_optimization"
+        "quality_management"
       ],
       "difficulty": "intermediate",
       "data_type": [],

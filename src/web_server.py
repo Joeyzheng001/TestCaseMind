@@ -1585,6 +1585,33 @@ def _citation_language(text: str) -> str:
     return "en" if ascii_chars > chinese_chars * 1.5 else "zh"
 
 
+_CITATION_NUM_PREFIX_RE = re.compile(
+    r"^\s*\[\s*(?:\d+(?:\s*[,\uff0c\u3001\s-]\s*\d+)*)\s*\]\s*"
+)
+
+
+def _strip_citation_number_prefix(text: str) -> str:
+    """Strip leading reference-number bracket like [1], [1,2], [3-5] from citation text."""
+    if not text:
+        return text
+    return _CITATION_NUM_PREFIX_RE.sub("", text, count=1)
+
+
+_APPENDIX_BOUNDARY_RE = re.compile(r"(?:浙江大学)?附录[一二三四五六七八九十\d]*[：:\s]?")
+
+
+def _clean_citation_formatted(text: str) -> str:
+    """Strip [N] prefix and truncate at appendix/survey content boundary."""
+    if not text:
+        return text
+    text = _strip_citation_number_prefix(text)
+    # Truncate at appendix boundary (PDF parser incorrectly merges appendix content)
+    parts = _APPENDIX_BOUNDARY_RE.split(text, maxsplit=1)
+    if len(parts) > 1 and len(parts[0].strip()) > 10:
+        text = parts[0].strip()
+    return text
+
+
 def _reference_section(text: str) -> str:
     if not text:
         return ""
@@ -1799,7 +1826,7 @@ def build_citation_index(task_id: str = "") -> Dict[str, Any]:
                     {
                         "id": uuid.uuid5(uuid.NAMESPACE_URL, f"{source_path}-{index}").hex,
                         "title": formatted[:120],
-                        "formatted": formatted,
+                        "formatted": _clean_citation_formatted(formatted),
                         "source_path": source_path,
                         "converted_path": kb_relative,
                         "language": _citation_language(formatted),
@@ -2020,9 +2047,11 @@ def _normalize_citations(raw_items: List[Dict[str, Any]]) -> List[Dict[str, Any]
                 if item.get("language") in {"zh", "en"}
                 else _citation_language(title),
                 "type": strip_markdown(str(item.get("type") or item.get("ref_type", "期刊/图书"))).strip(),
-                "formatted": strip_markdown(str(item.get("formatted", ""))).strip()
-                or strip_markdown(str(item.get("gbt7714", ""))).strip()
-                or title,
+                "formatted": _strip_citation_number_prefix(
+                    strip_markdown(str(item.get("formatted", ""))).strip()
+                    or strip_markdown(str(item.get("gbt7714", ""))).strip()
+                    or title
+                ),
                 "directions": item.get("directions", []),
                 "methods": item.get("methods", []),
                 "reason": strip_markdown(str(item.get("reason", ""))).strip(),
@@ -3876,7 +3905,7 @@ def _llm_create_message(
             messages=api_messages,
         )
         resp_text = response.choices[0].message.content or ""
-        logger.info("LLM response (%s chars):\n%s", len(resp_text), resp_text[:2000])
+        logger.info("LLM response (%s chars):\n%s", len(resp_text), resp_text)
         return response
     kwargs: Dict[str, Any] = dict(
         model=config.model,
@@ -3890,7 +3919,7 @@ def _llm_create_message(
         kwargs["tools"] = tools
     response = client.messages.create(**kwargs)
     resp_text = _response_text(response)
-    logger.info("LLM response (%s chars):\n%s", len(resp_text), resp_text[:2000])
+    logger.info("LLM response (%s chars):\n%s", len(resp_text), resp_text)
     return response
 
 
@@ -6353,13 +6382,6 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 from src.method_registry import get_method_catalog
                 _json_response(self, {"catalog": get_method_catalog()})
                 return
-            if path == "/api/methods/have-formulas":
-                payload = _read_json(self)
-                methods = payload.get("methods", []) if isinstance(payload, dict) else []
-                result = _methods_have_formulas(methods)
-                any_has = any(result.values()) if result else False
-                _json_response(self, {"has_any": any_has, "per_method": result})
-                return
             if path == "/api/projects":
                 _json_response(
                     self,
@@ -7015,6 +7037,13 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 _json_response(self, compile_thesis())
                 return
 
+            if path == "/api/methods/have-formulas":
+                methods = payload.get("methods", []) if isinstance(payload, dict) else []
+                result = _methods_have_formulas(methods)
+                any_has = any(result.values()) if result else False
+                _json_response(self, {"has_any": any_has, "per_method": result})
+                return
+
             if path == "/api/method-supplement":
                 _json_response(self, _supplement_method(payload))
                 return
@@ -7321,6 +7350,56 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                         ).fetchone()
                     section_text = str(row[0]) if row else ""
 
+                    # Fallback: build section context from outline when no draft yet
+                    if not section_text:
+                        outline = load_workspace_value("outline")
+                        if outline and isinstance(outline, dict):
+                            parts = draft_key.split(".")
+                            chapters = outline.get("chapters", [])
+                            if len(parts) >= 3 and chapters:
+                                try:
+                                    ch_idx = int(parts[0]) - 1
+                                    sec_idx = int(parts[1]) - 1
+                                    sub_idx = int(parts[2]) - 1
+                                except (ValueError, TypeError):
+                                    _json_response(self, {"status": "error", "message": "Invalid draft_key format"}, status=400)
+                                    return
+                                if 0 <= ch_idx < len(chapters):
+                                    ch = chapters[ch_idx]
+                                    # Build rich context: chapter + all section/subsection titles
+                                    ctx_parts = [ch.get("title", "")]
+                                    sections = ch.get("sections") or []
+                                    for si, s in enumerate(sections):
+                                        ctx_parts.append(s.get("title", ""))
+                                        subs = s.get("subsections") or []
+                                        for ss in subs:
+                                            ctx_parts.append(ss.get("title", ""))
+                                    # Add project topic as broader context
+                                    project_topic = load_workspace_value("project_context", "")
+                                    if isinstance(project_topic, dict):
+                                        project_topic = project_topic.get("topic", "")
+                                    if project_topic and isinstance(project_topic, str):
+                                        ctx_parts.append(project_topic)
+                                    section_text = " ".join(ctx_parts)
+                                    # Set section_title to the specific subsection title
+                                    if 0 <= sec_idx < len(sections):
+                                        sec = sections[sec_idx]
+                                        subs = sec.get("subsections") or []
+                                        if 0 <= sub_idx < len(subs):
+                                            section_title = subs[sub_idx].get("title", "")
+
+                    # When no section_methods from frontend, extract from section context
+                    if not section_methods and section_text:
+                        import re as _re
+                        # Extract Chinese method patterns: XXX法, XXX分析, XXX模型, XXX理论
+                        method_patterns = _re.findall(
+                            r"[一-鿿]{2,8}(?:法|分析|模型|理论|评估|检验|调查|研究|实验|访谈)",
+                            section_text,
+                        )
+                        # Also extract English acronyms (PDCA, PMBOK, SWOT, etc.)
+                        acronyms = _re.findall(r"\b[A-Z]{2,6}\b", section_text)
+                        section_methods = list(set(m.strip() for m in method_patterns + acronyms if m.strip()))
+
                 # Parse chapter number from draft_key (e.g., "2.1.3" → "2")
                 if not chapter_number and draft_key:
                     chapter_number = draft_key.split(".", 1)[0]
@@ -7497,7 +7576,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 inserted = 0
                 for c in citations:
                     card = {
-                        "formatted": c.get("formatted", ""),
+                        "formatted": _clean_citation_formatted(c.get("formatted", "")),
                         "title": c.get("title", c.get("formatted", "")[:120]),
                         "authors": c.get("authors", ""),
                         "year": c.get("year", ""),
@@ -7558,7 +7637,7 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 inserted = 0
                 from src.paper_store import upsert_citation_card as _upsert, PAPER_DB_PATH as _PAPER_DB2
                 for item in parsed:
-                    text = (item.get("formatted") or item.get("raw") or "").strip()
+                    text = _clean_citation_formatted((item.get("formatted") or item.get("raw") or "").strip())
                     if not text or len(text) < 15 or text.startswith("http"):
                         continue
                     result = build_parse_result(

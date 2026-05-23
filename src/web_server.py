@@ -3832,11 +3832,11 @@ def _build_llm_client_and_provider(config: Any = None) -> tuple:
         config = load_llm_config()
     if config.provider == "openai":
         import openai
-        kwargs: Dict[str, Any] = {"api_key": config.api_key, "timeout": 180}
+        kwargs: Dict[str, Any] = {"api_key": config.api_key, "timeout": 300}
         if config.base_url:
             kwargs["base_url"] = config.base_url
         return openai.OpenAI(**kwargs), "openai"
-    client_kwargs: Dict[str, Any] = {"api_key": config.api_key, "timeout": 180}
+    client_kwargs: Dict[str, Any] = {"api_key": config.api_key, "timeout": 300}
     if config.auth_mode == "auth_token" and config.auth_token:
         client_kwargs["auth_token"] = config.auth_token
     else:
@@ -4202,8 +4202,9 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
             client, provider, config,
             system=system,
             messages=api_messages,
-            max_tokens=_token_budget(config, "default"),
+            max_tokens=config.max_tokens,
             tools=_chat_tools_schema() if use_tools else None,
+            disable_thinking=True,
         )
 
         if not use_tools:
@@ -4240,7 +4241,8 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
                 client, provider, config,
                 system=system,
                 messages=api_messages,
-                max_tokens=_token_budget(config, "default"),
+                max_tokens=config.max_tokens,
+                disable_thinking=True,
             )
             text = _llm_response_text(response2, provider)
         else:
@@ -4261,7 +4263,8 @@ def _chat_with_llm(payload: Dict[str, Any]) -> Dict[str, Any]:
                     client, provider, config,
                     system=system,
                     messages=api_messages,
-                    max_tokens=_token_budget(config, "default"),
+                    max_tokens=config.max_tokens,
+                    disable_thinking=True,
                 )
                 text = _llm_response_text(response2, provider)
             else:

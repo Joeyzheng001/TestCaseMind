@@ -264,21 +264,18 @@ if not exist ".env" (
 )
 
 :: ============================================
-:: Done
+:: Done — Start server
 :: ============================================
 echo.
 echo =========================================
-echo   Setup complete!
+echo   Setup complete! Starting server...
 echo.
-echo   Start the server:
-echo     Double-click start.bat
-echo.
-echo   Or manually:
-echo     .venv\Scripts\activate
-echo     python src\web_server.py --port 8222
-echo.
-echo   Then open: http://localhost:8222
+echo   Open: http://localhost:8222
+echo   Press Ctrl+C to stop
 echo =========================================
 echo.
-echo   Press any key to exit...
-pause >nul
+
+start http://localhost:8222
+python src\web_server.py --port 8222
+
+pause

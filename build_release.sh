@@ -27,6 +27,12 @@ mkdir -p "${BUILD_DIR}"
 echo "复制 Python 源码..."
 cp -r src "${BUILD_DIR}/src"
 
+# chat skills (page-specific AI guidance)
+if [ -d "skills" ]; then
+    cp -r skills "${BUILD_DIR}/skills"
+    echo "  ✓ skills/"
+fi
+
 # ── 2. Web 前端（不含 admin 文件） ──
 echo "复制 Web 前端..."
 mkdir -p "${BUILD_DIR}/web"
@@ -59,13 +65,20 @@ if [ -d "knowledge_base/outlines" ] && [ "$(ls -A knowledge_base/outlines 2>/dev
 fi
 
 # ── 4. 离线依赖包 ──
-echo "下载 Python 依赖包（离线安装用）..."
+echo "处理 Python 依赖包（离线安装用）..."
 WHEELS_DIR="${BUILD_DIR}/wheels"
 mkdir -p "${WHEELS_DIR}"
 
-# 下载当前构建机器可用的 wheels。跨平台/跨 Python 版本 wheelhouse
-# 暂不自动生成；如需离线包，可手动把对应平台的 .whl 放入 wheels/。
-pip download -r requirements.txt -d "${WHEELS_DIR}" -q 2>&1 || true
+# 从上一版本拷贝 wheels（pip download 太慢容易被杀）
+LAST_BUILD=$(ls -d build/ThesisMind-v*/wheels 2>/dev/null | grep -v "${VERSION}" | sort -r | head -1)
+if [ -n "${LAST_BUILD}" ] && [ -d "${LAST_BUILD}" ]; then
+    cp "${LAST_BUILD}"/*.whl "${WHEELS_DIR}/" 2>/dev/null || true
+    COPIED=$(ls -1 "${WHEELS_DIR}"/*.whl 2>/dev/null | wc -l)
+    echo "  ✓ 从 ${LAST_BUILD} 拷贝 ${COPIED} 个 wheel 包"
+else
+    echo "下载 Python 依赖包..."
+    pip download -r requirements.txt -d "${WHEELS_DIR}" -q 2>&1 || true
+fi
 
 WHEEL_COUNT=$(ls -1 "${WHEELS_DIR}"/*.whl 2>/dev/null | wc -l)
 WHEELS_SIZE=$(du -sh "${WHEELS_DIR}" | cut -f1)
@@ -110,6 +123,10 @@ find "${BUILD_DIR}" -type f -name ".DS_Store" -delete
 find "${BUILD_DIR}" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 # 确保没有 admin 文件
 rm -f "${BUILD_DIR}/web/admin.js" "${BUILD_DIR}/web/admin.css"
+rm -f "${BUILD_DIR}/web/admin.html"
+# 确保skills没有缓存文件
+find "${BUILD_DIR}/skills" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+find "${BUILD_DIR}/skills" -type f -name ".DS_Store" -delete 2>/dev/null || true
 # 确保没有备份/WAL 文件
 rm -f "${BUILD_DIR}/knowledge_base/"*_backup_*
 rm -f "${BUILD_DIR}/knowledge_base/"*-shm

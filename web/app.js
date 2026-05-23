@@ -61,14 +61,28 @@ const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 async function api(path, options = {}) {
-  const response = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-  if (!response.ok) {
-    throw new Error(await response.text());
+  const controller = new AbortController();
+  const timeout = options.timeout || 300000;
+  delete options.timeout;
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(path, {
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      ...options,
+    });
+    if (!response.ok) {
+      let body;
+      try { body = JSON.parse(await response.text()); } catch (_) { body = {}; }
+      const err = new Error(body.error || response.statusText);
+      err.code = body.code || "";
+      err.status = response.status;
+      throw err;
+    }
+    return response.json();
+  } finally {
+    clearTimeout(timer);
   }
-  return response.json();
 }
 
 const CHAT_BUBBLE_TIPS = {
@@ -664,10 +678,19 @@ function renderProjects() {
 }
 
 async function loadProjects() {
-  const data = await api("/api/projects");
-  state.projects = data.projects || [];
-  state.currentProjectId = data.current_project_id || "default";
-  renderProjects();
+  try {
+    const data = await api("/api/projects");
+    state.projects = data.projects || [];
+    state.currentProjectId = data.current_project_id || "default";
+    renderProjects();
+  } catch (e) {
+    if (e && e.code === "LICENSE_REQUIRED") {
+      state.projects = [];
+      state.currentProjectId = "default";
+      return;
+    }
+    throw e;
+  }
 }
 
 async function createNewProject() {
@@ -2638,7 +2661,8 @@ async function loadWorkspaceValue(key, defaultVal) {
 }
 
 async function loadWorkspace() {
-  const data = await api("/api/workspace");
+  try {
+    const data = await api("/api/workspace");
   state.drafts = data.drafts || {};
   // state.citations is now managed via sectionCitations + aggregateSubsectionCitations()
   if (data.project_context) {
@@ -2714,6 +2738,9 @@ async function loadWorkspace() {
     state.frameworkSaved = true;
   }
   await refreshFormulaAvailability();
+  } catch (e) {
+    if (!(e && e.code === "LICENSE_REQUIRED")) throw e;
+  }
 }
 
 function downloadMarkdown() {
@@ -3074,6 +3101,7 @@ async function sendChatMessage() {
   try {
     const data = await api("/api/chat", {
       method: "POST",
+      timeout: 300000,
       body: JSON.stringify({
         messages: state.chatMessages.filter((msg) => msg.role !== "system-msg"),
         context: getChatContext(),
@@ -3094,10 +3122,10 @@ async function sendChatMessage() {
     }
   } catch (error) {
     $("#chatTyping")?.remove();
-    state.chatMessages.push({
-      role: "system-msg",
-      content: `请求失败：${error.message}`,
-    });
+    const msg = error.name === "AbortError"
+      ? "请求超时（120秒），大模型可能繁忙，请稍后重试。"
+      : `请求失败：${error.message}`;
+    state.chatMessages.push({ role: "system-msg", content: msg });
   }
 
   state.chatLoading = false;
@@ -3492,6 +3520,7 @@ function bindEvents() {
       state.license = res.license;
       updateLicenseUI();
       if (tip) tip.textContent = res.message || "试用已激活";
+      setTimeout(() => location.reload(), 800);
     } catch (e) {
       if (tip) tip.textContent = "激活失败: " + e.message;
     } finally {
@@ -3576,6 +3605,7 @@ function bindEvents() {
       const res = await api("/api/license/trial", { method: "POST", body: "{}" });
       state.license = res.license;
       updateLicenseUI();
+      setTimeout(() => location.reload(), 800);
     } catch (e) {
       const tip = $("#licenseInlineTip");
       if (tip) tip.textContent = "试用激活失败: " + e.message;
@@ -5283,9 +5313,9 @@ async function init() {
   activeStep("welcome");
 
   loadProjectContext();
+  await loadLicense();
   await loadProjects();
   await loadConfig();
-  await loadLicense();
   recoverPptTasks();
   await loadMethods();
   await loadWorkspace();

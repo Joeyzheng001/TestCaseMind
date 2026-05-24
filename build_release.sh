@@ -77,7 +77,11 @@ if [ -n "${LAST_BUILD}" ] && [ -d "${LAST_BUILD}" ]; then
     echo "  ✓ 从 ${LAST_BUILD} 拷贝 ${COPIED} 个 wheel 包"
 else
     echo "下载 Python 依赖包..."
-    pip download -r requirements.txt -d "${WHEELS_DIR}" -q 2>&1 || true
+    if [ -f ".venv/bin/pip" ]; then
+        .venv/bin/pip download -r requirements.txt -d "${WHEELS_DIR}" -q 2>&1 || true
+    else
+        python3 -m pip download -r requirements.txt -d "${WHEELS_DIR}" -q 2>&1 || true
+    fi
 fi
 
 WHEEL_COUNT=$(ls -1 "${WHEELS_DIR}"/*.whl 2>/dev/null | wc -l)
@@ -124,6 +128,9 @@ find "${BUILD_DIR}" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null ||
 # 确保没有 admin 文件
 rm -f "${BUILD_DIR}/web/admin.js" "${BUILD_DIR}/web/admin.css"
 rm -f "${BUILD_DIR}/web/admin.html"
+# 从 index.html 中移除 admin 引用，避免浏览器 404
+sed -i '' '/admin\.css/d' "${BUILD_DIR}/web/index.html"
+sed -i '' '/admin\.js/d' "${BUILD_DIR}/web/index.html"
 # 确保skills没有缓存文件
 find "${BUILD_DIR}/skills" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 find "${BUILD_DIR}/skills" -type f -name ".DS_Store" -delete 2>/dev/null || true

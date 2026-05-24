@@ -1662,6 +1662,7 @@ textarea:focus {
 
 .section-title input {
   height: 38px;
+  max-width: 80%;
 }
 
 .subsection-line {
@@ -3428,7 +3429,7 @@ textarea:focus {
 }
 
 .welcome-title {
-  font-size: 32px;
+  font-size: 28px;
   line-height: 1.35;
   color: var(--text);
   margin: 0 0 18px;
@@ -3449,6 +3450,27 @@ textarea:focus {
 }
 .welcome-subtitle strong {
   color: var(--primary-strong);
+}
+
+.welcome-master-banner {
+  max-width: 580px;
+  margin: 0 auto 24px;
+  padding: 16px 28px;
+  border-left: 4px solid var(--violet);
+  border-radius: 0 12px 12px 0;
+  background: linear-gradient(135deg, #f5f0ff 0%, #fdfbff 100%);
+  text-align: center;
+}
+.welcome-master-banner p {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #4a3a8e;
+  letter-spacing: 0.5px;
+}
+.welcome-master-banner strong {
+  color: var(--violet);
+  font-size: 19px;
 }
 
 /* Feature cards */
@@ -3598,6 +3620,14 @@ textarea:focus {
 }
 .welcome-cta strong {
   color: var(--text);
+}
+
+.welcome-disclaimer {
+  max-width: 520px !important;
+  margin: 20px auto 0 !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+  color: #8a9bb5 !important;
 }
 
 .welcome-start-btn {

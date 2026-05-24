@@ -38,7 +38,7 @@
     const container = document.createElement("div");
     container.innerHTML = `
       <nav class="steps" aria-label="管理">
-        <button class="step admin-toggle" id="adminToggle"><span>10</span>管理员权限 <span class="chevron" id="adminChevron">▸</span></button>
+        <button class="step admin-toggle" id="adminToggle" style="display:none"><span>10</span>管理员权限 <span class="chevron" id="adminChevron">▸</span></button>
       </nav>
       <nav class="services-sub" id="adminSub" hidden>
         <button class="step sub-item" data-step="kb_init">知识库初始化</button>
@@ -368,6 +368,11 @@
     const histSection = document.getElementById("licenseHistorySection");
     if (genSection) genSection.hidden = !hasAdmin;
     if (histSection) histSection.hidden = !hasAdmin;
+    // Hide admin sidebar toggle for non-admin users
+    const adminToggle = document.getElementById("adminToggle");
+    const adminSub = document.getElementById("adminSub");
+    if (adminToggle) adminToggle.style.display = hasAdmin ? "" : "none";
+    if (adminSub && !hasAdmin) adminSub.hidden = true;
   }
 
   // ═══════════════════════════════════════════

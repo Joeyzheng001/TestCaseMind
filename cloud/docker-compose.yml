@@ -1,0 +1,37 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://thesismind:thesismind@db:5432/thesismind
+      - LICENSE_PRIVATE_KEY=
+      - LICENSE_PUBLIC_KEY=
+      - CDN_BASE_URL=https://cdn.thesismind.com
+      - LOG_LEVEL=DEBUG
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: thesismind
+      POSTGRES_PASSWORD: thesismind
+      POSTGRES_DB: thesismind
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U thesismind"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:

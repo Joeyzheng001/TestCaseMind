@@ -1062,6 +1062,24 @@ def _check_license_menu(handler, menu_id: str) -> bool:
     return True
 
 
+def _forward_to_cloud(endpoint: str, payload: dict, timeout: int = 60) -> dict | None:
+    """Forward request to cloud API. Returns response dict or None on failure."""
+    try:
+        import httpx
+        manager = LicenseManager()
+        cloud_url = manager.cloud_url
+        # Attach license ticket from cache
+        ticket = manager._load_cached_license()
+        if ticket and ticket.get("signature"):
+            payload["license_ticket"] = ticket["signature"]
+        resp = httpx.post(f"{cloud_url}{endpoint}", json=payload, timeout=timeout)
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception:
+        pass
+    return None
+
+
 def _mask_secret(value: str) -> str:
     if not value:
         return ""
@@ -6194,7 +6212,8 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 return
             if path == "/api/license/status":
                 manager = LicenseManager()
-                _json_response(self, manager.get_license_status())
+                # Use cloud-first effective status (falls back to local)
+                _json_response(self, manager.get_effective_status())
                 return
             if path.startswith("/api/methodologies"):
                 if "/generate-summaries" in self.path:
@@ -7004,19 +7023,29 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
             if path == "/api/blind-review-check":
                 if not _check_license_api(self, path):
                     return
-                _json_response(self, check_blind_review_risks(payload))
+                # Try cloud first, fallback to local
+                result = _forward_to_cloud("/v1/blind-review", payload)
+                if result is None:
+                    result = check_blind_review_risks(payload)
+                _json_response(self, result)
                 return
 
             if path == "/api/aigc/check":
                 if not _check_license_api(self, path):
                     return
-                _json_response(self, check_aigc_rate(payload))
+                result = _forward_to_cloud("/v1/aigc/check", payload)
+                if result is None:
+                    result = check_aigc_rate(payload)
+                _json_response(self, result)
                 return
 
             if path == "/api/aigc/reduce":
                 if not _check_license_api(self, path):
                     return
-                _json_response(self, reduce_aigc_rate(payload))
+                result = _forward_to_cloud("/v1/aigc/reduce", payload, timeout=120)
+                if result is None:
+                    result = reduce_aigc_rate(payload)
+                _json_response(self, result)
                 return
 
             if path == "/api/citation-cards/update":

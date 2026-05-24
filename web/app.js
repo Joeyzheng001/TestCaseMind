@@ -2228,7 +2228,7 @@ function renderWritingList() {
             state.drafts[draftKey] = draft;
             const title = cleanHeadingTitle(target.title, target.number);
             const isUndefined = target.allow_formulas === undefined;
-            const effectiveChecked = isUndefined ? state.methodsHaveFormulas : (target.allow_formulas === true);
+            const effectiveChecked = isUndefined ? false : (target.allow_formulas === true);
             const formulaChecked = effectiveChecked ? "checked" : "";
             const formulaLabel = isUndefined && effectiveChecked ? "（预设）公式" : "公式";
             const formulaCheckbox = `<label class="formula-toggle" title="勾选后本小节会生成LaTeX公式"><input type="checkbox" data-kind="formula-write" data-chapter="${chapterIndex}" data-section="${sectionIndex}" data-subsection="${subsectionIndex}" ${formulaChecked} />${formulaLabel}</label>`;
@@ -2660,6 +2660,21 @@ async function loadWorkspace() {
     if (dirDef) state.currentDirection.name = dirDef.name;
   }
   refreshDirectionDisplay();
+  // Restore method assignments from workspace (survives page refresh)
+  if (data.phase_methods && state.methods.length) {
+    const validIds = new Set(state.methods.map(m => m.id));
+    for (const phase of ["discover", "solve", "validate"]) {
+      const ids = (data.phase_methods[phase] || []).filter(id => validIds.has(id));
+      state.methodAssignments[phase] = new Set(ids);
+    }
+  }
+  if (data.method_pools && state.methods.length) {
+    const validIds = new Set(state.methods.map(m => m.id));
+    for (const phase of ["discover", "solve", "validate"]) {
+      const ids = (data.method_pools[phase] || []).filter(id => validIds.has(id));
+      state.methodPools[phase] = new Set(ids);
+    }
+  }
   renderProjects();
   renderCitations();
   if (data.outline) {

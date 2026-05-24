@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 from uuid import uuid4
+import httpx
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
@@ -30,6 +31,17 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 from src.api_registry import MENU_FEATURE_MAP, is_public_api, resolve_api_menu
 
 
+
+def _compute_days_left(expires_at: str) -> int:
+    """Compute days left from ISO datetime string."""
+    if not expires_at:
+        return 0
+    try:
+        expiry = datetime.fromisoformat(expires_at)
+        return max(0, (expiry - datetime.now()).days)
+    except Exception:
+        return 0
+
 class LicenseManager:
     """许可证管理器"""
 
@@ -39,6 +51,9 @@ class LicenseManager:
     LICENSE_PUBLIC_KEY_ENV = "THESISMIND_LICENSE_PUBLIC_KEY"
     LICENSE_PRIVATE_KEY_ENV = "THESISMIND_LICENSE_PRIVATE_KEY"
     LEGACY_HMAC_KEY_ENV = "THESISMIND_LICENSE_KEY"
+    CLOUD_URL_ENV = "THESISMIND_CLOUD_URL"
+    CLOUD_CACHE_FILE = ".license_cloud_cache"
+    CACHE_TTL_HOURS = 24
 
     # 5级授权体系
     LICENSE_TYPES: Dict[str, Dict[str, Any]] = {
@@ -79,12 +94,15 @@ class LicenseManager:
 
     def __init__(self, secret_key: str = None):
         self.legacy_secret_key = secret_key or os.getenv(self.LEGACY_HMAC_KEY_ENV)
-        self.private_key = self._load_private_key_from_env()
+        self.cloud_url = (os.getenv(self.CLOUD_URL_ENV) or "https://api.thesismind.com").rstrip("/")
         self.public_key = self._load_public_key_from_env()
+        # Private key loading kept for admin/generate use until fully migrated
+        self.private_key = self._load_private_key_from_env()
         if self.public_key is None and self.private_key is not None:
             self.public_key = self.private_key.public_key()
         self.config_dir = self._resolve_config_dir()
         self.license_file = self.config_dir / self.LICENSE_FILE
+        self._cache_file = self.config_dir / self.CLOUD_CACHE_FILE
 
     @staticmethod
     def _resolve_config_dir() -> Path:
@@ -359,6 +377,189 @@ class LicenseManager:
             return json.loads(p.read_text())
         except Exception:
             return []
+
+
+    # ── cloud client ─────────────────────────────────────────
+
+    def validate_with_cloud(self, license_code: str, email: str = "") -> Dict[str, Any]:
+        """POST /v1/license/validate → verify signature → cache → return status."""
+        try:
+            resp = httpx.post(
+                f"{self.cloud_url}/v1/license/validate",
+                json={
+                    "license_code": license_code,
+                    "device_id": self._machine_id(),
+                    "client_version": "1.0.0",
+                    "email": email,
+                },
+                timeout=10,
+            )
+            if resp.status_code != 200:
+                return {"status": "error", "message": f"Cloud returned {resp.status_code}"}
+            data = resp.json()
+            # Verify signature
+            sig = data.get("signature", "")
+            if sig and self.public_key:
+                payload = "|".join([
+                    data.get("status", ""),
+                    data.get("tier", ""),
+                    ",".join(data.get("features", [])),
+                    data.get("expires_at", ""),
+                    str(data.get("device_limit", 0)),
+                    str(data.get("device_count", 0)),
+                    str(data.get("revoked", False)),
+                    data.get("user_email", ""),
+                    data.get("signed_at", ""),
+                ])
+                ok, _ = self._verify_signature(payload, sig)
+                if not ok:
+                    return {"status": "error", "message": "Cloud signature verification failed"}
+            # Cache the response
+            self._cache_license_state(data)
+            return data
+        except Exception as e:
+            return {"status": "error", "message": f"Cloud unreachable: {e}"}
+
+    def start_trial_cloud(self, email: str) -> Dict[str, Any]:
+        """POST /v1/trial/start → verify → cache → return status."""
+        try:
+            resp = httpx.post(
+                f"{self.cloud_url}/v1/trial/start",
+                json={"email": email, "device_id": self._machine_id()},
+                timeout=10,
+            )
+            if resp.status_code == 409:
+                data = resp.json()
+                return {"status": data.get("status", "already_used"), "trial_days_left": 0}
+            if resp.status_code != 200:
+                return {"status": "error", "message": f"Cloud returned {resp.status_code}"}
+            data = resp.json()
+            sig = data.get("signature", "")
+            if sig and self.public_key:
+                features_str = ",".join(data.get("features", []))
+                payload = f"{data.get('status','')}|{data.get('trial_days_left',0)}|{data.get('trial_end','')}|{features_str}"
+                ok, _ = self._verify_signature(payload, sig)
+                if ok:
+                    self._cache_trial_state(data)
+            return data
+        except Exception as e:
+            return {"status": "error", "message": f"Cloud unreachable: {e}"}
+
+    def get_effective_status(self) -> Dict[str, Any]:
+        """Priority: cloud-validated cache → cloud API → local fallback."""
+        # 1. Try loaded license with cloud validation
+        found, code, info = self.load_license()
+        if found and code:
+            # Check cache first
+            cached = self._load_cached_license()
+            if cached and self._is_cache_valid(cached):
+                return cached
+            # Try cloud
+            cloud_result = self.validate_with_cloud(code)
+            if cloud_result.get("status") == "valid":
+                return self._build_status(cloud_result, code)
+            # Cloud failed / invalid — fall back to local
+            ok, full = self.validate_license(code)
+            if ok:
+                return self._build_status_local(full)
+
+        # 2. Try trial
+        trial_ok, trial_info = TrialLicense.check()
+        if trial_ok:
+            return {
+                "status": "trial", "tier": "free", "tier_label": "免费版(试用中)",
+                "days_left": trial_info.get("days_left", 0),
+                "features": ["workflow"],
+                "trial_active": True, "trial_days_left": trial_info.get("days_left", 0),
+            }
+
+        # 3. Nothing
+        return {
+            "status": "no_license", "tier": "free", "tier_label": "免费版(未激活)",
+            "days_left": 0, "features": [], "trial_active": False, "trial_days_left": 0,
+            "message": "请先开始免费试用或激活许可证",
+        }
+
+    def _build_status(self, cloud_data: dict, code: str) -> dict:
+        """Convert cloud validation response to status dict."""
+        return {
+            "status": "active",
+            "tier": cloud_data.get("tier", "free"),
+            "tier_label": cloud_data.get("tier_label", ""),
+            "user_email": cloud_data.get("user_email", ""),
+            "expires_at": cloud_data.get("expires_at", ""),
+            "days_left": _compute_days_left(cloud_data.get("expires_at", "")),
+            "features": cloud_data.get("features", []),
+            "device_limit": cloud_data.get("device_limit", 1),
+            "device_count": cloud_data.get("device_count", 0),
+            "trial_active": False,
+            "trial_days_left": 0,
+            "cloud_validated": True,
+        }
+
+    def _build_status_local(self, info: dict) -> dict:
+        expiry = datetime.fromisoformat(info["expires_at"])
+        days_left = max(0, (expiry - datetime.now()).days)
+        tier = info["type"]
+        return {
+            "status": "active",
+            "tier": tier,
+            "tier_label": self.LICENSE_TYPES.get(tier, {}).get("label", tier),
+            "user_email": info.get("user_email", ""),
+            "issued_at": info.get("issued_at", ""),
+            "expires_at": info["expires_at"],
+            "days_left": days_left,
+            "features": info.get("features", []),
+            "trial_active": False,
+            "trial_days_left": 0,
+            "cloud_validated": False,
+        }
+
+    # ── cloud cache ──────────────────────────────────────────
+
+    def _cache_license_state(self, data: dict) -> None:
+        try:
+            data["cached_at"] = datetime.now().isoformat()
+            self._cache_file.write_text(json.dumps(data, ensure_ascii=False))
+        except Exception:
+            pass
+
+    def _cache_trial_state(self, data: dict) -> None:
+        # Trial state is handled via TrialLicense class
+        pass
+
+    def _load_cached_license(self) -> Optional[Dict[str, Any]]:
+        if not self._cache_file.exists():
+            return None
+        try:
+            return json.loads(self._cache_file.read_text())
+        except Exception:
+            return None
+
+    def _is_cache_valid(self, cached: dict) -> bool:
+        cached_at_str = cached.get("cached_at", "")
+        if not cached_at_str:
+            return False
+        try:
+            cached_at = datetime.fromisoformat(cached_at_str)
+            if datetime.now() - cached_at > timedelta(hours=self.CACHE_TTL_HOURS):
+                return False
+        except Exception:
+            return False
+        # Verify signature still valid
+        sig = cached.get("signature", "")
+        if sig and self.public_key:
+            payload = "|".join([
+                cached.get("status", ""), cached.get("tier", ""),
+                ",".join(cached.get("features", [])), cached.get("expires_at", ""),
+                str(cached.get("device_limit", 0)), str(cached.get("device_count", 0)),
+                str(cached.get("revoked", False)), cached.get("user_email", ""),
+                cached.get("signed_at", ""),
+            ])
+            ok, _ = self._verify_signature(payload, sig)
+            return ok
+        # No signature → accept cache (backward compat)
+        return True
 
     # ── high-level status ─────────────────────────────────────
 

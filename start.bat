@@ -21,6 +21,7 @@ setlocal
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
 set PYTHONLEGACYWINDOWSSTDIO=utf-8
+set HF_ENDPOINT=https://hf-mirror.com
 
 call .venv\Scripts\activate.bat
 if %errorlevel% neq 0 (
@@ -39,6 +40,13 @@ if not exist ".env" (
         start notepad .env
         pause
     )
+)
+
+:: 杀掉占用 8222 端口的旧进程，避免多次启动积压
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8222.*LISTENING"') do (
+    echo [INFO] Port 8222 occupied by PID %%a, killing...
+    taskkill /F /PID %%a >nul 2>&1
+    timeout /t 1 /nobreak >nul
 )
 
 echo =========================================

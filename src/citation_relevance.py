@@ -55,6 +55,8 @@ def _get_embedding_model():
     if _embedding_model is not None:
         return _embedding_model
     try:
+        import os as _os
+        _os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
         from sentence_transformers import SentenceTransformer
         model_name = "BAAI/bge-small-zh-v1.5"
         _embedding_model = SentenceTransformer(model_name)

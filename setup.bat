@@ -247,6 +247,17 @@ if "!OK!"=="0" (
 echo [OK] Dependencies installed
 
 :: ============================================
+:: Pre-download embedding model (uses mirror for China users)
+:: ============================================
+echo.
+echo Pre-downloading embedding model BAAI/bge-small-zh-v1.5 ...
+set HF_ENDPOINT=https://hf-mirror.com
+python -c "import os; os.environ.setdefault('HF_ENDPOINT','https://hf-mirror.com'); from sentence_transformers import SentenceTransformer; SentenceTransformer('BAAI/bge-small-zh-v1.5'); print('Model ready')" 2>&1
+if !errorlevel! neq 0 (
+    echo [NOTE] Could not pre-download model. First startup will try again.
+)
+
+:: ============================================
 :: Checks
 :: ============================================
 echo.

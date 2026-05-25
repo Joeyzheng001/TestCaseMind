@@ -122,6 +122,7 @@ def _get_embedding_model():
     global _embedding_model
     if _embedding_model is None:
         try:
+            os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
             from sentence_transformers import SentenceTransformer
             _embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
         except Exception:

@@ -113,8 +113,8 @@ for f in requirements.txt setup.sh .env.example; do
     fi
 done
 
-# setup.bat + start.bat for Windows
-for f in setup.bat start.bat; do
+# setup.bat + start.bat for Windows, start.sh for macOS/Linux
+for f in setup.bat start.bat start.sh; do
     if [ -f "$f" ]; then
         cp "$f" "${BUILD_DIR}/"
         echo "  ✓ $f"

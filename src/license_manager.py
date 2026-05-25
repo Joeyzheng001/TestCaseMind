@@ -55,6 +55,9 @@ class LicenseManager:
     CLOUD_CACHE_FILE = ".license_cloud_cache"
     CACHE_TTL_HOURS = 24
 
+    # 内置 fallback 公钥（防止 .env 未加载/未配置导致激活失败）
+    _BUILTIN_PUBLIC_KEY = "9ukqWcoMOX+6YmlSgYY2q8zMdgB2CqhAN8pNW/puPk4="
+
     # 5级授权体系
     LICENSE_TYPES: Dict[str, Dict[str, Any]] = {
         "free": {
@@ -186,7 +189,7 @@ class LicenseManager:
     def _load_public_key_from_env(self) -> Optional[Ed25519PublicKey]:
         value = os.getenv(self.LICENSE_PUBLIC_KEY_ENV)
         if not value:
-            return None
+            value = self._BUILTIN_PUBLIC_KEY
         return self._load_public_key(value)
 
     def _sign_payload(self, payload: str) -> str:
@@ -317,7 +320,7 @@ class LicenseManager:
                 "saved_at": datetime.now().isoformat(),
                 "machine_id": self._machine_id(),
             }
-            self.license_file.write_text(json.dumps(record, ensure_ascii=False, indent=2))
+            self.license_file.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
             # Record to history
             self.save_license_history({
                 "action": "activate",
@@ -334,7 +337,7 @@ class LicenseManager:
             return False, None, {"error": "未找到许可证"}
 
         try:
-            record = json.loads(self.license_file.read_text())
+            record = json.loads(self.license_file.read_text(encoding="utf-8"))
             code = record.get("code")
             record_machine_id = str(record.get("machine_id", ""))
             if record_machine_id and record_machine_id != self._machine_id():
@@ -364,7 +367,7 @@ class LicenseManager:
         history.append(record)
         try:
             self._history_path().write_text(
-                json.dumps(history, ensure_ascii=False, indent=2)
+                json.dumps(history, ensure_ascii=False, indent=2), encoding="utf-8"
             )
         except Exception:
             pass
@@ -374,7 +377,7 @@ class LicenseManager:
         if not p.exists():
             return []
         try:
-            return json.loads(p.read_text())
+            return json.loads(p.read_text(encoding="utf-8"))
         except Exception:
             return []
 
@@ -741,7 +744,7 @@ class TrialLicense:
             }
             f = cls._file()
             f.parent.mkdir(parents=True, exist_ok=True)
-            f.write_text(json.dumps(data, indent=2))
+            f.write_text(json.dumps(data, indent=2), encoding="utf-8")
             return True, f"免费试用已激活，{cls.TRIAL_DAYS} 天基础工作流使用"
         except Exception as e:
             return False, f"激活试用失败: {e}"
@@ -753,7 +756,7 @@ class TrialLicense:
         if not f.exists():
             return False, {"error": "未找到试用记录"}
         try:
-            data = json.loads(f.read_text())
+            data = json.loads(f.read_text(encoding="utf-8"))
             machine_id = str(data.get("machine_id", ""))
             if machine_id and machine_id != LicenseManager._machine_id():
                 return False, {"error": "试用记录绑定机器不匹配"}
@@ -776,7 +779,7 @@ class TrialLicense:
         if not f.exists():
             return False
         try:
-            data = json.loads(f.read_text())
+            data = json.loads(f.read_text(encoding="utf-8"))
             return datetime.now() > datetime.fromisoformat(data["expires_at"])
         except Exception:
             return False

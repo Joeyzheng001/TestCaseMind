@@ -1057,6 +1057,9 @@ async function loadMethods(force = false) {
     renderMethods();
   } catch (e) {
     console.error("loadMethods failed", e);
+    const msg = e.code === "LICENSE_REQUIRED" ? `方法库需要许可证：${e.message}` : `方法库加载失败：${e.message || "网络或服务异常"}`;
+    $("#methodCount").textContent = msg;
+    $("#methodList").innerHTML = `<p class="hint" style="color:var(--danger);margin:16px 0;">${escapeHtml(msg)}</p>`;
   }
 }
 
@@ -5262,6 +5265,34 @@ function bindLibraryEvents() {
   $("#libSearch").addEventListener("click", () => {
     libState.offset = 0;
     loadLibrary();
+  });
+
+  // 去重
+  $("#libDedupBtn").addEventListener("click", async () => {
+    const btn = $("#libDedupBtn");
+    btn.disabled = true;
+    btn.textContent = "检测中...";
+    try {
+      const data = await api("/api/citations/dedup", {
+        method: "POST",
+        body: JSON.stringify({ action: "remove" }),
+      });
+      const n = data.removed || 0;
+      if (n > 0) {
+        btn.textContent = `已移除 ${n} 条重复`;
+        setTimeout(() => { btn.textContent = "去重"; }, 3000);
+        libState.offset = 0;
+        loadLibrary();
+      } else {
+        btn.textContent = "无重复";
+        setTimeout(() => { btn.textContent = "去重"; }, 2000);
+      }
+    } catch (e) {
+      btn.textContent = "失败";
+      setTimeout(() => { btn.textContent = "去重"; }, 2000);
+    } finally {
+      btn.disabled = false;
+    }
   });
 
   // Edit modal controls

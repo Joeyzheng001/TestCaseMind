@@ -75,7 +75,7 @@ class AssetStore:
                 "请先运行 python3 encrypt_assets.py 生成加密资产包"
             )
 
-        manifest = json.loads(manifest_path.read_text())
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         salt = base64.urlsafe_b64decode(manifest["salt"])
         key = _derive_key(secret, salt)
         self._fernet = Fernet(key)

@@ -29,6 +29,8 @@ _DOMAIN_CONCEPT_KEYWORDS: Dict[str, List[str]] = {
     "process_optimization": ["流程优化", "流程改善", "流程改进", "开发流程"],
     "cost_management": ["成本", "成本管理", "成本控制", "成本优化", "预算"],
     "supply_chain_logistics": ["供应链", "物流", "配送", "库存", "采购", "供应商"],
+    "procurement_management": ["采购管理", "采购策略", "供应商管理", "招标", "战略采购", "合同管理"],
+    "supply_chain_optimization": ["供应链优化", "供应链协同", "需求预测", "供应链韧性", "供应链网络", "牛鞭效应"],
 }
 
 _DOMAIN_NAMES: Dict[str, str] = {
@@ -39,6 +41,8 @@ _DOMAIN_NAMES: Dict[str, str] = {
     "process_optimization": "流程优化",
     "cost_management": "成本管理",
     "supply_chain_logistics": "供应链与物流",
+    "procurement_management": "采购管理",
+    "supply_chain_optimization": "供应链优化",
 }
 
 def _build_domain_rules() -> Dict[str, Dict[str, Any]]:

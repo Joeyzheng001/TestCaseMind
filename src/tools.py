@@ -864,7 +864,7 @@ def run_command(command: str, cwd: str = None) -> str:
                 return "Python commands must run a project script; inline code and module execution are disabled."
             args[1] = str(_resolve_project_path(args[1]))
         result = subprocess.run(
-            args, cwd=safe_cwd, capture_output=True, text=True, timeout=30
+            args, cwd=safe_cwd, capture_output=True, text=True, encoding="utf-8", timeout=30
         )
         output = result.stdout if result.returncode == 0 else result.stderr
         return output[:8000]

@@ -75,7 +75,7 @@ def _cache_get(key: str) -> Optional[Dict]:
     path = CACHE_DIR / f"{key}.json"
     if path.exists():
         try:
-            data = json.loads(path.read_text())
+            data = json.loads(path.read_text(encoding="utf-8"))
             if time.time() - data.get("_ts", 0) < 86400 * 30:  # 30-day cache
                 return data
         except (json.JSONDecodeError, KeyError):
@@ -85,7 +85,7 @@ def _cache_get(key: str) -> Optional[Dict]:
 
 def _cache_set(key: str, data: Dict) -> None:
     data["_ts"] = time.time()
-    (CACHE_DIR / f"{key}.json").write_text(json.dumps(data, ensure_ascii=False))
+    (CACHE_DIR / f"{key}.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
 
 def _crossref_query_doi(doi: str) -> Optional[Dict[str, Any]]:

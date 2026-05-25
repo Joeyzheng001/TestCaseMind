@@ -51,6 +51,14 @@ PUBLIC_API_RULES: Set[Tuple[str, str]] = {
     ("GET", "/api/license/status"),
     ("POST", "/api/license/activate"),
     ("POST", "/api/license/trial"),
+    # 方法目录浏览无需许可证（只读）
+    ("GET", "/api/methodologies"),
+    ("GET", "/api/method-catalog"),
+    # 引用卡片浏览 + 适配度评分（只读）
+    ("GET", "/api/citation-cards"),
+    ("GET", "/api/citation-cards/stats"),
+    ("POST", "/api/citation-cards/relevance"),
+    ("POST", "/api/citation-cards/batch"),
 }
 
 
@@ -147,6 +155,17 @@ TASK_PERMISSION_BY_KIND = {
     SCAN_VERIFY_TASK_KIND: "paper_manager",
     PROPOSAL_TASK_KIND: "writing",
 }
+
+# 无需 API Key 即可访问的菜单（01 配置引导 + 02 论文信息 + 许可证管理）
+# 其余菜单（03 方法论起）一律要求用户先配置 API Key
+_API_KEY_EXEMPT_MENUS: Set[str] = {"setup", "paper_info", "license"}
+
+
+def menu_requires_api_key(menu_id: Optional[str]) -> bool:
+    """返回 True 表示该菜单需要 API Key 才能使用。"""
+    if menu_id is None:
+        return False  # 公开 API，不拦截
+    return menu_id not in _API_KEY_EXEMPT_MENUS
 
 
 def normalize_api_path(api_path: str) -> str:

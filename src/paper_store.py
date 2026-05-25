@@ -150,8 +150,22 @@ def upsert_paper(paper: Dict[str, Any], db_path: Optional[Path] = None) -> str:
     return doc_id
 
 
+def _normalize_title_for_dedup(title: str) -> str:
+    """Normalize title for dedup comparison — shared across all insert paths."""
+    if not title:
+        return ""
+    s = title.lower().strip()
+    s = re.sub(r'[，,、､]\s*', ', ', s)
+    s = re.sub(r'[。．.]\s*', '. ', s)
+    s = re.sub(r'([一-鿿])([a-zA-Z])', r'\1 \2', s)
+    s = re.sub(r'([a-zA-Z])([一-鿿])', r'\1 \2', s)
+    s = re.sub(r'\s+', ' ', s)
+    s = re.sub(r'[\[\]【】（）()「」『』《》""\'\'""“”‘’]', '', s)
+    return s.strip().rstrip(',.;;.，。．：:！!？?')
+
+
 def upsert_citation_card(card: Dict[str, Any], db_path: Optional[Path] = None) -> str:
-    """插入或更新一张引用卡片。"""
+    """插入或更新一张引用卡片。按标题自动去重。"""
     import re
     import sqlite3
 
@@ -168,6 +182,15 @@ def upsert_citation_card(card: Dict[str, Any], db_path: Optional[Path] = None) -
         parts = re.split(r"(?:浙江大学)?附录[一二三四五六七八九十\d]*[：:\s]?", formatted, maxsplit=1)
         if len(parts) > 1 and len(parts[0].strip()) > 10:
             formatted = parts[0].strip()
+
+    # 按标准化标题去重：如果已存在同标题卡片，跳过插入，返回已有 card_id
+    title = card.get("title", "")
+    if title:
+        norm = _normalize_title_for_dedup(title)
+        for row in conn.execute("SELECT card_id, title FROM citation_cards").fetchall():
+            if _normalize_title_for_dedup(str(row[1] or "")) == norm:
+                conn.close()
+                return str(row[0])  # 已有卡片，返回已有 ID
 
     conn.execute("""
         INSERT OR REPLACE INTO citation_cards (

@@ -119,6 +119,17 @@ if [ ! -f ".env" ] && [ -f ".env.example" ]; then
     printf "${YELLOW}! 配置文件已创建，请编辑 .env 填写 API Key${NC}\n"
 fi
 
+# ── 预下载 Embedding 模型（国内走镜像，避免首次启动卡住）──
+echo ""
+echo "预下载向量模型 BAAI/bge-small-zh-v1.5 ..."
+export HF_ENDPOINT="${HF_ENDPOINT:-https://hf-mirror.com}"
+python3 -c "
+import os; os.environ.setdefault('HF_ENDPOINT', 'https://hf-mirror.com')
+from sentence_transformers import SentenceTransformer
+SentenceTransformer('BAAI/bge-small-zh-v1.5')
+print('✓ 模型就绪')
+" 2>&1 || echo -e "${YELLOW}注意: 模型下载失败，部分功能启动时可能较慢${NC}"
+
 # ── 中文字体检测 ──
 echo ""
 if [[ "$OSTYPE" == "darwin"* ]]; then

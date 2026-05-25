@@ -592,6 +592,8 @@ DIRECTIONS = [
     {"id": "resource_management", "name": "资源管理", "desc": "管理项目人力、设备和物资资源，包括资源规划、资源分配、资源平衡和团队建设"},
     {"id": "communication_management", "name": "沟通管理", "desc": "管理项目信息传递和沟通机制，包括沟通规划、信息分发、绩效报告和相关方沟通"},
     {"id": "stakeholder_management", "name": "相关方管理", "desc": "管理项目相关方期望和参与，包括相关方识别、参与规划、期望管理和冲突协调"},
+    {"id": "procurement_management", "name": "采购管理", "desc": "管理采购全流程，包括采购策略、供应商评估与选择、招标管理、合同管理和战略采购"},
+    {"id": "supply_chain_optimization", "name": "供应链优化", "desc": "优化供应链网络与协同，包括需求预测、库存优化、供应链韧性、牛鞭效应和供应链协同管理"},
 ]
 
 WORD_WEIGHTS = {
@@ -709,6 +711,8 @@ _CITATION_DIRECTION_DOMAIN_KEYWORDS: Dict[str, List[str]] = {
     "resource_management": ["资源", "人力", "团队", "技能", "培训"],
     "communication_management": ["沟通", "会议", "信息传递", "报告"],
     "stakeholder_management": ["相关方", "利益相关", "冲突", "期望"],
+    "procurement_management": ["采购", "招标", "供应商", "合同", "战略采购", "采购策略"],
+    "supply_chain_optimization": ["供应链优化", "供应链协同", "需求预测", "供应链韧性", "牛鞭效应", "网络设计"],
 }
 
 def _build_citation_directions() -> Dict[str, List[str]]:
@@ -1048,6 +1052,22 @@ def _check_license_api(handler, api_path: str) -> bool:
     allowed, reason = manager.can_access_api(api_path, method=getattr(handler, "command", "GET"))
     if not allowed:
         _json_response(handler, {"error": reason, "code": "LICENSE_REQUIRED"}, status=403)
+        return False
+    return True
+
+
+def _check_api_key_configured(handler, api_path: str) -> bool:
+    """检查是否已配置 API Key。未配置时阻止 03+ 菜单使用。"""
+    from src.api_registry import resolve_api_menu, menu_requires_api_key
+    menu_id = resolve_api_menu(api_path, method=getattr(handler, "command", "GET"))
+    if not menu_requires_api_key(menu_id):
+        return True
+    config = load_llm_config()
+    if not config.api_key or config.api_key in ("your_api_key_here", "YOUR_API_KEY_HERE"):
+        _json_response(handler, {
+            "error": "请先在「基本配置」中填写 API Key 后再使用此功能",
+            "code": "API_KEY_REQUIRED",
+        }, status=403)
         return False
     return True
 
@@ -2185,12 +2205,12 @@ def _normalize_title(title: str) -> str:
     """Normalize title for dedup comparison."""
     s = title.lower().strip()
     s = re.sub(r'[，,、､]\s*', ', ', s)   # All commas → ', '
-    s = re.sub(r'\.\s*', '. ', s)         # Periods → '. '
+    s = re.sub(r'[。．.]\s*', '. ', s)     # All periods → '. '
     s = re.sub(r'([一-鿿])([a-zA-Z])', r'\1 \2', s)  # CJK-Latin boundary
     s = re.sub(r'([a-zA-Z])([一-鿿])', r'\1 \2', s)  # Latin-CJK boundary
     s = re.sub(r'\s+', ' ', s)            # Collapse whitespace
-    s = re.sub(r'[\[\]【】（）()]', '', s)
-    return s.strip().rstrip(',.;;.')
+    s = re.sub(r'[\[\]【】（）()「」『』《》""\'\'""]', '', s)
+    return s.strip().rstrip(',.;;.，。．：:！!？?')
 
 
 def _cards_to_citations(cards: List[Dict[str, Any]], source: str = "local") -> List[Dict[str, Any]]:
@@ -2260,10 +2280,33 @@ def generate_citations(payload: Dict[str, Any], task_id: str = "") -> Dict[str, 
     )
     citations = hunter_result.get("citations", [])
 
+    # ── 去重：与已有引用卡片对比标题 ──
+    _dedup_before = len(citations)
+    if citations:
+        from src.paper_store import PAPER_DB_PATH as _PAPER_DB_PATH
+        import sqlite3 as _sql
+        _conn = _sql.connect(str(_PAPER_DB_PATH))
+        _existing_titles = set()
+        for _row in _conn.execute("SELECT title FROM citation_cards").fetchall():
+            _t = str(_row[0] or "").strip()
+            if _t:
+                _existing_titles.add(_normalize_title(_t))
+        _conn.close()
+        _deduped = []
+        for _c in citations:
+            _ct = _c.get("title", "") or _c.get("formatted", "")
+            if _normalize_title(_ct) not in _existing_titles:
+                _deduped.append(_c)
+                _existing_titles.add(_normalize_title(_ct))
+        _removed = _dedup_before - len(_deduped)
+        if _removed > 0 and task_id:
+            task_log(task_id, f"去重：移除 {_removed} 篇与已有引用重复的文献")
+        citations = _deduped
+
     if task_id:
         task_log(
             task_id,
-            f"检索完成：候选 {hunter_result.get('candidate_count', 0)} 篇，精选 {len(citations)} 篇",
+            f"检索完成：候选 {hunter_result.get('candidate_count', 0)} 篇，精选 {len(citations)} 篇（去重前 {_dedup_before} 篇）",
         )
         with TASK_LOCK:
             TASKS[task_id]["progress"] = 95
@@ -3323,47 +3366,12 @@ def _normalize_llm_outline(raw: Dict[str, Any], topic: str) -> Dict[str, Any]:
 def generate_llm_outline(
     payload: Dict[str, Any], total_words: int, task_id: str = ""
 ) -> Dict[str, Any]:
-    started_at = time.monotonic()
     topic = payload.get("topic", "未命名")
     project_context = persist_project_context(payload)
     direction = payload.get("direction_name") or payload.get("direction", "工程管理")
     domain_template = load_domain_template(payload.get("direction", ""))
     methods = payload.get("methods", [])
     phase_methods = payload.get("phase_methods", {})
-    if task_id:
-        task_log(task_id, "正在检索研究方向相关论文...")
-    # Step 1: 研究方向优先 — 检索与研究方向相关的论文
-    dir_query = f"{direction} 工程管理 硕士论文 研究"
-    dir_refs = search_knowledge_base(dir_query, limit=4).get("results", [])
-    dir_refs = _filter_references_by_topic(topic, dir_refs, limit=3)
-
-    # Step 2: 方法相关 — 为每个已选方法检索相关论文
-    method_refs: List[Dict[str, Any]] = []
-    seen_paths = {item.get("path", "") for item in dir_refs}
-    if task_id:
-        task_log(task_id, f"研究方向检索命中 {len(dir_refs)} 篇，继续检索方法相关论文...")
-    for method in methods[:5]:
-        m_query = f"{method} 工程管理 论文 研究"
-        m_results = search_knowledge_base(m_query, limit=2).get("results", [])
-        for item in m_results:
-            if item.get("path", "") not in seen_paths:
-                method_refs.append(item)
-                seen_paths.add(item.get("path", ""))
-        if len(method_refs) >= 6:
-            break
-
-    # 合并：方向论文在前，方法论文在后
-    references = dir_refs + method_refs[:6]
-    if task_id:
-        titles = "、".join(item.get("title", "未命名资料") for item in references[:4])
-        task_log(
-            task_id,
-            f"知识库检索完成，用时 {time.monotonic() - started_at:.1f}s；方向论文 {len(dir_refs)} 篇 + 方法论文 {len(method_refs[:6])} 篇：{titles or '无高相关资料'}",
-        )
-    reference_text = "\n\n".join(
-        f"[资料{idx}] {item.get('title')} / {item.get('path')}\n{item.get('content', '')[:260]}"
-        for idx, item in enumerate(references, 1)
-    )
     template_text = json.dumps(
         {
             "方向": domain_template.get("name", direction),
@@ -3389,13 +3397,31 @@ def generate_llm_outline(
     except Exception:
         pass
 
+    # ── 一致性引擎：记忆 + 方法上下文 ──
+    memory = load_workspace_value("thesis_memory", {})
+    memory_brief = {
+        "research_context": memory.get("research_context", {}),
+        "project_context": project_context[:800],
+        "terminology": memory.get("terminology", {}),
+        "outline_summary": memory.get("outline_summary", []),
+    }
+    method_context = build_method_context(
+        chapter={},
+        selected_methods=methods if isinstance(methods, list) else [],
+        discipline="mem",
+        domain=direction,
+        stage="outline_generation",
+        max_cards=3,
+    )
+    method_context = method_context.replace("{", "{{").replace("}", "}}")
+
     config = load_llm_config()
     if not config.api_key:
         raise RuntimeError("未配置 API Key")
     if task_id:
         task_log(
             task_id,
-            f"正在调用大模型：{config.provider}/{config.model}；已压缩知识库上下文",
+            f"正在调用大模型：{config.provider}/{config.model}",
         )
 
     client, provider = _build_llm_client_and_provider(config)
@@ -3424,8 +3450,11 @@ def generate_llm_outline(
 项目背景与论文思路：
 {project_context[:3200] or "用户未填写。"}
 
-本地知识库参考：
-{reference_text or "未检索到高相关资料。"}
+论文长期记忆（基准事实，节标题必须与此一致）：
+{json.dumps(memory_brief, ensure_ascii=False)[:2000]}
+
+方法使用规范（节标题必须体现对应方法的定位）：
+{method_context[:1500]}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -4169,7 +4198,9 @@ def _generate_proposal_section(
     project_approach = context["project_approach"]
     ch1_content = context["ch1_content"]
     ch2_content = context["ch2_content"]
-    lit_text = context["lit_text"]
+    memory_brief = context.get("memory_brief", "")
+    commitment_brief = context.get("commitment_brief", "")
+    method_context = context.get("method_context", "")
     citations = context["citations"]
     citation_count = len(citations)
 
@@ -4200,8 +4231,14 @@ def _generate_proposal_section(
 论文思路：{project_approach[:1500] or "未填写。"}
 第一章内容摘要：{ch1_content[:1500] or "尚未撰写。"}
 第二章内容摘要：{ch2_content[:1500] or "尚未撰写。"}
-知识库参考：{lit_text[:1000] or "无。"}
 
+论文长期记忆（基准事实，必须与此一致）：
+{memory_brief[:1500] or "暂无。"}
+
+{commitment_brief}
+
+方法使用规范：
+{method_context[:1200] or "暂无。"}
 ---
 当前部分：{section_title}
 内容要求：
@@ -4264,13 +4301,26 @@ def _run_proposal_task(task_id: str, payload: Dict[str, Any]) -> None:
             else:
                 ch2_content = content
 
-        lit_results = search_knowledge_base(f"{topic} {direction} 研究综述 文献", limit=6).get("results", [])
-        lit_text = "\n".join(
-            f"- {item.get('title','')}: {str(item.get('content',''))[:200]}"
-            for item in lit_results
-        )
-
         citations = load_workspace_value("citations", []) or []
+
+        # ── 一致性引擎 ──
+        memory = load_workspace_value("thesis_memory", {})
+        memory_brief = json.dumps({
+            "research_context": memory.get("research_context", {}),
+            "project_context": project_context[:800],
+            "outline_summary": memory.get("outline_summary", []),
+            "terminology": memory.get("terminology", {}),
+        }, ensure_ascii=False)[:2000]
+        commitment_brief = build_commitment_brief(memory)
+        method_context = build_method_context(
+            chapter={},
+            selected_methods=methods if isinstance(methods, list) else [],
+            discipline="mem",
+            domain=direction,
+            stage="proposal_generation",
+            max_cards=3,
+        )
+        method_context = method_context.replace("{", "{{").replace("}", "}}")
 
         client, provider = _build_llm_client_and_provider(config)
 
@@ -4282,8 +4332,10 @@ def _run_proposal_task(task_id: str, payload: Dict[str, Any]) -> None:
             "project_approach": project_approach,
             "ch1_content": ch1_content,
             "ch2_content": ch2_content,
-            "lit_text": lit_text,
             "citations": citations,
+            "memory_brief": memory_brief,
+            "commitment_brief": commitment_brief,
+            "method_context": method_context,
         }
 
         sections = [
@@ -4499,6 +4551,14 @@ def _generate_ppt_task(task_id: str, ppt_type: str, payload: Dict[str, Any]) -> 
         log("📋 阶段 1/3：分析论文内容，生成设计规格...")
         TASKS[task_id]["progress"] = 10
 
+        # ── 一致性引擎 ──
+        ppt_memory = load_workspace_value("thesis_memory", {})
+        ppt_memory_brief = json.dumps({
+            "research_context": ppt_memory.get("research_context", {}),
+            "outline": ppt_memory.get("outline_summary", [])[:12],
+            "terminology": ppt_memory.get("terminology", {}),
+        }, ensure_ascii=False)[:1500]
+
         design_prompt = f"""你是一位学术答辩PPT设计专家。请分析以下论文内容，生成设计规格。
 
 论文题目：{topic}
@@ -4507,6 +4567,9 @@ def _generate_ppt_task(task_id: str, ppt_type: str, payload: Dict[str, Any]) -> 
 项目背景：{project_context[:800] or "未填写"}
 
 {content_body[:6000]}
+
+论文长期记忆（幻灯片结构必须与此一致）：
+{ppt_memory_brief or "暂无。"}
 
 请以 JSON 格式输出设计规格（只输出JSON）：
 {{
@@ -4623,6 +4686,14 @@ def _generate_ppt_phase2(task_id: str, ppt_type: str, payload: Dict[str, Any],
         config = load_llm_config()
         client, provider = _build_llm_client_and_provider(config)
 
+        # ── 一致性引擎 ──
+        svg_memory = load_workspace_value("thesis_memory", {})
+        svg_memory_brief = json.dumps({
+            "research_context": svg_memory.get("research_context", {}),
+            "terminology": svg_memory.get("terminology", {}),
+            "outline": svg_memory.get("outline_summary", [])[:8],
+        }, ensure_ascii=False)[:1200]
+
         # ── Phase 2: Generate SVG slides ──
         log(f"📝 阶段 2/3：逐页生成 SVG 幻灯片（共 {len(slides_spec)} 页）...")
 
@@ -4656,6 +4727,9 @@ def _generate_ppt_phase2(task_id: str, ppt_type: str, payload: Dict[str, Any],
 幻灯片名称：{slide_name}
 幻灯片描述：{slide_desc}
 布局类型：{layout_hint}
+
+论文基准信息（术语、结构必须与此一致）：
+{svg_memory_brief or "暂无。"}
 
 设计参数：
 - 画布：1280×720 (viewBox="0 0 1280 720")
@@ -4889,13 +4963,6 @@ def _supplement_method(payload: Dict[str, Any]) -> Dict[str, Any]:
     if not method_name:
         return {"status": "error", "message": "方法名称为空。"}
 
-    # Search knowledge base for related references
-    kb_results = search_knowledge_base(f"{method_name} 方法论 应用", limit=4).get("results", [])
-    kb_text = "\n".join(
-        f"- {r.get('title','')}: {str(r.get('content',''))[:400]}"
-        for r in kb_results
-    )
-
     # Attempt web search for authoritative sources
     web_snippets = ""
     try:
@@ -4916,13 +4983,20 @@ def _supplement_method(payload: Dict[str, Any]) -> Dict[str, Any]:
 
     client, provider = _build_llm_client_and_provider(config)
 
+    # ── 一致性引擎 ──
+    _research_ctx = json.dumps(
+        load_workspace_value("thesis_memory", {}).get("research_context", {}),
+        ensure_ascii=False,
+    )[:600]
+    _research_ctx = _research_ctx.replace("{", "{{").replace("}", "}}")
+
     prompt = f"""你是一位工程管理研究方法专家。请为「{method_name}」生成一份完整的研究方法卡片。
 
 该方法用于工程管理硕士（MEM）论文，研究方向是「{direction}」。
 {f'该方法也被称为：{aliases_str}' if aliases_str else ''}
 
-知识库相关参考资料：
-{kb_text[:2000] or "无相关知识库资料。"}
+论文背景参考：
+{_research_ctx or "未设定。"}
 
 请严格按照以下14个部分输出方法卡内容：
 
@@ -5298,14 +5372,6 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
         # Escape LaTeX braces so they don't break the outer f-string
         formula_guidance = formula_guidance.replace("{", "{{").replace("}", "}}")
 
-    query = f"{topic} {title}"
-
-    raw_refs = search_knowledge_base(query, limit=8).get("results", [])
-    references = _filter_references_by_topic(topic, raw_refs, limit=4)
-    reference_text = "\n\n".join(
-        f"[资料{idx}] {item.get('title')} / {item.get('path')}\n{item.get('content', '')[:700]}"
-        for idx, item in enumerate(references, 1)
-    )
     citations = payload.get("citations", None)
     if citations is None:
         citations = load_workspace_value("citations", []) or []
@@ -5376,8 +5442,6 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
     _unresolved = _esc(unresolved_warning)
     _citation_rule = _esc(citation_rule)
     _citation_section = _esc(citation_section)
-    _ref_text = _esc(reference_text or "未检索到高相关资料。")
-
     if allow_formulas:
         _formula_rule = (
             "8. LaTeX 数学公式规范（严格遵守）："
@@ -5439,9 +5503,6 @@ def local_expand(payload: Dict[str, Any], rewrite: bool = False) -> Dict[str, An
 {_formula_rule}
 9. 不要输出"以下是"等寒暄，直接给正文。
 {_citation_section}
-
-本地知识库参考：
-{_ref_text}
 """
     try:
         response = _llm_create_message(
@@ -6182,6 +6243,8 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
             path = self.path.split("?", 1)[0].rstrip("/") or "/"
             if path.startswith("/api/") and not _check_license_api(self, path):
                 return
+            if path.startswith("/api/") and not _check_api_key_configured(self, path):
+                return
             if path == "/api/outlines":
                 from urllib.parse import parse_qs, urlparse
                 qs = parse_qs(urlparse(self.path).query)
@@ -6537,6 +6600,8 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
             path = self.path.split("?", 1)[0].rstrip("/") or "/"
             if path.startswith("/api/") and not _check_license_api(self, path):
                 return
+            if path.startswith("/api/") and not _check_api_key_configured(self, path):
+                return
 
             # Multipart upload handling (paper upload)
             content_type = self.headers.get("Content-Type", "")
@@ -6571,6 +6636,12 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 }
                 if api_key:
                     values["ANTHROPIC_API_KEY"] = api_key
+                # 先直接设 os.environ，避免 Windows 文件回读延迟导致紧接着的测试连接失败
+                for k, v in values.items():
+                    if v:
+                        os.environ[k] = v
+                    elif k in os.environ:
+                        del os.environ[k]
                 _write_env_values(values)
                 from dotenv import load_dotenv as _reload_dotenv
                 _reload_dotenv(ENV_PATH, override=True)
@@ -7540,29 +7611,53 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/citations/dedup":
-                texts = payload.get("texts", [])
-                if not texts:
-                    _json_response(self, {"duplicates": []})
-                    return
+                action = payload.get("action", "check")  # "check" or "remove"
                 import sqlite3 as _sqlite3
                 from src.paper_store import PAPER_DB_PATH as _PAPER_DB
                 _conn = _sqlite3.connect(str(_PAPER_DB))
-                dupes = set()
-                for text in texts:
-                    key = text.strip()[:200]
-                    if key:
-                        row = _conn.execute(
-                            "SELECT 1 FROM citation_cards WHERE formatted LIKE ? LIMIT 1",
-                            (f"%{key[:80]}%",),
-                        ).fetchone()
-                        if row:
-                            dupes.add(text)
+                _conn.row_factory = _sqlite3.Row
+                _all = _conn.execute(
+                    "SELECT card_id, title, formatted, quality_score FROM citation_cards ORDER BY created_at"
+                ).fetchall()
                 _conn.close()
-                # Also check against paper library
-                library = _load_workspace_raw("paper_citations", [])
-                lib_texts = {c.get("formatted", "") for c in library}
-                dupes |= {t for t in texts if t in lib_texts}
-                _json_response(self, {"duplicates": list(dupes)})
+                # Group by normalized title
+                _groups: Dict[str, list] = {}
+                for _r in _all:
+                    _title = str(_r["title"] or "").strip()
+                    if not _title:
+                        continue
+                    _norm = _normalize_title(_title)
+                    _groups.setdefault(_norm, []).append(dict(_r))
+                # Build duplicate list
+                _dupes = []
+                _remove_ids = []
+                for _norm, _cards in _groups.items():
+                    if len(_cards) <= 1:
+                        continue
+                    _cards.sort(key=lambda c: c.get("quality_score", 0) or 0, reverse=True)
+                    _best = _cards[0]
+                    for _dup in _cards[1:]:
+                        _dupes.append({
+                            "card_id": _dup["card_id"],
+                            "title": _dup["title"],
+                            "best_card_id": _best["card_id"],
+                            "best_title": _best["title"],
+                        })
+                        _remove_ids.append(_dup["card_id"])
+                if action == "remove" and _remove_ids:
+                    _conn2 = _sqlite3.connect(str(_PAPER_DB))
+                    _placeholders = ",".join("?" * len(_remove_ids))
+                    _conn2.execute(
+                        f"DELETE FROM citation_cards WHERE card_id IN ({_placeholders})",
+                        _remove_ids,
+                    )
+                    _conn2.commit()
+                    _conn2.close()
+                _json_response(self, {
+                    "duplicates": _dupes,
+                    "total_duplicates": len(_dupes),
+                    "removed": len(_remove_ids) if action == "remove" else 0,
+                })
                 return
 
             if path == "/api/citation-cards/insert":
@@ -7571,11 +7666,25 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                 if not citations:
                     _json_response(self, {"status": "ok", "inserted": 0})
                     return
+                # 预加载已有标题做去重
+                import sqlite3 as _sqlite3
+                _conn2 = _sqlite3.connect(str(_PAPER_DB2))
+                _existing = set()
+                for _r in _conn2.execute("SELECT title FROM citation_cards").fetchall():
+                    _t = str(_r[0] or "").strip()
+                    if _t:
+                        _existing.add(_normalize_title(_t))
+                _conn2.close()
                 inserted = 0
+                skipped = 0
                 for c in citations:
+                    _title = c.get("title", c.get("formatted", "")[:120]).strip()
+                    if _title and _normalize_title(_title) in _existing:
+                        skipped += 1
+                        continue
                     card = {
                         "formatted": _clean_citation_formatted(c.get("formatted", "")),
-                        "title": c.get("title", c.get("formatted", "")[:120]),
+                        "title": _title,
                         "authors": c.get("authors", ""),
                         "year": c.get("year", ""),
                         "ref_type": c.get("ref_type", "期刊文章"),
@@ -7589,8 +7698,10 @@ class ThesisMindHandler(BaseHTTPRequestHandler):
                         "source_section": c.get("source_section", "用户添加"),
                     }
                     _upsert(card, db_path=_PAPER_DB2)
+                    if _title:
+                        _existing.add(_normalize_title(_title))
                     inserted += 1
-                _json_response(self, {"status": "ok", "inserted": inserted})
+                _json_response(self, {"status": "ok", "inserted": inserted, "skipped_duplicates": skipped})
                 return
 
             if path == "/api/citation-cards/parse-and-add":

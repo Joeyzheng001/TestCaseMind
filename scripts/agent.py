@@ -268,7 +268,7 @@ def load_skill(name: str) -> str:
     skill_file = find_skill_file(name)
     if not skill_file.exists():
         return f"[Skill '{name}' 不存在]"
-    text = skill_file.read_text(encoding="utf-8")
+    text = skill_file.safe_read_text()
     match = re.match(r"^---\n(.*?)\n---\n(.*)", text, re.DOTALL)
     body = match.group(2).strip() if match else text
     return f'<skill name="{name}">\n{body}\n</skill>'
@@ -291,9 +291,21 @@ def safe_path(p: str) -> Path:
     return path
 
 
+def safe_read_text(p: Path) -> str:
+    """读取文本文件，先试 UTF-8，失败回退 GBK，最后用 UTF-8 + replace 兜底。"""
+    raw = p.read_bytes()
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        try:
+            return raw.decode("gbk")
+        except UnicodeDecodeError:
+            return raw.decode("utf-8", errors="replace")
+
+
 def run_read(path: str, limit: int = None) -> str:
     try:
-        lines = safe_path(path).read_text(encoding="utf-8").splitlines()
+        lines = safe_path(path).safe_read_text().splitlines()
         if limit and limit < len(lines):
             lines = lines[:limit] + [f"...（省略 {len(lines)-limit} 行）"]
         return "\n".join(lines)[:50000]
@@ -307,7 +319,7 @@ def run_bash(command: str) -> str:
         return "Error: 危险命令被拦截"
     try:
         r = subprocess.run(command, shell=True, cwd=WORKDIR,
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         out = (r.stdout + r.stderr).strip()
         return out[:20000] if out else "(无输出)"
     except subprocess.TimeoutExpired:
@@ -554,7 +566,7 @@ def stage1_review(req_path: Path, memory=None) -> dict:
         "以 { 开头以 } 结尾，不含任何其他文字、代码块或 markdown 标记。"
     )
     # 用向量检索找相关历史经验（比全量注入更精准）
-    req_preview = req_path.read_text(encoding="utf-8")[:500] if req_path.exists() else ""
+    req_preview = req_path.safe_read_text()[:500] if req_path.exists() else ""
     if memory:
         try:
             from memory_rag import MemoryRAG as _MR
@@ -578,7 +590,7 @@ def stage1_review(req_path: Path, memory=None) -> dict:
     review_tmp = OUTPUT_DIR / "_review_tmp.json"
     if review_tmp.exists():
         try:
-            raw = review_tmp.read_text(encoding="utf-8")
+            raw = review_tmp.safe_read_text()
             review_tmp.unlink(missing_ok=True)
             data = extract_json(raw, fallback={})
             if data and isinstance(data, dict):
@@ -707,13 +719,13 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
     skill_path = find_skill_file("testpoint-gen")
     if skill_path.exists():
         try:
-            skill_text = skill_path.read_text(encoding="utf-8")
+            skill_text = skill_path.safe_read_text()
         except Exception:
             pass
 
     # ── 阶段 A：拆分文档，分批生成 REQ 测试点 ─────────────────────────────
     print(f"\n  [测试点-需求文档] 分批模式启动...")
-    doc_text = req_path.read_text(encoding="utf-8")
+    doc_text = req_path.safe_read_text()
     sections = _split_doc_by_sections(doc_text)
     print(f"  文档拆分为 {len(sections)} 个章节: {[t for t, _ in sections]}")
 
@@ -774,7 +786,7 @@ def stage2_testpoints(req_path: Path, review: dict, use_kb: bool, memory=None) -
     try:
         retriever  = get_cached_retriever(KB_DIR)
         # 用需求文档内容 + 评审结果做检索查询
-        req_text   = req_path.read_text(encoding="utf-8")
+        req_text   = req_path.safe_read_text()
         review_str = json.dumps(review, ensure_ascii=False)
         query      = f"{req_path.stem}\n{req_text[:1000]}\n{review_str[:500]}"
         with timed_stage("rag.kb_search", "知识库 RAG 检索"):
@@ -894,7 +906,7 @@ def stage3_testcases_batch(batch: list, batch_no: int, case_id_start: int,
     skill_path = find_skill_file("testcase-gen")
     if skill_path.exists():
         try:
-            skill_text = skill_path.read_text(encoding="utf-8")
+            skill_text = skill_path.safe_read_text()
         except Exception:
             pass
 
@@ -1541,7 +1553,7 @@ def _extract_section(req_path: Path, keyword: str) -> str:
     支持 Markdown # ## ### 标题层级。
     """
     try:
-        text = req_path.read_text(encoding="utf-8")
+        text = req_path.safe_read_text()
     except Exception:
         return ""
 
@@ -1627,7 +1639,7 @@ def _normalize_section_text(text: str) -> str:
 def _list_section_titles(req_path: Path) -> list[str]:
     """列出 Markdown 标题，供章节找不到时提示候选。"""
     try:
-        text = req_path.read_text(encoding="utf-8")
+        text = req_path.safe_read_text()
     except Exception:
         return []
     titles = []
@@ -1666,7 +1678,7 @@ def _load_section_filter_keywords() -> list:
     config_path = WORKDIR / "config" / "section_filter.json"
     try:
         if config_path.exists():
-            data = _json.loads(config_path.read_text(encoding="utf-8"))
+            data = _json.loads(config_path.safe_read_text())
             keywords = data.get("non_core_keywords", [])
             if keywords:
                 return keywords
@@ -1702,7 +1714,7 @@ def _split_sections(req_path: Path, min_lines: int = 5,
 
     # ── 解析所有章节 ──────────────────────────────────────────────────────────
     try:
-        text = req_path.read_text(encoding="utf-8")
+        text = req_path.safe_read_text()
     except Exception:
         return []
 
@@ -1881,18 +1893,18 @@ def main():
                 if docx2md_script.exists():
                     r = _sp.run(
                         [sys.executable, str(docx2md_script), str(req_path), "-o", str(md_path)],
-                        capture_output=True, text=True, timeout=120
+                        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120
                     )
                     if r.returncode != 0 or not md_path.exists():
                         # 降级 pandoc
                         r = _sp.run(
                             ["pandoc", str(req_path), "-t", "markdown", "-o", str(md_path)],
-                            capture_output=True, text=True
+                            capture_output=True, text=True, encoding="utf-8", errors="replace"
                         )
                 else:
                     r = _sp.run(
                         ["pandoc", str(req_path), "-t", "markdown", "-o", str(md_path)],
-                        capture_output=True, text=True
+                        capture_output=True, text=True, encoding="utf-8", errors="replace"
                     )
                 if r.returncode != 0 or not md_path.exists():
                     print(f"  [错误] 转换失败: {r.stderr[:200]}")
